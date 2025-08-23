@@ -18,7 +18,7 @@ export default function Home() {
           <div className="row align-items-center">
             <div className="col-lg-8">
               <p className="mb-0 fw-medium">
-                FUNDEDNEXT offers up to 150% profit share from day 1. No time limit, no consistency rule, and no minimum trading days.
+                Treading Hub offers up to 150% profit share from day 1. No time limit, no consistency rule, and no minimum trading days.
               </p>
             </div>
             <div className="col-lg-4 text-lg-end">

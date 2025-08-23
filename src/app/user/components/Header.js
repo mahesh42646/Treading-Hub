@@ -27,7 +27,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="navbar-brand d-flex align-items-center" style={{ color: '#ffffff', textDecoration: 'none' }}>
           <span className="fw-bold fs-3" style={{ color: '#ffffff' }}>
-            FUNDEDNEXT
+          Treading Hub
           </span>
         </Link>
 

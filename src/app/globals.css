@@ -40,3 +40,58 @@ a {
     color-scheme: dark;
   }
 }
+
+/* FUNDEDNEXT Custom Styles */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-outline-primary {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}
+
+.btn-outline-primary:hover {
+  background-color: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+}
+
+.text-primary {
+  color: #8b5cf6 !important;
+}
+
+.bg-primary {
+  background-color: #8b5cf6 !important;
+}
+
+/* Custom gradient backgrounds */
+.gradient-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+}
+
+/* Card shadows */
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Button styles */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}

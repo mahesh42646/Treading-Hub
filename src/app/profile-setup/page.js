@@ -21,12 +21,8 @@ const ProfileSetup = () => {
     dateOfBirth: '',
     country: '',
     city: '',
-    phone: '',
-    panCardImage: null,
-    panCardNumber: ''
+    phone: ''
   });
-
-  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -66,40 +62,7 @@ const ProfileSetup = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError('Image size should be less than 5MB');
-        return;
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        panCardImage: file
-      }));
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const extractPanNumber = async (imageFile) => {
-    // This is a placeholder for OCR functionality
-    // In a real implementation, you would use a service like Google Vision API or Tesseract.js
-    // For now, we'll return a mock function
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Mock PAN number extraction
-        const mockPanNumber = 'ABCDE1234F';
-        resolve(mockPanNumber);
-      }, 1000);
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -111,31 +74,30 @@ const ProfileSetup = () => {
       // Validate required fields
       if (!formData.firstName || !formData.lastName || !formData.gender || 
           !formData.dateOfBirth || !formData.country || !formData.city || 
-          !formData.phone || !formData.panCardImage) {
+          !formData.phone) {
         setError('Please fill in all required fields');
         setSubmitting(false);
         return;
       }
 
-      // Extract PAN number from image
-      const extractedPanNumber = await extractPanNumber(formData.panCardImage);
-      
-      // Create FormData for file upload
-      const submitData = new FormData();
-      submitData.append('uid', user.uid);
-      submitData.append('firstName', formData.firstName);
-      submitData.append('lastName', formData.lastName);
-      submitData.append('gender', formData.gender);
-      submitData.append('dateOfBirth', formData.dateOfBirth);
-      submitData.append('country', formData.country);
-      submitData.append('city', formData.city);
-      submitData.append('phone', formData.phone);
-      submitData.append('panCardImage', formData.panCardImage);
-      submitData.append('panCardNumber', extractedPanNumber);
+      // Create profile data (no PAN card)
+      const profileData = {
+        uid: user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        country: formData.country,
+        city: formData.city,
+        phone: formData.phone
+      };
 
       const response = await fetch('http://localhost:9988/api/users/profile-setup', {
         method: 'POST',
-        body: submitData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
       });
 
       const data = await response.json();
@@ -360,46 +322,20 @@ const ProfileSetup = () => {
                   />
                 </div>
 
-                <div className="mb-3">
-                  <label htmlFor="panCardImage" className="form-label text-white">PAN Card Image (Optional)</label>
-                  <input
-                    type="file"
-                    className="form-control rounded-4"
-                    id="panCardImage"
-                    name="panCardImage"
-                    onChange={handleImageChange}
-                    accept="image/*"
-                    style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)',
-                      color: 'white'
-                    }}
-                  />
-                  <small className="text-white-50">
-                    Upload a clear image of your PAN card (Max 5MB). 
-                    <br />
-                    <strong>Profile completion: 75% without PAN card, 100% with PAN card</strong>
-                  </small>
-                </div>
-
-                {previewImage && (
-                  <div className="mb-3">
-                    <label className="form-label text-white">Preview:</label>
-                    <div className="border rounded-4 p-2" style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)'
-                    }}>
-                      <img 
-                        src={previewImage} 
-                        alt="PAN Card Preview" 
-                        className="img-fluid rounded"
-                        style={{ maxHeight: '200px' }}
-                      />
+                <div className="alert alert-info rounded-4 mb-3" style={{
+                  background: 'rgba(13, 202, 240, 0.1)',
+                  border: '1px solid rgba(13, 202, 240, 0.3)',
+                  color: '#6bd4ff'
+                }}>
+                  <div className="d-flex align-items-start">
+                    <i className="bi bi-info-circle me-2 mt-1"></i>
+                    <div>
+                      <strong>Profile Setup Complete!</strong>
+                      <br />
+                      Your profile will be 75% complete. You can complete KYC verification later from your dashboard.
                     </div>
                   </div>
-                )}
+                </div>
 
                 <button
                   type="submit"

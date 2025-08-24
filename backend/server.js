@@ -50,19 +50,52 @@ const upload = multer({
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tradinghub', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  bufferCommands: false,
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('✅ Connected to MongoDB successfully'))
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  console.log('🔧 Please check your MongoDB connection string and network connection');
+  process.exit(1);
+});
 
 // Import routes
 const userRoutes = require('./routes');
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Trading Hub Backend is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 // Routes
 app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
-  console.error(error.stack);
+  console.error('❌ Error:', error.message);
+  
+  // Handle multer errors
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File too large. Maximum size is 5MB.'
+    });
+  }
+  
+  if (error.message === 'Only image files are allowed!') {
+    return res.status(400).json({
+      success: false,
+      message: 'Only image files are allowed.'
+    });
+  }
+  
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
@@ -80,7 +113,9 @@ app.use('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📡 API available at http://localhost:${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
 });
 
 module.exports = app;

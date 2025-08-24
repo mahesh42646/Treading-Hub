@@ -5,6 +5,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import MouseAnimation from "./components/MouseAnimation";
+import BootstrapProvider from "./components/BootstrapProvider";
+
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,20 +43,19 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <script
-          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-          crossOrigin="anonymous"
-        ></script>
-        <script
+        <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
-        ></script>
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-        <MouseAnimation />
+        <BootstrapProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <MouseAnimation />
+
+        </BootstrapProvider>
       </body>
     </html>
   );

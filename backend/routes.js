@@ -35,6 +35,91 @@ const upload = multer({
   }
 });
 
+// Check if phone number exists
+router.get('/check-phone/:phone', async (req, res) => {
+  try {
+    const { phone } = req.params;
+
+    // Check if phone number exists in any profile
+    const existingProfile = await Profile.findOne({ phone });
+    
+    res.json({
+      success: true,
+      exists: !!existingProfile,
+      message: existingProfile ? 'Phone number already registered' : 'Phone number available'
+    });
+  } catch (error) {
+    console.error('Error checking phone:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check phone number',
+      error: error.message
+    });
+  }
+});
+
+// Check if email exists
+router.get('/check-email/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const decodedEmail = decodeURIComponent(email);
+
+    // Check if email exists in any user
+    const existingUser = await User.findOne({ email: decodedEmail });
+    
+    res.json({
+      success: true,
+      exists: !!existingUser,
+      message: existingUser ? 'Email already registered' : 'Email available'
+    });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check email',
+      error: error.message
+    });
+  }
+});
+
+// Link Google account to existing email account
+router.post('/link-google', async (req, res) => {
+  try {
+    const { email, googleUid, emailVerified } = req.body;
+
+    // Find existing user by email
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email'
+      });
+    }
+
+    // Update the user's UID to the Google UID
+    existingUser.uid = googleUid;
+    existingUser.emailVerified = emailVerified || existingUser.emailVerified;
+    await existingUser.save();
+
+    res.json({
+      success: true,
+      message: 'Google account linked successfully',
+      user: {
+        uid: existingUser.uid,
+        email: existingUser.email,
+        emailVerified: existingUser.emailVerified
+      }
+    });
+  } catch (error) {
+    console.error('Error linking Google account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to link Google account',
+      error: error.message
+    });
+  }
+});
+
 // Create user account (step 1) - supports both email and Google registration
 router.post('/create', async (req, res) => {
   try {
@@ -43,9 +128,20 @@ router.post('/create', async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ uid });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists'
+      // User exists, update email verification status if needed
+      if (emailVerified && !existingUser.emailVerified) {
+        existingUser.emailVerified = true;
+        await existingUser.save();
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: 'User already exists',
+        user: {
+          uid: existingUser.uid,
+          email: existingUser.email,
+          emailVerified: existingUser.emailVerified
+        }
       });
     }
 
@@ -72,6 +168,98 @@ router.post('/create', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to create user',
+      error: error.message
+    });
+  }
+});
+
+// Create user with profile (new registration flow)
+router.post('/create-with-profile', async (req, res) => {
+  try {
+    const { 
+      uid, 
+      email, 
+      emailVerified, 
+      firstName, 
+      lastName, 
+      gender, 
+      dateOfBirth, 
+      country, 
+      city, 
+      phone 
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ uid });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists'
+      });
+    }
+
+    // Check if phone number already exists
+    const existingPhone = await Profile.findOne({ phone });
+    if (existingPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number already registered'
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      uid,
+      email,
+      emailVerified: emailVerified || false
+    });
+
+    await user.save();
+
+    // Calculate profile completion percentage (75% without KYC)
+    const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
+    const completionPercentage = 75; // 75% complete without KYC
+
+    // Create profile
+    const profile = new Profile({
+      userId: user._id,
+      firstName,
+      lastName,
+      gender,
+      dateOfBirth: new Date(dateOfBirth),
+      country,
+      city,
+      phone,
+      profileCompletion: {
+        percentage: completionPercentage,
+        isActive: false, // Not active until KYC is completed
+        completedFields: completedFields,
+        kycStatus: 'pending'
+      }
+    });
+
+    await profile.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'User and profile created successfully',
+      user: {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified
+      },
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        profileCompletion: profile.profileCompletion
+      }
+    });
+  } catch (error) {
+    console.error('Error creating user with profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create user and profile',
       error: error.message
     });
   }
@@ -115,8 +303,8 @@ router.get('/profile/:uid', async (req, res) => {
   }
 });
 
-// Profile setup (step 2) - with optional PAN card upload
-router.post('/profile-setup', upload.single('panCardImage'), async (req, res) => {
+// Profile setup (step 2) - basic profile without PAN card
+router.post('/profile-setup', async (req, res) => {
   try {
     const {
       uid,
@@ -126,11 +314,10 @@ router.post('/profile-setup', upload.single('panCardImage'), async (req, res) =>
       dateOfBirth,
       country,
       city,
-      phone,
-      panCardNumber
+      phone
     } = req.body;
 
-    // Validate required fields (PAN card is optional)
+    // Validate required fields
     if (!uid || !firstName || !lastName || !gender || !dateOfBirth || 
         !country || !city || !phone) {
       return res.status(400).json({
@@ -157,25 +344,9 @@ router.post('/profile-setup', upload.single('panCardImage'), async (req, res) =>
       });
     }
 
-    // Check if PAN card number already exists (only if provided)
-    if (panCardNumber) {
-      const existingPanCard = await Profile.findOne({ panCardNumber });
-      if (existingPanCard) {
-        return res.status(400).json({
-          success: false,
-          message: 'PAN card number already registered'
-        });
-      }
-    }
-
-    // Calculate profile completion percentage
+    // Calculate profile completion percentage (75% for basic profile)
     const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
-    let completionPercentage = (completedFields.length / 7) * 100; // 7 total fields including PAN card
-
-    if (req.file) {
-      completedFields.push('panCardImage');
-      completionPercentage = 100;
-    }
+    const completionPercentage = 75; // 75% complete without PAN card
 
     // Create profile
     const profile = new Profile({
@@ -187,12 +358,18 @@ router.post('/profile-setup', upload.single('panCardImage'), async (req, res) =>
       country,
       city,
       phone,
-      panCardNumber: panCardNumber || null,
-      panCardImage: req.file ? req.file.filename : null,
+      panCardNumber: null,
+      panCardImage: null,
       profileCompletion: {
         percentage: completionPercentage,
         isActive: completionPercentage >= 70,
-        completedFields: completedFields
+        completedFields: completedFields,
+        kycStatus: 'pending',
+        kycDetails: {
+          emailVerified: user.emailVerified || false,
+          panCardVerified: false,
+          profilePhotoUploaded: false
+        }
       }
     });
 
@@ -303,6 +480,71 @@ router.get('/referral/:code', async (req, res) => {
   }
 });
 
+// Update email verification status
+router.put('/email-verification/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    // Find user
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user email verification
+    user.emailVerified = true;
+    await user.save();
+
+    // Find and update profile KYC details
+    const profile = await Profile.findOne({ userId: user._id });
+    if (profile) {
+      const kycDetails = { ...profile.profileCompletion.kycDetails };
+      kycDetails.emailVerified = true;
+
+      const completedFields = [...profile.profileCompletion.completedFields];
+      if (!completedFields.includes('emailVerified')) {
+        completedFields.push('emailVerified');
+      }
+
+      // Recalculate KYC completion
+      const kycFields = ['emailVerified', 'panCardVerified', 'profilePhotoUploaded'];
+      const completedKYCFields = kycFields.filter(field => kycDetails[field]);
+      const kycCompletion = (completedKYCFields.length / kycFields.length) * 100;
+
+      // Update completion percentage
+      const baseCompletion = 75;
+      const kycContribution = (kycCompletion / 100) * 25;
+      const totalCompletion = Math.min(100, baseCompletion + kycContribution);
+
+      profile.profileCompletion = {
+        ...profile.profileCompletion,
+        percentage: totalCompletion,
+        isActive: totalCompletion >= 70,
+        completedFields: completedFields,
+        kycStatus: kycCompletion === 100 ? 'verified' : 'pending',
+        kycDetails: kycDetails
+      };
+
+      await profile.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Email verification status updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating email verification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update email verification',
+      error: error.message
+    });
+  }
+});
+
 // Add referral
 router.post('/referral/:uid', async (req, res) => {
   try {
@@ -366,8 +608,11 @@ router.post('/referral/:uid', async (req, res) => {
   }
 });
 
-// Update profile completion (for completing profile later)
-router.post('/profile-completion/:uid', upload.single('panCardImage'), async (req, res) => {
+// KYC Verification - Upload PAN card and profile photo
+router.post('/kyc-verification/:uid', upload.fields([
+  { name: 'panCardImage', maxCount: 1 },
+  { name: 'profilePhoto', maxCount: 1 }
+]), async (req, res) => {
   try {
     const { uid } = req.params;
     const { panCardNumber } = req.body;
@@ -404,17 +649,30 @@ router.post('/profile-completion/:uid', upload.single('panCardImage'), async (re
       }
     }
 
-    // Update profile with PAN card information
+    // Update profile with KYC information
     const updateData = {};
     const completedFields = [...profile.profileCompletion.completedFields];
+    const kycDetails = { ...profile.profileCompletion.kycDetails };
 
-    if (req.file) {
-      updateData.panCardImage = req.file.filename;
+    // Handle PAN card upload
+    if (req.files && req.files.panCardImage) {
+      updateData.panCardImage = req.files.panCardImage[0].filename;
       if (!completedFields.includes('panCardImage')) {
         completedFields.push('panCardImage');
       }
+      kycDetails.panCardVerified = true;
     }
 
+    // Handle profile photo upload
+    if (req.files && req.files.profilePhoto) {
+      updateData.profilePhoto = req.files.profilePhoto[0].filename;
+      if (!completedFields.includes('profilePhoto')) {
+        completedFields.push('profilePhoto');
+      }
+      kycDetails.profilePhotoUploaded = true;
+    }
+
+    // Handle PAN card number
     if (panCardNumber) {
       updateData.panCardNumber = panCardNumber;
       if (!completedFields.includes('panCardNumber')) {
@@ -422,13 +680,30 @@ router.post('/profile-completion/:uid', upload.single('panCardImage'), async (re
       }
     }
 
-    // Calculate new completion percentage
-    const completionPercentage = Math.min(100, (completedFields.length / 7) * 100);
+    // Check if email is verified
+    if (user.emailVerified) {
+      kycDetails.emailVerified = true;
+      if (!completedFields.includes('emailVerified')) {
+        completedFields.push('emailVerified');
+      }
+    }
+
+    // Calculate KYC completion
+    const kycFields = ['emailVerified', 'panCardVerified', 'profilePhotoUploaded'];
+    const completedKYCFields = kycFields.filter(field => kycDetails[field]);
+    const kycCompletion = (completedKYCFields.length / kycFields.length) * 100;
+
+    // Update completion percentage (75% base + KYC completion)
+    const baseCompletion = 75;
+    const kycContribution = (kycCompletion / 100) * 25; // KYC contributes 25% to total
+    const totalCompletion = Math.min(100, baseCompletion + kycContribution);
 
     updateData.profileCompletion = {
-      percentage: completionPercentage,
-      isActive: completionPercentage >= 70,
-      completedFields: completedFields
+      percentage: totalCompletion,
+      isActive: totalCompletion >= 70,
+      completedFields: completedFields,
+      kycStatus: kycCompletion === 100 ? 'under_review' : 'pending',
+      kycDetails: kycDetails
     };
 
     const updatedProfile = await Profile.findOneAndUpdate(
@@ -439,7 +714,7 @@ router.post('/profile-completion/:uid', upload.single('panCardImage'), async (re
 
     res.json({
       success: true,
-      message: 'Profile completion updated successfully',
+      message: 'KYC verification updated successfully',
       profile: {
         firstName: updatedProfile.firstName,
         lastName: updatedProfile.lastName,

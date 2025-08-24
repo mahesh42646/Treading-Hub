@@ -82,17 +82,18 @@ const profileSchema = new mongoose.Schema({
   },
   panCardNumber: {
     type: String,
-    required: true,
     trim: true,
-    unique: true
+    unique: true,
+    sparse: true // Allows multiple null values
   },
   panCardImage: {
-    type: String,
-    required: true
+    type: String
+  },
+  profilePhoto: {
+    type: String
   },
   referralCode: {
     type: String,
-    required: true,
     unique: true,
     length: 10
   },
@@ -142,7 +143,26 @@ const profileSchema = new mongoose.Schema({
     },
     completedFields: [{
       type: String
-    }]
+    }],
+    kycStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending'
+    },
+    kycDetails: {
+      emailVerified: {
+        type: Boolean,
+        default: false
+      },
+      panCardVerified: {
+        type: Boolean,
+        default: false
+      },
+      profilePhotoUploaded: {
+        type: Boolean,
+        default: false
+      }
+    }
   },
   createdAt: {
     type: Date,

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,7 +13,21 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
   const router = useRouter();
+
+  // Set up auth state listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('🔄 Auth state changed - User authenticated:', user.email);
+      } else {
+        console.log('🔄 Auth state changed - No user');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,11 +35,38 @@ const Login = () => {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('✅ User signed in:', user.email);
+
+      // Simple: Just check if profile exists in database
+      try {
+        const profileResponse = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
+        const profileData = await profileResponse.json();
+        
+        if (profileData.success && profileData.profile) {
+          console.log('✅ Profile found - going to dashboard');
+          router.push('/dashboard');
+        } else {
+          console.log('📝 No profile found - going to profile setup');
+          router.push('/profile-setup');
+        }
+      } catch (error) {
+        console.error('❌ Error checking profile:', error);
+        // If we can't check profile, go to profile setup
+        router.push('/profile-setup');
+      }
     } catch (error) {
-      setError('Failed to login. Please check your credentials.');
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
+      if (error.code === 'auth/user-not-found') {
+        setError('No account found with this email. Please register first.');
+      } else if (error.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else {
+        setError('Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -36,46 +77,49 @@ const Login = () => {
     setError('');
 
     try {
+      console.log('🚀 Opening Google login popup...');
       const provider = new GoogleAuthProvider();
+      
+      // Add additional scopes if needed
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      // Use popup instead of redirect
       const result = await signInWithPopup(auth, provider);
+      console.log('✅ Google login successful:', result.user.email);
       
-      // Check if user exists in backend
-      const profileResponse = await fetch(`http://localhost:9988/api/users/profile/${result.user.uid}`);
-      const profileData = await profileResponse.json();
+      // Handle the login result immediately
+      const user = result.user;
       
-      if (profileData.success && profileData.profile) {
-        // User has profile, redirect to dashboard
-        router.push('/dashboard');
-      } else {
-        // User doesn't exist in backend, create account
-        try {
-          const createResponse = await fetch('http://localhost:9988/api/users/create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              uid: result.user.uid,
-              email: result.user.email,
-              emailVerified: result.user.emailVerified,
-              isGoogleUser: true
-            }),
-          });
-
-          if (createResponse.ok) {
-            // Account created, redirect to profile setup
-            router.push('/profile-setup');
-          } else {
-            setError('Failed to create account. Please try again.');
-          }
-        } catch (createError) {
-          console.error('Account creation error:', createError);
-          setError('Failed to create account. Please try again.');
+      // Simple: Just check if profile exists in database
+      console.log('🔍 Checking if profile exists in database...');
+      try {
+        const profileResponse = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
+        const profileData = await profileResponse.json();
+        console.log('📋 Profile check result:', profileData);
+        
+        if (profileData.success && profileData.profile) {
+          console.log('✅ Profile found - going to dashboard');
+          router.push('/dashboard');
+        } else {
+          console.log('📝 No profile found - going to profile setup');
+          router.push('/profile-setup');
         }
+      } catch (error) {
+        console.error('❌ Error checking profile:', error);
+        // If we can't check profile, go to profile setup
+        router.push('/profile-setup');
       }
+      
     } catch (error) {
-      setError('Failed to login with Google. Please try again.');
-      console.error('Google login error:', error);
+      console.error('❌ Google login error:', error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        setError('Login cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Popup blocked by browser. Please allow popups and try again.');
+      } else {
+        setError('Failed to login with Google. Please try again.');
+      }
     } finally {
       setGoogleLoading(false);
     }
@@ -102,6 +146,29 @@ const Login = () => {
                 </h2>
                 <p className="text-white-50">Welcome back! Please login to your account.</p>
               </div>
+
+
+
+              {/* Debug info in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="alert alert-warning rounded-4 mb-4" style={{
+                  background: 'rgba(255, 193, 7, 0.1)',
+                  border: '1px solid rgba(255, 193, 7, 0.3)',
+                  color: '#ffc107'
+                }}>
+                  <div className="d-flex align-items-start">
+                    <i className="bi bi-bug me-2 mt-1"></i>
+                    <div>
+                      <strong>Debug Mode:</strong>
+                      <ul className="mb-0 mt-1">
+                        <li>Check browser console for detailed logs</li>
+                        <li>Look for the debug panel in bottom-right corner</li>
+                        <li>If login fails, check network tab for API calls</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="alert alert-danger rounded-4" role="alert" style={{
@@ -215,7 +282,7 @@ const Login = () => {
                       {googleLoading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                          Connecting...
+                          Logging in...
                         </>
                       ) : (
                         <>
@@ -224,6 +291,9 @@ const Login = () => {
                         </>
                       )}
                     </button>
+                    <small className="text-white-50 mt-2 d-block">
+                      A popup window will open for Google authentication
+                    </small>
                   </div>
                 </div>
               </div>

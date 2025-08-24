@@ -82,6 +82,75 @@ const Dashboard = () => {
             <p className="lead text-white-50 mb-5">
               Hello {profile?.firstName} {profile?.lastName}, welcome to Trading Hub!
             </p>
+            
+            {/* KYC Pending Alert */}
+            {profile?.profileCompletion?.kycStatus !== 'verified' && (
+              <div className="alert alert-warning rounded-4 mb-4" style={{
+                background: 'rgba(255, 193, 7, 0.1)',
+                border: '1px solid rgba(255, 193, 7, 0.3)',
+                color: '#ffc107'
+              }}>
+                <div className="d-flex align-items-start">
+                  <i className="bi bi-exclamation-triangle me-2 mt-1"></i>
+                  <div className="flex-grow-1">
+                    <strong>KYC Verification Pending!</strong>
+                    <p className="mb-2 mt-1">Your account is not fully activated. Complete KYC verification to access all features.</p>
+                    <div className="d-flex gap-2">
+                      <button 
+                        className="btn btn-sm rounded-3"
+                        onClick={() => router.push('/kyc-verification')}
+                        style={{
+                          background: 'rgba(255, 193, 7, 0.2)',
+                          border: '1px solid rgba(255, 193, 7, 0.5)',
+                          color: '#ffc107'
+                        }}
+                      >
+                        Complete KYC Now
+                      </button>
+                      <button 
+                        className="btn btn-sm rounded-3"
+                        onClick={() => router.push('/kyc-verification')}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          color: 'white'
+                        }}
+                      >
+                        View KYC Status
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Email Verification Alert */}
+            {!user?.emailVerified && (
+              <div className="alert alert-info rounded-4 mb-4" style={{
+                background: 'rgba(13, 202, 240, 0.1)',
+                border: '1px solid rgba(13, 202, 240, 0.3)',
+                color: '#6bd4ff'
+              }}>
+                <div className="d-flex align-items-start">
+                  <i className="bi bi-envelope me-2 mt-1"></i>
+                  <div className="flex-grow-1">
+                    <strong>Email Verification Required!</strong>
+                    <p className="mb-2 mt-1">Please verify your email address to complete the registration process.</p>
+                    <button 
+                      className="btn btn-sm rounded-3"
+                      onClick={() => window.location.reload()}
+                      style={{
+                        background: 'rgba(13, 202, 240, 0.2)',
+                        border: '1px solid rgba(13, 202, 240, 0.5)',
+                        color: '#6bd4ff'
+                      }}
+                    >
+                      Resend Verification Email
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -115,6 +184,50 @@ const Dashboard = () => {
                 <div className="mb-2">
                   <small className="text-white-50">Referral Code:</small>
                   <p className="text-white mb-0">{profile?.referralCode}</p>
+                </div>
+                <div className="mb-2">
+                  <small className="text-white-50">Profile Completion:</small>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="progress flex-grow-1" style={{ height: '8px' }}>
+                      <div 
+                        className="progress-bar" 
+                        style={{ 
+                          width: `${profile?.profileCompletion?.percentage || 0}%`,
+                          background: profile?.profileCompletion?.percentage >= 70 ? '#28a745' : '#ffc107'
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-white small">{profile?.profileCompletion?.percentage || 0}%</span>
+                  </div>
+                  <small className="text-white-50">
+                    Status: <span className={`badge ${profile?.profileCompletion?.isActive ? 'bg-success' : 'bg-warning'}`}>
+                      {profile?.profileCompletion?.isActive ? 'Active' : 'Incomplete'}
+                    </span>
+                  </small>
+                </div>
+                <div className="mb-2">
+                  <small className="text-white-50">KYC Status:</small>
+                  <div className="mt-1">
+                    <span className={`badge ${profile?.profileCompletion?.kycStatus === 'verified' ? 'bg-success' : 'bg-warning'}`}>
+                      {profile?.profileCompletion?.kycStatus || 'pending'}
+                    </span>
+                  </div>
+                  {profile?.profileCompletion?.kycDetails && (
+                    <div className="mt-2">
+                      <small className="text-white-50 d-block">
+                        <i className={`bi ${profile?.profileCompletion?.kycDetails?.emailVerified ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
+                        Email Verified
+                      </small>
+                      <small className="text-white-50 d-block">
+                        <i className={`bi ${profile?.profileCompletion?.kycDetails?.panCardVerified ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
+                        PAN Card Verified
+                      </small>
+                      <small className="text-white-50 d-block">
+                        <i className={`bi ${profile?.profileCompletion?.kycDetails?.profilePhotoUploaded ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
+                        Profile Photo Uploaded
+                      </small>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -196,6 +309,20 @@ const Dashboard = () => {
                   }}>
                     Settings
                   </button>
+                  {profile?.profileCompletion?.kycStatus !== 'verified' && (
+                    <button 
+                      className="btn rounded-4" 
+                      onClick={() => router.push('/kyc-verification')}
+                      style={{
+                        background: 'rgba(255, 193, 7, 0.1)',
+                        border: '1px solid rgba(255, 193, 7, 0.3)',
+                        backdropFilter: 'blur(20px)',
+                        color: '#ffc107'
+                      }}
+                    >
+                      Complete KYC
+                    </button>
+                  )}
                   <button 
                     className="btn rounded-4" 
                     onClick={handleLogout}

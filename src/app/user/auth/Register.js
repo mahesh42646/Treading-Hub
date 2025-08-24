@@ -24,6 +24,8 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const router = useRouter();
 
   const handleChange = (e) => {
@@ -32,6 +34,36 @@ const Register = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  // Handle resend email verification
+  const handleResendEmail = async () => {
+    if (!currentUser) {
+      setError('No user found. Please try registering again.');
+      return;
+    }
+    
+    setResendingEmail(true);
+    setError('');
+    
+    try {
+      console.log('📧 Resending verification email to:', currentUser.email);
+      await sendEmailVerification(currentUser);
+      console.log('✅ Verification email resent successfully');
+      setEmailSent(true);
+      setTimeout(() => setEmailSent(false), 3000); // Hide success message after 3 seconds
+    } catch (error) {
+      console.error('❌ Error resending verification email:', error);
+      if (error.code === 'auth/too-many-requests') {
+        setError('Too many requests. Please wait a few minutes before trying again.');
+      } else if (error.code === 'auth/user-not-found') {
+        setError('User not found. Please try registering again.');
+      } else {
+        setError(`Failed to resend verification email: ${error.message}. Please try again.`);
+      }
+    } finally {
+      setResendingEmail(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -62,6 +94,8 @@ const Register = () => {
     }
 
     try {
+      console.log('🚀 Starting registration process...');
+      
       // First check if phone number already exists
       const phoneCheckResponse = await fetch(`http://localhost:9988/api/users/check-phone/${formData.phone}`);
       const phoneCheckData = await phoneCheckResponse.json();
@@ -72,6 +106,7 @@ const Register = () => {
         return;
       }
 
+      console.log('📧 Creating Firebase user account...');
       const userCredential = await createUserWithEmailAndPassword(
         auth, 
         formData.email, 
@@ -79,10 +114,22 @@ const Register = () => {
       );
 
       const user = userCredential.user;
+      console.log('✅ Firebase user created:', user.uid);
+      setCurrentUser(user); // Store user for resend functionality
 
       // Send email verification
-      await sendEmailVerification(user);
+      console.log('📧 Sending verification email...');
+      try {
+        await sendEmailVerification(user);
+        console.log('✅ Verification email sent successfully');
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+        setError(`Email verification failed: ${emailError.message}. Please try again or contact support.`);
+        setLoading(false);
+        return;
+      }
 
+      console.log('💾 Creating user profile in backend...');
       // Create user with profile data in backend
       const createResponse = await fetch('http://localhost:9988/api/users/create-with-profile', {
         method: 'POST',
@@ -107,14 +154,21 @@ const Register = () => {
         throw new Error('Failed to create profile');
       }
 
+      console.log('✅ Registration completed successfully');
       setEmailSent(true);
     } catch (error) {
+      console.error('❌ Registration error:', error);
       if (error.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists. Please login instead.');
+      } else if (error.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else if (error.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters long.');
+      } else if (error.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection and try again.');
       } else {
-      setError('Failed to create account. Please try again.');
+        setError(`Registration failed: ${error.message}. Please try again.`);
       }
-      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
@@ -155,7 +209,8 @@ const Register = () => {
                 <div className="mt-4">
                   <button 
                     className="btn rounded-4 me-2"
-                    onClick={() => window.location.reload()}
+                    onClick={handleResendEmail}
+                    disabled={resendingEmail}
                     style={{
                       background: 'rgba(60, 58, 58, 0.03)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -164,7 +219,14 @@ const Register = () => {
                       color: 'white'
                     }}
                   >
-                    Resend Email
+                    {resendingEmail ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Resending...
+                      </>
+                    ) : (
+                      'Resend Email'
+                    )}
                   </button>
                   <Link href="/login" className="btn rounded-4" style={{
                     background: 'rgba(60, 58, 58, 0.03)',

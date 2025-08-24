@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
+import React, { useState } from 'react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from './firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,19 +16,6 @@ const Login = () => {
 
   const router = useRouter();
 
-  // Set up auth state listener
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log('🔄 Auth state changed - User authenticated:', user.email);
-      } else {
-        console.log('🔄 Auth state changed - No user');
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -39,23 +26,8 @@ const Login = () => {
       const user = userCredential.user;
       console.log('✅ User signed in:', user.email);
 
-      // Simple: Just check if profile exists in database
-      try {
-        const profileResponse = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
-        const profileData = await profileResponse.json();
-        
-        if (profileData.success && profileData.profile) {
-          console.log('✅ Profile found - going to dashboard');
-          router.push('/dashboard');
-        } else {
-          console.log('📝 No profile found - going to profile setup');
-          router.push('/profile-setup');
-        }
-      } catch (error) {
-        console.error('❌ Error checking profile:', error);
-        // If we can't check profile, go to profile setup
-        router.push('/profile-setup');
-      }
+      // The AuthContext will handle the redirect logic automatically
+      // No need to manually check profile or redirect here
     } catch (error) {
       console.error('❌ Login error:', error);
       if (error.code === 'auth/user-not-found') {
@@ -88,28 +60,8 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       console.log('✅ Google login successful:', result.user.email);
       
-      // Handle the login result immediately
-      const user = result.user;
-      
-      // Simple: Just check if profile exists in database
-      console.log('🔍 Checking if profile exists in database...');
-      try {
-        const profileResponse = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
-        const profileData = await profileResponse.json();
-        console.log('📋 Profile check result:', profileData);
-        
-        if (profileData.success && profileData.profile) {
-          console.log('✅ Profile found - going to dashboard');
-          router.push('/dashboard');
-        } else {
-          console.log('📝 No profile found - going to profile setup');
-          router.push('/profile-setup');
-        }
-      } catch (error) {
-        console.error('❌ Error checking profile:', error);
-        // If we can't check profile, go to profile setup
-        router.push('/profile-setup');
-      }
+      // The AuthContext will handle the redirect logic automatically
+      // No need to manually check profile or redirect here
       
     } catch (error) {
       console.error('❌ Google login error:', error);
@@ -146,8 +98,6 @@ const Login = () => {
                 </h2>
                 <p className="text-white-50">Welcome back! Please login to your account.</p>
               </div>
-
-
 
               {/* Debug info in development */}
               {process.env.NODE_ENV === 'development' && (

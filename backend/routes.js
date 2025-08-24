@@ -58,6 +58,29 @@ router.get('/check-phone/:phone', async (req, res) => {
   }
 });
 
+// Check if PAN number exists
+router.get('/check-pan/:panNumber', async (req, res) => {
+  try {
+    const { panNumber } = req.params;
+
+    // Check if PAN number exists in any profile
+    const existingProfile = await Profile.findOne({ panCardNumber: panNumber });
+    
+    res.json({
+      success: true,
+      exists: !!existingProfile,
+      message: existingProfile ? 'PAN number already registered' : 'PAN number available'
+    });
+  } catch (error) {
+    console.error('Error checking PAN number:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check PAN number',
+      error: error.message
+    });
+  }
+});
+
 // Check if email exists
 router.get('/check-email/:email', async (req, res) => {
   try {
@@ -344,6 +367,19 @@ router.post('/profile-setup', async (req, res) => {
       });
     }
 
+    // Check if phone number already exists in another profile
+    const existingPhoneProfile = await Profile.findOne({ 
+      phone: phone,
+      userId: { $ne: user._id } // Exclude current user
+    });
+    
+    if (existingPhoneProfile) {
+      return res.status(400).json({
+        success: false,
+        message: 'This phone number is already registered with another account. Please use a different phone number.'
+      });
+    }
+
     // Calculate profile completion percentage (75% for basic profile)
     const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
     const completionPercentage = 75; // 75% complete without PAN card
@@ -481,12 +517,18 @@ router.get('/referral/:code', async (req, res) => {
 });
 
 // Update email verification status
-router.put('/email-verification/:uid', async (req, res) => {
+router.put('/update-email-verification/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
+    const { emailVerified } = req.body;
 
-    // Find user
-    const user = await User.findOne({ uid });
+    // Find and update user
+    const user = await User.findOneAndUpdate(
+      { uid },
+      { emailVerified },
+      { new: true }
+    );
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -494,52 +536,48 @@ router.put('/email-verification/:uid', async (req, res) => {
       });
     }
 
-    // Update user email verification
-    user.emailVerified = true;
-    await user.save();
-
-    // Find and update profile KYC details
+    // If user has a profile, also update the profile's email verification status
     const profile = await Profile.findOne({ userId: user._id });
     if (profile) {
-      const kycDetails = { ...profile.profileCompletion.kycDetails };
-      kycDetails.emailVerified = true;
-
-      const completedFields = [...profile.profileCompletion.completedFields];
-      if (!completedFields.includes('emailVerified')) {
-        completedFields.push('emailVerified');
+      const updateData = {};
+      
+      // Update KYC details
+      if (profile.profileCompletion?.kycDetails) {
+        updateData['profileCompletion.kycDetails.emailVerified'] = emailVerified;
       }
 
-      // Recalculate KYC completion
-      const kycFields = ['emailVerified', 'panCardVerified', 'profilePhotoUploaded'];
-      const completedKYCFields = kycFields.filter(field => kycDetails[field]);
-      const kycCompletion = (completedKYCFields.length / kycFields.length) * 100;
+      // Update completed fields if email is now verified
+      if (emailVerified && profile.profileCompletion?.completedFields) {
+        const completedFields = [...profile.profileCompletion.completedFields];
+        if (!completedFields.includes('emailVerified')) {
+          completedFields.push('emailVerified');
+        }
+        updateData['profileCompletion.completedFields'] = completedFields;
+      }
 
-      // Update completion percentage
-      const baseCompletion = 75;
-      const kycContribution = (kycCompletion / 100) * 25;
-      const totalCompletion = Math.min(100, baseCompletion + kycContribution);
-
-      profile.profileCompletion = {
-        ...profile.profileCompletion,
-        percentage: totalCompletion,
-        isActive: totalCompletion >= 70,
-        completedFields: completedFields,
-        kycStatus: kycCompletion === 100 ? 'verified' : 'pending',
-        kycDetails: kycDetails
-      };
-
-      await profile.save();
+      if (Object.keys(updateData).length > 0) {
+        await Profile.findOneAndUpdate(
+          { userId: user._id },
+          updateData,
+          { new: true }
+        );
+      }
     }
 
     res.json({
       success: true,
-      message: 'Email verification status updated successfully'
+      message: 'Email verification status updated successfully',
+      user: {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified
+      }
     });
   } catch (error) {
     console.error('Error updating email verification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update email verification',
+      message: 'Failed to update email verification status',
       error: error.message
     });
   }
@@ -615,7 +653,7 @@ router.post('/kyc-verification/:uid', upload.fields([
 ]), async (req, res) => {
   try {
     const { uid } = req.params;
-    const { panCardNumber } = req.body;
+    const { panCardNumber, panHolderName } = req.body;
 
     // Find user
     const user = await User.findOne({ uid });
@@ -635,18 +673,27 @@ router.post('/kyc-verification/:uid', upload.fields([
       });
     }
 
-    // Check if PAN card number already exists (only if provided)
+    // Check if PAN card number already exists in another profile (only if provided)
     if (panCardNumber) {
-      const existingPanCard = await Profile.findOne({ 
-        panCardNumber,
+      const existingPanCardProfile = await Profile.findOne({ 
+        panCardNumber: panCardNumber,
         _id: { $ne: profile._id } // Exclude current profile
       });
-      if (existingPanCard) {
+      
+      if (existingPanCardProfile) {
         return res.status(400).json({
           success: false,
-          message: 'PAN card number already registered'
+          message: 'This PAN card number is already registered with another account. Please use a different PAN card or contact support if this is an error.'
         });
       }
+    }
+
+    // Check if user is blocked
+    if (user.status === 'blocked') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is blocked. You cannot apply for KYC verification.'
+      });
     }
 
     // Update profile with KYC information
@@ -680,6 +727,14 @@ router.post('/kyc-verification/:uid', upload.fields([
       }
     }
 
+    // Handle PAN holder name
+    if (panHolderName) {
+      updateData.panHolderName = panHolderName;
+      if (!completedFields.includes('panHolderName')) {
+        completedFields.push('panHolderName');
+      }
+    }
+
     // Check if email is verified
     if (user.emailVerified) {
       kycDetails.emailVerified = true;
@@ -692,6 +747,14 @@ router.post('/kyc-verification/:uid', upload.fields([
     const kycFields = ['emailVerified', 'panCardVerified', 'profilePhotoUploaded'];
     const completedKYCFields = kycFields.filter(field => kycDetails[field]);
     const kycCompletion = (completedKYCFields.length / kycFields.length) * 100;
+
+    // Add submission timestamp and user details
+    updateData.kycSubmission = {
+      submittedAt: new Date(),
+      submittedBy: user.uid,
+      userEmail: user.email,
+      userPhone: profile.phone
+    };
 
     // Update completion percentage (75% base + KYC completion)
     const baseCompletion = 75;
@@ -726,6 +789,188 @@ router.post('/kyc-verification/:uid', upload.fields([
     res.status(500).json({
       success: false,
       message: 'Failed to update profile completion',
+      error: error.message
+    });
+  }
+});
+
+// Admin: Approve KYC verification
+router.put('/admin/kyc-approve/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { adminNotes } = req.body;
+
+    // Find user
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Find profile
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Check if KYC is under review
+    if (profile.profileCompletion?.kycStatus !== 'under_review') {
+      return res.status(400).json({
+        success: false,
+        message: 'KYC is not under review'
+      });
+    }
+
+    // Update KYC status to approved
+    profile.profileCompletion.kycStatus = 'approved';
+    profile.profileCompletion.kycDetails.adminApproval = {
+      approvedAt: new Date(),
+      adminNotes: adminNotes || 'KYC verification approved',
+      status: 'approved'
+    };
+
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: 'KYC verification approved successfully',
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        profileCompletion: profile.profileCompletion
+      }
+    });
+  } catch (error) {
+    console.error('Error approving KYC:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve KYC',
+      error: error.message
+    });
+  }
+});
+
+// Admin: Reject KYC verification
+router.put('/admin/kyc-reject/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { adminNotes, rejectionReason } = req.body;
+
+    // Find user
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Find profile
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Check if KYC is under review
+    if (profile.profileCompletion?.kycStatus !== 'under_review') {
+      return res.status(400).json({
+        success: false,
+        message: 'KYC is not under review'
+      });
+    }
+
+    // Update KYC status to rejected
+    profile.profileCompletion.kycStatus = 'rejected';
+    profile.profileCompletion.kycDetails.adminApproval = {
+      rejectedAt: new Date(),
+      adminNotes: adminNotes || 'KYC verification rejected',
+      rejectionReason: rejectionReason || 'Document verification failed',
+      status: 'rejected'
+    };
+
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: 'KYC verification rejected',
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        profileCompletion: profile.profileCompletion
+      }
+    });
+  } catch (error) {
+    console.error('Error rejecting KYC:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject KYC',
+      error: error.message
+    });
+  }
+});
+
+// Admin: Get all KYC pending users
+router.get('/admin/kyc-pending', async (req, res) => {
+  try {
+    const profiles = await Profile.find({
+      'profileCompletion.kycStatus': 'under_review'
+    }).populate('userId', 'uid email emailVerified');
+
+    res.json({
+      success: true,
+      count: profiles.length,
+      profiles: profiles.map(profile => ({
+        uid: profile.userId.uid,
+        email: profile.userId.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        kycSubmission: profile.kycSubmission,
+        profileCompletion: profile.profileCompletion
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching KYC pending users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch KYC pending users',
+      error: error.message
+    });
+  }
+});
+
+// Admin: Get KYC statistics
+router.get('/admin/kyc-stats', async (req, res) => {
+  try {
+    const totalProfiles = await Profile.countDocuments();
+    const pendingKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'pending' });
+    const underReviewKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'under_review' });
+    const approvedKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'approved' });
+    const rejectedKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'rejected' });
+
+    res.json({
+      success: true,
+      stats: {
+        totalProfiles,
+        pendingKYC,
+        underReviewKYC,
+        approvedKYC,
+        rejectedKYC
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching KYC stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch KYC statistics',
       error: error.message
     });
   }

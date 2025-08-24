@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'suspended'],
+    enum: ['active', 'inactive', 'suspended', 'blocked'],
     default: 'active'
   },
   role: {
@@ -85,6 +85,10 @@ const profileSchema = new mongoose.Schema({
     trim: true,
     unique: true,
     sparse: true // Allows multiple null values
+  },
+  panHolderName: {
+    type: String,
+    trim: true
   },
   panCardImage: {
     type: String
@@ -146,7 +150,7 @@ const profileSchema = new mongoose.Schema({
     }],
     kycStatus: {
       type: String,
-      enum: ['pending', 'verified', 'rejected'],
+      enum: ['pending', 'under_review', 'verified', 'rejected'],
       default: 'pending'
     },
     kycDetails: {
@@ -161,6 +165,20 @@ const profileSchema = new mongoose.Schema({
       profilePhotoUploaded: {
         type: Boolean,
         default: false
+      }
+    },
+    kycSubmission: {
+      submittedAt: {
+        type: Date
+      },
+      submittedBy: {
+        type: String
+      },
+      userEmail: {
+        type: String
+      },
+      userPhone: {
+        type: String
       }
     }
   },

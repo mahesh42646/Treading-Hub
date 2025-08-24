@@ -17,17 +17,17 @@ export default function Header() {
 
   return (
     <header className="navbar navbar-expand-lg fixed-top" style={{
-      background: 'rgba(15, 23, 42, 0.95)',
-      backdropFilter: 'blur(10px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+      background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
+      backdropFilter: 'blur(20px)',
       padding: '1rem 0',
-      zIndex: 1000
+      zIndex: 1000,
+      boxShadow: 'inset 0px 1px 20px 1px rgba(0, 0, 0, 0.22)'
     }}>
       <div className="container">
         {/* Logo */}
         <Link href="/" className="navbar-brand d-flex align-items-center" style={{ color: '#ffffff', textDecoration: 'none' }}>
           <span className="fw-bold fs-3" style={{ color: '#ffffff' }}>
-          Treading Hub
+          <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span> <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span> 
           </span>
         </Link>
 
@@ -91,17 +91,22 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link href="/login" className="btn btn-outline-light px-4" style={{
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  color: '#e2e8f0',
+                <Link href="/login" className="btn btn-outline-light px-4 rounded-3" style={{
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  fontSize: '1.1rem',
+                  color: 'white',
+                  backdropFilter: 'blur(20px)', boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
                   fontWeight: '500'
                 }}>
                   Login
                 </Link>
-                <Link href="/register" className="btn px-4" style={{
-                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                  border: 'none',
-                  color: '#ffffff',
+                <Link href="/register" className="btn px-4 rounded-3" style={{
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  fontSize: '1.1rem',
+                  color: 'white',
+                  backdropFilter: 'blur(20px)', boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
                   fontWeight: '600'
                 }}>
                   Register
@@ -109,22 +114,7 @@ export default function Header() {
               </>
             )}
             
-            {/* Language Selector */}
-            <div className="dropdown">
-              <button className="btn btn-outline-light dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" style={{
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: '#e2e8f0',
-                fontSize: '0.875rem'
-              }}>
-                English
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li><button className="dropdown-item">English</button></li>
-                <li><button className="dropdown-item">Spanish</button></li>
-                <li><button className="dropdown-item">French</button></li>
-                <li><button className="dropdown-item">German</button></li>
-              </ul>
-            </div>
+           
           </div>
         </div>
       </div>

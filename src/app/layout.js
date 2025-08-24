@@ -4,6 +4,7 @@ import "./styles/user.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { AuthProvider } from "./contexts/AuthContext";
+import MouseAnimation from "./components/MouseAnimation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           {children}
         </AuthProvider>
+        <MouseAnimation />
       </body>
     </html>
   );

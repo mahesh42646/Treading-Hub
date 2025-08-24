@@ -1,0 +1,16 @@
+# on local
+git add .
+git commit -m "live commit"
+git branch -M main
+git push -u origin main
+
+# on server
+
+git pull
+npm run build
+pm2 restart all
+systemctl reload nginx
+
+
+
+

@@ -76,16 +76,30 @@ export default function Header() {
             {user ? (
               <>
                 <div className="dropdown">
-                  <button className="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <button className="btn btn-outline-light dropdown-toggle rounded-3" type="button" data-bs-toggle="dropdown" style={{
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    fontSize: '1.1rem',
+                    color: 'white',
+                    backdropFilter: 'blur(20px)', 
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
+                    fontWeight: '500'
+                  }}>
                     <i className="bi bi-person-circle me-2"></i>
-                    {user.displayName || user.email}
+                    Profile
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end">
-                    <li><Link href="/profile" className="dropdown-item">Profile</Link></li>
-                    <li><Link href="/wallet" className="dropdown-item">Wallet</Link></li>
-                    <li><Link href="/referral" className="dropdown-item">Referral</Link></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><button onClick={handleLogout} className="dropdown-item">Logout</button></li>
+                  <ul className="dropdown-menu dropdown-menu-end" style={{
+                    background: 'rgba(60, 58, 58, 0.95)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                  }}>
+                    <li><Link href="/dashboard" className="dropdown-item text-white">Dashboard</Link></li>
+                    <li><Link href="/profile" className="dropdown-item text-white">Profile</Link></li>
+                    <li><Link href="/wallet" className="dropdown-item text-white">Wallet</Link></li>
+                    <li><Link href="/referral" className="dropdown-item text-white">Referral</Link></li>
+                    <li><hr className="dropdown-divider" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} /></li>
+                    <li><button onClick={handleLogout} className="dropdown-item text-white">Logout</button></li>
                   </ul>
                 </div>
               </>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
 import Header from '../user/components/Header';
@@ -881,11 +882,13 @@ const KYCVerification = () => {
                             background: 'rgba(60, 58, 58, 0.03)',
                             backdropFilter: 'blur(20px)'
                           }}>
-                            <img
+                            <Image
                               src={previewImages.panCard}
                               alt="PAN Card Preview"
                               className="img-fluid rounded"
                               style={{ maxHeight: '250px' }}
+                              width={400}
+                              height={250}
                             />
                           </div>
                         </div>
@@ -918,11 +921,13 @@ const KYCVerification = () => {
                             border: '1px solid rgba(124, 124, 124, 0.39)',
                             backdropFilter: 'blur(20px)'
                           }}>
-                            <img
+                            <Image
                               src={previewImages.profile}
                               alt="Profile Photo Preview"
                               className="img-fluid rounded"
                               style={{ maxHeight: '200px' }}
+                              width={400}
+                              height={200}
                             />
                           </div>
                         </div>

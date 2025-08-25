@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
     if (authChecked && user) {
       handleNavigation(user, profile);
     }
-  }, [profile, authChecked, user, pathname]);
+  }, [profile, authChecked, user, pathname, handleNavigation]);
 
   // Handle browser back/forward button
   useEffect(() => {
@@ -158,7 +158,7 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [authChecked, user, profile]);
+  }, [authChecked, user, profile, handleNavigation]);
 
   const logout = async () => {
     try {

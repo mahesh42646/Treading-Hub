@@ -64,7 +64,7 @@ const ForgotPassword = () => {
                     placeholder="Enter your email"
                   />
                   <div className="form-text">
-                    We'll send you a link to reset your password.
+                    We&apos;ll send you a link to reset your password.
                   </div>
                 </div>
 

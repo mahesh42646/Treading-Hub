@@ -15,8 +15,21 @@ const AdminLogin = () => {
 
   useEffect(() => {
     // Check if already logged in
-    checkAuth();
-  }, []);
+    const check = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          router.push('/admin');
+        }
+      } catch (error) {
+        // Not authenticated, stay on login page
+      }
+    };
+    check();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   const checkAuth = async () => {
     try {

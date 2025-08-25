@@ -181,7 +181,7 @@ const FirebaseTest = () => {
                   <li>Go to Authentication → Templates</li>
                   <li>Configure verification email template</li>
                   <li>Go to Authentication → Settings</li>
-                  <li>Add 'localhost' to authorized domains</li>
+                  <li>Add &apos;localhost&apos; to authorized domains</li>
                 </ul>
               </div>
             </div>

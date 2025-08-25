@@ -80,7 +80,7 @@ const Contact = () => {
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in Touch</h2>
                 <p className="text-gray-600 mb-8">
-                  We're here to help and answer any questions you might have. 
+                  We&apos;re here to help and answer any questions you might have. 
                   We look forward to hearing from you.
                 </p>
               </div>
@@ -146,7 +146,7 @@ const Contact = () => {
               
               {success && (
                 <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                  Thank you! Your message has been sent successfully. We'll get back to you soon.
+                  Thank you! Your message has been sent successfully. We&apos;ll get back to you soon.
                 </div>
               )}
 

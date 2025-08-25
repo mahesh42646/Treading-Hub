@@ -188,7 +188,7 @@ const Register = () => {
                 </div>
                 <h3 className="fw-bold text-white mb-3">Verify Your Email</h3>
                 <p className="text-white-50 mb-4">
-                  We've sent a verification email to <strong>{formData.email}</strong>. 
+                  We&apos;ve sent a verification email to <strong>{formData.email}</strong>. 
                   Please check your inbox and click the verification link to continue.
                 </p>
                 <div className="alert alert-warning rounded-4" style={{

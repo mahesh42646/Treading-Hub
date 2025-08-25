@@ -32,8 +32,27 @@ const AdminLayout = ({ children }) => {
       setLoading(false);
       return;
     }
+    // Define checkAuth inside useEffect to avoid missing dependency warning
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          router.push('/admin/login');
+        }
+      } catch (error) {
+        router.push('/admin/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     checkAuth();
-  }, [pathname]);
+  }, [pathname, router]);
 
   const checkAuth = async () => {
     try {

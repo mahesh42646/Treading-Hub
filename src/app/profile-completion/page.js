@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { auth } from '../user/auth/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Header from '../user/components/Header';
@@ -260,11 +261,13 @@ const ProfileCompletion = () => {
                         border: '1px solid rgba(124, 124, 124, 0.39)',
                         backdropFilter: 'blur(20px)'
                       }}>
-                        <img 
+                        <Image 
                           src={previewImage} 
                           alt="PAN Card Preview" 
                           className="img-fluid rounded"
                           style={{ maxHeight: '200px' }}
+                          width={400}
+                          height={200}
                         />
                       </div>
                     </div>

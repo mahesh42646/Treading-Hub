@@ -23,7 +23,7 @@ const AdminUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, fetchUsers]);
 
   const fetchUsers = async () => {
     try {

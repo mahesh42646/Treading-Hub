@@ -228,3 +228,6 @@ If you encounter issues:
 2. Check Nginx logs: `sudo tail -f /var/log/nginx/error.log`
 3. Verify environment variables
 4. Check port availability
+
+
+ssh root@195.35.21.101

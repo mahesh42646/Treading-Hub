@@ -106,7 +106,7 @@ const AdminTransactions = () => {
                           <div>
                             <strong>{transaction.userId?.email || 'Unknown'}</strong>
                             {transaction.transactionId && (
-                              <br />
+                       
                               <small className="text-muted">ID: {transaction.transactionId}</small>
                             )}
                           </div>

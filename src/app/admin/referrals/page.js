@@ -102,7 +102,7 @@ const AdminReferrals = () => {
                       <td>
                         <strong>${referral.commission || 0}</strong>
                         {referral.commissionPaid && (
-                          <br />
+                      
                           <small className="text-success">Paid</small>
                         )}
                       </td>

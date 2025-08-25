@@ -19,7 +19,7 @@ export default function Home() {
           backgroundSize: 'cover',
           backgroundPosition: 'bottom',
           backgroundRepeat: 'no-repeat',
-          minHeight: '100vh',
+          minHeight: '96vh',
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'rgba(0, 0, 0, 0.5)'
@@ -30,7 +30,7 @@ export default function Home() {
         <div className="container position-relative">
           <div className="row align-items-center">
             <div className="col-lg-8 text-white">
-              <h1 className="display-4 fw-bold mb-5" style={{
+              <h1 className="display-4 fw-bold mb-4" style={{
                 fontSize: '3.5rem',
                 lineHeight: '1.1',
                 color: '#ffffff',
@@ -41,7 +41,7 @@ export default function Home() {
               </h1>
 
               {/* Key Features - Exact FUNDEDNEXT Layout */}
-              <div className="row mb-5">
+              <div className="row mb-1">
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
                     <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3"
@@ -119,7 +119,7 @@ export default function Home() {
               </div>
 
               {/* Trustpilot Rating */}
-              <div className="d-flex align-items-center gap-2 mb-4">
+              <div className="d-flex align-items-center gap-2 mb-0">
                 <span className="fw-bold text-white">Excellent</span>
                 <div className="d-flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -136,7 +136,7 @@ export default function Home() {
           </div>
 
           {/* Bottom Statistics Panel */}
-          <div className="row mt-5">
+          <div className="row mt-4">
             <div className="col-12">
               <div className=" rounded-4 p-4" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
@@ -429,7 +429,7 @@ export default function Home() {
               border: '1px solid rgba(124, 124, 124, 0.39)',
               backdropFilter: 'blur(20px)',
               boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-              color: 'white'
+              color: 'black'
             }}>
               <thead>
                 <tr>

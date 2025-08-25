@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { auth } from '../user/auth/firebase';
 import { sendEmailVerification, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { userApi } from '../../services/api';
 
 const FirebaseTest = () => {
   const [testEmail, setTestEmail] = useState('');

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import { userApi } from '../../services/api';
 
 const AuthContext = createContext();
 
@@ -26,8 +27,7 @@ export const AuthProvider = ({ children }) => {
   // Check user profile in database
   const checkUserProfile = async (uid) => {
     try {
-      const response = await fetch(`http://localhost:9988/api/users/profile/${uid}`);
-      const data = await response.json();
+      const data = await userApi.getProfile(uid);
       
       if (data.success && data.profile) {
         setProfile(data.profile);
@@ -46,20 +46,13 @@ export const AuthProvider = ({ children }) => {
   // Create user in database if doesn't exist
   const createUserInDatabase = async (firebaseUser) => {
     try {
-      const response = await fetch('http://localhost:9988/api/users/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          emailVerified: firebaseUser.emailVerified,
-          isGoogleUser: firebaseUser.providerData.some(provider => provider.providerId === 'google.com')
-        })
+      const data = await userApi.createUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        emailVerified: firebaseUser.emailVerified,
+        isGoogleUser: firebaseUser.providerData.some(provider => provider.providerId === 'google.com')
       });
 
-      const data = await response.json();
       return data.success;
     } catch (error) {
       console.error('Error creating user in database:', error);
@@ -122,7 +115,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔄 Auth state changed:', firebaseUser ? firebaseUser.email : 'No user');
       
       if (firebaseUser) {
         setUser(firebaseUser);
@@ -185,12 +177,9 @@ export const AuthProvider = ({ children }) => {
     if (!user?.uid) return;
     
     try {
-      const response = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setProfile(data.profile);
-        }
+      const data = await userApi.getProfile(user.uid);
+      if (data.success) {
+        setProfile(data.profile);
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
@@ -207,17 +196,11 @@ export const AuthProvider = ({ children }) => {
       
       // If email is now verified, update backend
       if (user.emailVerified) {
-        const response = await fetch(`http://localhost:9988/api/users/update-email-verification/${user.uid}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            emailVerified: true
-          })
+        const data = await userApi.updateEmailVerification(user.uid, {
+          emailVerified: true
         });
         
-        if (response.ok) {
+        if (data.success) {
           // Refresh profile to get updated data
           await refreshProfile();
         }

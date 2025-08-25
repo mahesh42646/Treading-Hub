@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { auth } from './firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { userApi } from '../../../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -96,9 +97,8 @@ const Register = () => {
     try {
       console.log('🚀 Starting registration process...');
       
-      // First check if phone number already exists
-      const phoneCheckResponse = await fetch(`http://localhost:9988/api/users/check-phone/${formData.phone}`);
-      const phoneCheckData = await phoneCheckResponse.json();
+      // First check if phone number already exists using API service
+      const phoneCheckData = await userApi.checkPhone(formData.phone);
       
       if (phoneCheckData.exists) {
         setError('An account with this phone number already exists. Please use a different phone number or login with existing account.');
@@ -130,27 +130,21 @@ const Register = () => {
       }
 
       console.log('💾 Creating user profile in backend...');
-      // Create user with profile data in backend
-      const createResponse = await fetch('http://localhost:9988/api/users/create-with-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          emailVerified: false,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          dateOfBirth: formData.dateOfBirth,
-          country: formData.country,
-          city: formData.city,
-          phone: formData.phone
-        }),
+      // Create user with profile data in backend using API service
+      const createResponse = await userApi.createWithProfile({
+        uid: user.uid,
+        email: user.email,
+        emailVerified: false,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        country: formData.country,
+        city: formData.city,
+        phone: formData.phone
       });
 
-      if (!createResponse.ok) {
+      if (!createResponse.success) {
         throw new Error('Failed to create profile');
       }
 

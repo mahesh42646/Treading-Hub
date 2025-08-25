@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
 import Image from 'next/image';
+import { userApi } from '../../services/api';
 
 const ProfileSetup = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -46,8 +47,7 @@ const ProfileSetup = () => {
     setPhoneValidation({ checking: true, available: null, message: '' });
 
     try {
-      const response = await fetch(`http://localhost:9988/api/users/check-phone/${phone}`);
-      const data = await response.json();
+      const data = await userApi.checkPhone(phone);
 
       if (data.success) {
         if (data.exists) {
@@ -114,15 +114,7 @@ const ProfileSetup = () => {
         phone: formData.phone
       };
 
-      const response = await fetch('http://localhost:9988/api/users/profile-setup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileData)
-      });
-
-      const data = await response.json();
+      const data = await userApi.profileSetup(profileData);
 
       if (data.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');

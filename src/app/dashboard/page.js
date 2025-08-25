@@ -8,6 +8,7 @@ import Header from '../user/components/Header';
 import Footer from '../user/components/Footer';
 import { sendEmailVerification } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
+import { userApi } from '../../services/api';
 
 const Dashboard = () => {
   const { user, profile, logout, refreshProfile, checkEmailVerification } = useAuth();

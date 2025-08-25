@@ -6,6 +6,7 @@ import { auth } from '../user/auth/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Header from '../user/components/Header';
 import Footer from '../user/components/Footer';
+import { userApi } from '../../services/api';
 
 const ProfileCompletion = () => {
   const [user, setUser] = useState(null);
@@ -29,8 +30,7 @@ const ProfileCompletion = () => {
         setUser(user);
         // Fetch user profile
         try {
-          const response = await fetch(`http://localhost:9988/api/users/profile/${user.uid}`);
-          const data = await response.json();
+          const data = await userApi.getProfile(user.uid);
           if (data.success && data.profile) {
             setProfile(data.profile);
             if (data.profile.profileCompletion?.percentage === 100) {
@@ -110,12 +110,7 @@ const ProfileCompletion = () => {
         submitData.append('panCardImage', formData.panCardImage);
       }
 
-      const response = await fetch(`http://localhost:9988/api/users/profile-completion/${user.uid}`, {
-        method: 'POST',
-        body: submitData
-      });
-
-      const data = await response.json();
+      const data = await userApi.profileCompletion(user.uid, submitData);
 
       if (data.success) {
         setSuccess('Profile completed successfully! Redirecting to dashboard...');

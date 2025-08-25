@@ -5,8 +5,16 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 3003",
+    "start:backend": "cd backend && node server.js",
+    "dev:backend": "cd backend && nodemon server.js",
+    "lint": "eslint",
+    "deploy": "bash deploy.sh",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop trading-hub-backend trading-hub-frontend",
+    "pm2:restart": "pm2 restart trading-hub-backend trading-hub-frontend",
+    "pm2:logs": "pm2 logs",
+    "pm2:status": "pm2 status"
   },
   "dependencies": {
     "bootstrap": "^5.3.7",
@@ -18,6 +26,7 @@
     "razorpay": "^2.9.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-icons": "^5.5.0",
     "tesseract.js": "^6.0.1"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
 import Header from '../user/components/Header';
 import Footer from '../user/components/Footer';
+import { userApi } from '../../services/api';
 
 // Enhanced OCR function with image validation and fake detection
 const extractPANCardDetails = async (imageFile, userProfileName = '') => {
@@ -561,8 +562,7 @@ const KYCVerification = () => {
 
     try {
       // For PAN validation, we'll check if it exists in any profile
-      const response = await fetch(`http://localhost:9988/api/users/check-pan/${panNumber}`);
-      const data = await response.json();
+      const data = await userApi.checkPan(panNumber);
 
       if (data.success) {
         if (data.exists) {
@@ -728,12 +728,7 @@ const KYCVerification = () => {
         submitData.append('profilePhoto', formData.profilePhoto);
       }
 
-      const response = await fetch(`http://localhost:9988/api/users/kyc-verification/${user.uid}`, {
-        method: 'POST',
-        body: submitData
-      });
-
-      const data = await response.json();
+      const data = await userApi.kycVerification(user.uid, submitData);
 
       if (data.success) {
         setSuccess('KYC verification submitted successfully! Redirecting to dashboard...');

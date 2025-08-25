@@ -22,6 +22,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-top: 20px; /* Adjust based on header height */
 }
 
 * {
@@ -94,4 +95,119 @@ a {
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Add padding to body to account for fixed header */
+
+
+/* Ensure content doesn't go behind fixed header */
+.page-content {
+  padding-top: 20px;
+}
+
+/* Custom styles for improved layouts */
+.hero-section {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.contact-info-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.contact-form-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.faq-category-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+}
+
+.faq-category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.about-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4rem 0;
+}
+
+.team-member-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.team-member-card:hover {
+  transform: translateY(-10px);
+}
+
+.value-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  height: 100%;
+}
+
+/* Purple theme colors */
+:root {
+  --primary-purple: #6f42c1;
+  --secondary-purple: #8e44ad;
+  --light-purple: #e8d5ff;
+  --dark-purple: #4a148c;
+}
+
+.btn-purple {
+  background: var(--primary-purple);
+  border-color: var(--primary-purple);
+  color: white;
+}
+
+.btn-purple:hover {
+  background: var(--secondary-purple);
+  border-color: var(--secondary-purple);
+  color: white;
+}
+
+.text-purple {
+  color: var(--primary-purple) !important;
+}
+
+.bg-purple-light {
+  background-color: var(--light-purple) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    padding-top: 70px;
+  }
+  
+  .contact-info-card,
+  .contact-form-card {
+    margin-bottom: 2rem;
+  }
 }

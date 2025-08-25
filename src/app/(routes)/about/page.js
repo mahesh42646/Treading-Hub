@@ -1,202 +1,431 @@
+'use client';
+
 import React from 'react';
+import { FaUsers, FaLightbulb, FaHandshake, FaGraduationCap, FaTrophy, FaGlobe, FaDiscord, FaFacebook } from 'react-icons/fa';
 import Header from '../../user/components/Header';
 import Footer from '../../user/components/Footer';
 
-export default function About() {
+const AboutPage = () => {
   return (
-    <div className="min-vh-100 d-flex flex-column">
+    <div className="page-content">
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-primary text-white py-5">
+      <section className="about-hero">
         <div className="container">
-          <div className="row">
-            <div className="col-lg-8 mx-auto text-center">
-              <h1 className="display-4 fw-bold mb-4">About Treading Hub</h1>
-              <p className="lead">
-                Empowering traders worldwide to achieve financial freedom through 
-                innovative funding solutions and comprehensive support.
+          <div className="row justify-content-center text-center">
+            <div className="col-lg-8">
+              <h1 className="display-3 fw-bold mb-4">
+                Meet the Team Behind <span className="text-info">Trading Hub</span>
+              </h1>
+              <p className="lead mb-5">
+                We are a passionate team dedicated to empowering traders with the tools, 
+                knowledge, and support they need to succeed in the financial markets. 
+                Our mission is to make professional trading accessible to everyone.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mission Section */}
+      {/* Team Photos Section */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <div className="row">
+            <div className="col-12">
+              <div className="d-flex justify-content-center gap-3 flex-wrap">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="team-photo" style={{
+                    width: '200px',
+                    height: '150px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '1.2rem',
+                    fontWeight: 'bold'
+                  }}>
+                    Team Photo {i}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission and Vision Section */}
       <section className="py-5">
+        <div className="container">
+          <div className="row g-4">
+            <div className="col-md-6">
+              <div className="value-card">
+                <div className="mb-4">
+                  <i className="bi bi-chat-quote text-purple" style={{ fontSize: '3rem' }}></i>
+                </div>
+                <h3 className="fw-bold mb-3">Our Mission</h3>
+                <p className="text-muted">
+                  To democratize access to professional trading opportunities by providing 
+                  innovative funding solutions, comprehensive education, and unwavering 
+                  support to traders worldwide.
+                </p>
+                <div className="mt-4" style={{
+                  height: '4px',
+                  background: 'linear-gradient(90deg, var(--primary-purple), var(--secondary-purple))',
+                  borderRadius: '2px'
+                }}></div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="value-card">
+                <div className="mb-4">
+                  <i className="bi bi-eye text-purple" style={{ fontSize: '3rem' }}></i>
+                </div>
+                <h3 className="fw-bold mb-3">Our Vision</h3>
+                <p className="text-muted">
+                  To become the world&apos;s leading platform for funded trading, 
+                  fostering a global community of successful traders who achieve 
+                  financial freedom through disciplined trading practices.
+                </p>
+                <div className="mt-4" style={{
+                  height: '4px',
+                  background: 'linear-gradient(90deg, var(--primary-purple), var(--secondary-purple))',
+                  borderRadius: '2px'
+                }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Purpose Section */}
+      <section className="py-5 bg-light">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
-              <h2 className="display-5 fw-bold mb-4">Our Mission</h2>
-              <p className="lead text-muted mb-4">
-                At Treading Hub, we believe that talented traders should have access to 
-                the capital they need to succeed. Our mission is to bridge the gap 
-                between trading talent and funding opportunities.
+              <h2 className="display-5 fw-bold mb-4">
+                Why We Wake Up and Come to <span className="text-info">Work Everyday</span>
+              </h2>
+              <p className="lead text-muted">
+                Every day, we are driven by the stories of traders who have transformed 
+                their lives through our platform. We believe that financial freedom 
+                should be accessible to anyone with the dedication and discipline to 
+                master the markets.
               </p>
               <p className="text-muted">
-                We provide a platform where skilled traders can demonstrate their 
-                abilities and receive funding to trade with real capital, while 
-                maintaining full control over their trading decisions.
+                Our team is committed to providing the best possible experience, 
+                from cutting-edge technology to personalized support, ensuring 
+                every trader has the tools they need to succeed.
               </p>
             </div>
+            <div className="col-lg-6 text-center">
+              <div className="brand-image" style={{
+                width: '300px',
+                height: '300px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                margin: '0 auto'
+              }}>
+                Trading Hub
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Values Section */}
+      <section className="py-5">
+        <div className="container">
+          <div className="row">
             <div className="col-lg-6">
-              <div className="bg-light p-4 rounded">
-                <h4 className="mb-3">What We Offer</h4>
+              <h2 className="display-5 fw-bold mb-4">
+                Guiding Principles that <span className="text-info">Define Us</span>
+              </h2>
+              <div className="mb-4">
                 <ul className="list-unstyled">
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Up to $200,000 in funding</li>
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>90% profit sharing</li>
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Risk-free evaluation process</li>
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>24/7 customer support</li>
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Advanced trading tools</li>
-                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i>Educational resources</li>
+                  <li className="mb-3 d-flex align-items-center">
+                    <i className="bi bi-check-circle-fill text-success me-3" style={{ fontSize: '1.5rem' }}></i>
+                    <span className="fw-bold">Act with Integrity</span>
+                  </li>
+                  <li className="mb-3 d-flex align-items-center">
+                    <i className="bi bi-check-circle-fill text-success me-3" style={{ fontSize: '1.5rem' }}></i>
+                    <span className="fw-bold">Take Full Ownership</span>
+                  </li>
+                  <li className="mb-3 d-flex align-items-center">
+                    <i className="bi bi-check-circle-fill text-success me-3" style={{ fontSize: '1.5rem' }}></i>
+                    <span className="fw-bold">Always Learn & Grow</span>
+                  </li>
+                  <li className="mb-3 d-flex align-items-center">
+                    <i className="bi bi-check-circle-fill text-success me-3" style={{ fontSize: '1.5rem' }}></i>
+                    <span className="fw-bold">Champion Empathy</span>
+                  </li>
                 </ul>
               </div>
             </div>
+            <div className="col-lg-6">
+              <div className="value-visual" style={{
+                width: '100%',
+                height: '300px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold'
+              }}>
+                TAKE OWNERSHIP
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Values Section */}
+      {/* Office Tour Section */}
       <section className="py-5 bg-light">
         <div className="container">
-          <div className="text-center mb-5">
-            <h2 className="display-5 fw-bold">Our Values</h2>
-            <p className="lead text-muted">The principles that guide everything we do</p>
-          </div>
-          
+          <h2 className="text-center display-5 fw-bold mb-5">
+            <span className="text-info">Trading Hub</span> Office Tour
+          </h2>
           <div className="row g-4">
-            <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '60px', height: '60px' }}>
-                    <i className="bi bi-shield-check text-primary fs-2"></i>
-                  </div>
-                  <h5 className="card-title">Transparency</h5>
-                  <p className="card-text text-muted">
-                    We believe in complete transparency in all our processes, 
-                    from evaluation criteria to profit sharing.
-                  </p>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="col-md-6 col-lg-3">
+                <div className="office-photo" style={{
+                  width: '100%',
+                  height: '200px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  transform: 'rotate(-2deg)',
+                  transition: 'transform 0.3s ease'
+                }}>
+                  Office {i}
                 </div>
               </div>
-            </div>
-            
-            <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '60px', height: '60px' }}>
-                    <i className="bi bi-people text-success fs-2"></i>
-                  </div>
-                  <h5 className="card-title">Community</h5>
-                  <p className="card-text text-muted">
-                    Building a supportive community of traders who learn, 
-                    grow, and succeed together.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '60px', height: '60px' }}>
-                    <i className="bi bi-lightbulb text-warning fs-2"></i>
-                  </div>
-                  <h5 className="card-title">Innovation</h5>
-                  <p className="card-text text-muted">
-                    Continuously innovating our platform and services to 
-                    provide the best trading experience.
-                  </p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Global Meetups Section */}
       <section className="py-5">
         <div className="container">
-          <div className="row text-center">
-            <div className="col-md-3 mb-4">
-              <div className="display-4 fw-bold text-primary mb-2">10,000+</div>
-              <p className="text-muted">Active Traders</p>
+          <h2 className="text-center display-5 fw-bold mb-5">
+            <span className="text-info">Trading Hub</span> Global Meet-Up and Conferences
+          </h2>
+          <div className="row g-4">
+            <div className="col-lg-8">
+              <div className="conference-photo" style={{
+                width: '100%',
+                height: '300px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold'
+              }}>
+                Global Conference
+              </div>
             </div>
-            <div className="col-md-3 mb-4">
-              <div className="display-4 fw-bold text-success mb-2">$50M+</div>
-              <p className="text-muted">Total Funding Provided</p>
-            </div>
-            <div className="col-md-3 mb-4">
-              <div className="display-4 fw-bold text-warning mb-2">95%</div>
-              <p className="text-muted">Success Rate</p>
-            </div>
-            <div className="col-md-3 mb-4">
-              <div className="display-4 fw-bold text-info mb-2">24/7</div>
-              <p className="text-muted">Customer Support</p>
+            <div className="col-lg-4">
+              <div className="row g-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="col-6">
+                    <div className="event-photo" style={{
+                      width: '100%',
+                      height: '140px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold'
+                    }}>
+                      Event {i}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
+      {/* Partnerships Section */}
       <section className="py-5 bg-light">
         <div className="container">
-          <div className="text-center mb-5">
-            <h2 className="display-5 fw-bold">Our Team</h2>
-            <p className="lead text-muted">Meet the experts behind Treading Hub</p>
+          <div className="row align-items-center">
+            <div className="col-lg-6">
+              <h2 className="display-5 fw-bold mb-4">
+                Strategic Partnership with <span className="text-info">MetaQuotes, Google and Meta</span>
+              </h2>
+              <p className="lead text-muted">
+                We are proud to partner with industry leaders to provide our traders 
+                with the best possible trading experience. Our partnerships ensure 
+                access to cutting-edge technology and reliable platforms.
+              </p>
+            </div>
+            <div className="col-lg-6 text-center">
+              <div className="partnership-logos d-flex justify-content-center gap-4 flex-wrap">
+                {['Google', 'Meta', 'MetaQuotes'].map((partner) => (
+                  <div key={partner} className="partner-logo" style={{
+                    width: '120px',
+                    height: '80px',
+                    background: 'white',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#333',
+                    fontWeight: 'bold',
+                    boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+                  }}>
+                    {partner}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          
-          <div className="row g-4">
-            <div className="col-lg-4 col-md-6">
-              <div className="card border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '80px', height: '80px' }}>
-                    <i className="bi bi-person text-primary fs-1"></i>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-5">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-10">
+              <div className="text-center mb-5">
+                <i className="bi bi-quote text-purple" style={{ fontSize: '4rem' }}></i>
+              </div>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <div className="testimonial-card text-center p-4">
+                                         <h4 className="fw-bold mb-3">&quot;We Empower Traders with Financial Freedom&quot;</h4>
+                    <p className="text-muted mb-4">
+                      Our platform is designed to give traders the tools and support 
+                      they need to achieve their financial goals.
+                    </p>
+                    <div className="testimonial-author">
+                      <div className="author-photo mx-auto mb-3" style={{
+                        width: '80px',
+                        height: '80px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        SA
+                      </div>
+                      <h5 className="fw-bold">Syed Abdullah</h5>
+                      <p className="text-muted">CEO & Founder</p>
+                    </div>
                   </div>
-                  <h5 className="card-title">John Smith</h5>
-                  <p className="text-muted">CEO & Founder</p>
-                  <p className="card-text">
-                    Former hedge fund manager with 15+ years of experience in 
-                    financial markets and trading technology.
-                  </p>
+                </div>
+                <div className="col-md-6">
+                  <div className="testimonial-card text-center p-4">
+                                         <h4 className="fw-bold mb-3">&quot;We Support Traders to Conquer the Markets&quot;</h4>
+                    <p className="text-muted mb-4">
+                      Our comprehensive support system ensures every trader has 
+                      the guidance they need to succeed.
+                    </p>
+                    <div className="testimonial-author">
+                      <div className="author-photo mx-auto mb-3" style={{
+                        width: '80px',
+                        height: '80px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        MA
+                      </div>
+                      <h5 className="fw-bold">Mahesh Kumar</h5>
+                      <p className="text-muted">CTO & Co-Founder</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div className="col-lg-4 col-md-6">
-              <div className="card border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '80px', height: '80px' }}>
-                    <i className="bi bi-person text-success fs-1"></i>
-                  </div>
-                  <h5 className="card-title">Sarah Johnson</h5>
-                  <p className="text-muted">CTO</p>
-                  <p className="card-text">
-                    Technology expert with deep experience in building 
-                    scalable trading platforms and financial systems.
-                  </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Awards Section */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <h2 className="text-center display-5 fw-bold mb-5">
+            Awards and <span className="text-info">Accreditations</span>
+          </h2>
+          <div className="row g-4 justify-content-center">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="col-md-4 col-lg-2">
+                <div className="award-photo" style={{
+                  width: '100%',
+                  height: '150px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}>
+                  Award {i}
                 </div>
               </div>
-            </div>
-            
-            <div className="col-lg-4 col-md-6">
-              <div className="card border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                       style={{ width: '80px', height: '80px' }}>
-                    <i className="bi bi-person text-warning fs-1"></i>
-                  </div>
-                  <h5 className="card-title">Mike Davis</h5>
-                  <p className="text-muted">Head of Trading</p>
-                  <p className="card-text">
-                    Professional trader with expertise in risk management 
-                    and developing trading strategies for funded accounts.
-                  </p>
-                </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-5" style={{
+        background: 'linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%)',
+        color: 'white'
+      }}>
+        <div className="container">
+          <div className="row justify-content-center text-center">
+            <div className="col-lg-8">
+              <h2 className="display-4 fw-bold mb-4">
+                Join the Global Community for the Traders, by the Traders
+              </h2>
+              <p className="lead mb-5">
+                Connect with thousands of traders worldwide, share strategies, 
+                and grow together in our vibrant community.
+              </p>
+              <div className="d-flex justify-content-center gap-4 flex-wrap">
+                <button className="btn btn-light btn-lg px-4 py-3 fw-bold">
+                  <FaDiscord className="me-2" />
+                  Join Discord Community
+                </button>
+                <button className="btn btn-light btn-lg px-4 py-3 fw-bold">
+                  <FaFacebook className="me-2" />
+                  Join Facebook Community
+                </button>
               </div>
             </div>
           </div>
@@ -206,4 +435,6 @@ export default function About() {
       <Footer />
     </div>
   );
-} 
+};
+
+export default AboutPage; 

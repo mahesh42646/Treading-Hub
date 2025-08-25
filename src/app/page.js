@@ -6,21 +6,10 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="min-vh-100 d-flex flex-column
-    
-    
-    ">
+    <div className="page-content">
       <Header />
 
-      {/* Banner Section - Exact FUNDEDNEXT Style */}
-      <section className="py-3" style={{
-        background: '#7c3aed',
-        color: '#7c3aed'
-      }}>
-        <div className="container">
-
-        </div>
-      </section>
+  
 
       {/* Hero Section - Exact FUNDEDNEXT Style */}
       <section

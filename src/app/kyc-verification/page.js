@@ -523,21 +523,21 @@ const KYCVerification = () => {
 
   useEffect(() => {
     if (profile) {
-      // Get user's profile name for reference
+            // Get user's profile name for reference
       const userFullName = `${profile.firstName} ${profile.lastName}`.trim();
-      setExtractedData(prev => ({
-        ...prev,
-        userProfileName: userFullName
-      }));
-      console.log('👤 User profile name for reference:', userFullName);
+            setExtractedData(prev => ({
+              ...prev,
+              userProfileName: userFullName
+            }));
+            console.log('👤 User profile name for reference:', userFullName);
 
-      // Check if KYC is already completed
+            // Check if KYC is already completed
       if (profile?.profileCompletion?.kycStatus === 'verified') {
-        setSuccess('KYC is already verified! Redirecting to dashboard...');
-        setTimeout(() => router.push('/dashboard'), 2000);
-        return;
-      }
-    }
+              setSuccess('KYC is already verified! Redirecting to dashboard...');
+              setTimeout(() => router.push('/dashboard'), 2000);
+              return;
+            }
+          }
   }, [profile, router]);
 
   const handleChange = (e) => {
@@ -749,210 +749,210 @@ const KYCVerification = () => {
     }
   };
 
-  return (
+    return (
     <RouteGuard requireAuth={true} requireProfile={true}>
-      <div style={{
-        background: 'linear-gradient(135deg,rgb(0, 17, 48) 0%,rgb(34, 15, 96) 100%)',
-        minHeight: '100vh'
-      }}>
-        <Header />
-        <div className="container py-5 mt-5">
-          <div className="row justify-content-center">
-            <div className="col-md-8 col-lg-10">
-              <div className="card border-0 rounded-4" style={{
-                background: 'rgba(60, 58, 58, 0.03)',
-                border: '1px solid rgba(124, 124, 124, 0.39)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
-              }}>
-                <div className="card-body p-5">
-                  <div className="text-center mb-4">
-                    <h2 className="fw-bold text-white">
-                      <span style={{ color: 'red', textDecoration: 'underline green' }}>KYC </span>
-                      <span style={{ color: 'green', textDecoration: 'underline red' }}>Verification</span>
-                    </h2>
-                    <p className="text-white-50">Complete your KYC to activate your account</p>
+    <div style={{
+      background: 'linear-gradient(135deg,rgb(0, 17, 48) 0%,rgb(34, 15, 96) 100%)',
+      minHeight: '100vh'
+    }}>
+      <Header />
+      <div className="container py-5 mt-5">
+        <div className="row justify-content-center">
+          <div className="col-md-8 col-lg-10">
+            <div className="card border-0 rounded-4" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="card-body p-5">
+                <div className="text-center mb-4">
+                  <h2 className="fw-bold text-white">
+                    <span style={{ color: 'red', textDecoration: 'underline green' }}>KYC </span>
+                    <span style={{ color: 'green', textDecoration: 'underline red' }}>Verification</span>
+                  </h2>
+                  <p className="text-white-50">Complete your KYC to activate your account</p>
 
-                    {profile && (
-                      <div className="mb-4">
+                  {profile && (
+                    <div className="mb-4">
 
-                      </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+
+                {error && (
+                  <div className="alert alert-danger rounded-4" style={{
+                    background: 'rgba(220, 53, 69, 0.1)',
+                    border: '1px solid rgba(220, 53, 69, 0.3)',
+                    color: '#ff6b6b'
+                  }}>
+                    {error}
+                  </div>
+                )}
+
+                {success && (
+                  <div className="alert alert-success rounded-4" style={{
+                    background: 'rgba(40, 167, 69, 0.1)',
+                    border: '1px solid rgba(40, 167, 69, 0.3)',
+                    color: '#6bff6b'
+                  }}>
+                    {success}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                  {/* Image Uploads in one row (desktop) */}
+                  <div className="row mb-4">
+                    <div className="col-12 col-md-6 mb-3 mb-md-0">
+                      {!imageUploaded.panCard && (
+                        <div>
+                          <label htmlFor="panCardImage" className="form-label text-white">PAN Card Image *</label>
+                          <input
+                            type="file"
+                            className="form-control rounded-4"
+                            id="panCardImage"
+                            name="panCardImage"
+                            onChange={(e) => handleImageChange(e, 'panCardImage')}
+                            accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              backdropFilter: 'blur(20px)',
+                              color: 'white'
+                            }}
+                          />
+                          <small className="text-white-50">
+                            Upload a clear image of your PAN card (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
+                          </small>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="col-12 col-md-6">
+                      {!imageUploaded.profile && (
+                        <div>
+                          <label htmlFor="profilePhoto" className="form-label text-white">Profile Photo *</label>
+                          <input
+                            type="file"
+                            className="form-control rounded-4"
+                            id="profilePhoto"
+                            name="profilePhoto"
+                            onChange={(e) => handleImageChange(e, 'profilePhoto')}
+                            accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              backdropFilter: 'blur(20px)',
+                              color: 'white'
+                            }}
+                          />
+                          <small className="text-white-50">
+                            Upload a clear profile photo (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
+                          </small>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {error && (
-                    <div className="alert alert-danger rounded-4" style={{
-                      background: 'rgba(220, 53, 69, 0.1)',
-                      border: '1px solid rgba(220, 53, 69, 0.3)',
-                      color: '#ff6b6b'
-                    }}>
-                      {error}
-                    </div>
-                  )}
-
-                  {success && (
-                    <div className="alert alert-success rounded-4" style={{
-                      background: 'rgba(40, 167, 69, 0.1)',
-                      border: '1px solid rgba(40, 167, 69, 0.3)',
-                      color: '#6bff6b'
-                    }}>
-                      {success}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSubmit}>
-                    {/* Image Uploads in one row (desktop) */}
-                    <div className="row mb-4">
-                      <div className="col-12 col-md-6 mb-3 mb-md-0">
-                        {!imageUploaded.panCard && (
-                          <div>
-                            <label htmlFor="panCardImage" className="form-label text-white">PAN Card Image *</label>
-                            <input
-                              type="file"
-                              className="form-control rounded-4"
-                              id="panCardImage"
-                              name="panCardImage"
-                              onChange={(e) => handleImageChange(e, 'panCardImage')}
-                              accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                              style={{
-                                background: 'rgba(60, 58, 58, 0.03)',
-                                border: '1px solid rgba(124, 124, 124, 0.39)',
-                                backdropFilter: 'blur(20px)',
-                                color: 'white'
-                              }}
-                            />
-                            <small className="text-white-50">
-                              Upload a clear image of your PAN card (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
-                            </small>
-                          </div>
-                        )}
+                <div className="row">
+                {previewImages.panCard && (
+                    <div className="mb-4 col-lg-6">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <label className="form-label text-white mb-0">PAN Card Preview:</label>
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-3"
+                          onClick={() => {
+                            setImageUploaded(prev => ({ ...prev, panCard: false }));
+                            setFormData(prev => ({ ...prev, panCardImage: null }));
+                            setPreviewImages(prev => ({ ...prev, panCard: null }));
+                            setExtractedData({ panNumber: '', name: '', isExtracting: false });
+                          }}
+                          style={{
+                            background: 'rgba(255, 193, 7, 0.2)',
+                            border: '1px solid rgba(255, 193, 7, 0.5)',
+                            color: '#ffc107'
+                          }}
+                        >
+                          <i className="bi bi-arrow-clockwise me-1"></i>
+                          Change Image
+                        </button>
                       </div>
-
-                      <div className="col-12 col-md-6">
-                        {!imageUploaded.profile && (
-                          <div>
-                            <label htmlFor="profilePhoto" className="form-label text-white">Profile Photo *</label>
-                            <input
-                              type="file"
-                              className="form-control rounded-4"
-                              id="profilePhoto"
-                              name="profilePhoto"
-                              onChange={(e) => handleImageChange(e, 'profilePhoto')}
-                              accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                              style={{
-                                background: 'rgba(60, 58, 58, 0.03)',
-                                border: '1px solid rgba(124, 124, 124, 0.39)',
-                                backdropFilter: 'blur(20px)',
-                                color: 'white'
-                              }}
-                            />
-                            <small className="text-white-50">
-                              Upload a clear profile photo (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
-                            </small>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      {previewImages.panCard && (
-                        <div className="mb-4 col-lg-6">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label text-white mb-0">PAN Card Preview:</label>
-                            <button
-                              type="button"
-                              className="btn btn-sm rounded-3"
-                              onClick={() => {
-                                setImageUploaded(prev => ({ ...prev, panCard: false }));
-                                setFormData(prev => ({ ...prev, panCardImage: null }));
-                                setPreviewImages(prev => ({ ...prev, panCard: null }));
-                                setExtractedData({ panNumber: '', name: '', isExtracting: false });
-                              }}
-                              style={{
-                                background: 'rgba(255, 193, 7, 0.2)',
-                                border: '1px solid rgba(255, 193, 7, 0.5)',
-                                color: '#ffc107'
-                              }}
-                            >
-                              <i className="bi bi-arrow-clockwise me-1"></i>
-                              Change Image
-                            </button>
-                          </div>
-                          <div className=" rounded-4 p-2" style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
-                            backdropFilter: 'blur(20px)'
-                          }}>
+                      <div className=" rounded-4 p-2" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        backdropFilter: 'blur(20px)'
+                      }}>
                             <Image
-                              src={previewImages.panCard}
-                              alt="PAN Card Preview"
-                              className="img-fluid rounded"
-                              style={{ maxHeight: '250px' }}
+                          src={previewImages.panCard}
+                          alt="PAN Card Preview"
+                          className="img-fluid rounded"
+                          style={{ maxHeight: '250px' }}
                               width={400}
                               height={250}
-                            />
-                          </div>
-                        </div>
-                      )}
+                        />
+                      </div>
+                    </div>
+                  )}
 
-                      {previewImages.profile && (
-                        <div className="mb-4 col-lg-6">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label text-white mb-0">Profile Photo Preview:</label>
-                            <button
-                              type="button"
-                              className="btn btn-sm rounded-3"
-                              onClick={() => {
-                                setImageUploaded(prev => ({ ...prev, profile: false }));
-                                setFormData(prev => ({ ...prev, profilePhoto: null }));
-                                setPreviewImages(prev => ({ ...prev, profile: null }));
-                              }}
-                              style={{
-                                background: 'rgba(255, 193, 7, 0.2)',
-                                border: '1px solid rgba(255, 193, 7, 0.5)',
-                                color: '#ffc107'
-                              }}
-                            >
-                              <i className="bi bi-arrow-clockwise me-1"></i>
-                              Change Image
-                            </button>
-                          </div>
-                          <div className="border rounded-4 p-2" style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
-                            backdropFilter: 'blur(20px)'
-                          }}>
+                  {previewImages.profile && (
+                    <div className="mb-4 col-lg-6">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <label className="form-label text-white mb-0">Profile Photo Preview:</label>
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-3"
+                          onClick={() => {
+                            setImageUploaded(prev => ({ ...prev, profile: false }));
+                            setFormData(prev => ({ ...prev, profilePhoto: null }));
+                            setPreviewImages(prev => ({ ...prev, profile: null }));
+                          }}
+                          style={{
+                            background: 'rgba(255, 193, 7, 0.2)',
+                            border: '1px solid rgba(255, 193, 7, 0.5)',
+                            color: '#ffc107'
+                          }}
+                        >
+                          <i className="bi bi-arrow-clockwise me-1"></i>
+                          Change Image
+                        </button>
+                      </div>
+                      <div className="border rounded-4 p-2" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)'
+                      }}>
                             <Image
-                              src={previewImages.profile}
-                              alt="Profile Photo Preview"
-                              className="img-fluid rounded"
-                              style={{ maxHeight: '200px' }}
+                          src={previewImages.profile}
+                          alt="Profile Photo Preview"
+                          className="img-fluid rounded"
+                          style={{ maxHeight: '200px' }}
                               width={400}
                               height={200}
-                            />
-                          </div>
-                        </div>
-                      )}
+                        />
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className="row mb-4">
-                      <div className="col-12 col-md-6 mb-3 mb-md-0">
-                        <label htmlFor="panCardNumber" className="form-label text-white">
-                          PAN Card Number
-                          {extractedData.panNumber && <span className="text-success ms-2">(Auto-detected)</span>}
-                        </label>
-                        <input
-                          type="text"
+                <div className="row mb-4">
+                    <div className="col-12 col-md-6 mb-3 mb-md-0">
+                      <label htmlFor="panCardNumber" className="form-label text-white">
+                        PAN Card Number
+                        {extractedData.panNumber && <span className="text-success ms-2">(Auto-detected)</span>}
+                      </label>
+                      <input
+                        type="text"
                           className={`form-control rounded-4 ${
                             panValidation.available === false ? 'is-invalid' : 
                             panValidation.available === true ? 'is-valid' : ''
                           }`}
-                          id="panCardNumber"
-                          name="panCardNumber"
-                          value={formData.panCardNumber}
-                          onChange={handleChange}
-                          placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN card number"}
-                          style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
+                        id="panCardNumber"
+                        name="panCardNumber"
+                        value={formData.panCardNumber}
+                        onChange={handleChange}
+                        placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN card number"}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
                             border: panValidation.available === false 
                               ? '1px solid rgba(220, 53, 69, 0.5)' 
                               : panValidation.available === true 
@@ -960,10 +960,10 @@ const KYCVerification = () => {
                               : extractedData.panNumber 
                               ? '1px solid rgba(40, 167, 69, 0.5)' 
                               : '1px solid rgba(124, 124, 124, 0.39)',
-                            backdropFilter: 'blur(10px)',
-                            color: 'white'
-                          }}
-                        />
+                          backdropFilter: 'blur(10px)',
+                          color: 'white'
+                        }}
+                      />
                         {panValidation.checking && (
                           <small className="text-info">
                             <i className="bi bi-arrow-clockwise me-1"></i>
@@ -978,106 +978,106 @@ const KYCVerification = () => {
                             {panValidation.message}
                           </small>
                         )}
-                        <small className="text-white-50">
-                          {extractedData.panNumber
-                            ? "✅ PAN number auto-detected from image. You can edit if needed."
-                            : "Upload PAN card image to auto-detect the number"
-                          }
-                        </small>
-                      </div>
-
-                      <div className="col-12 col-md-6">
-                        <label htmlFor="panHolderName" className="form-label text-white">
-                          PAN Holder Name
-                          {extractedData.name && <span className="text-success ms-2">(Auto-detected)</span>}
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control rounded-4"
-                          id="panHolderName"
-                          name="panHolderName"
-                          value={formData.panHolderName}
-                          onChange={handleChange}
-                          placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN holder name"}
-                          style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
-                            border: extractedData.name ? '1px solid rgba(40, 167, 69, 0.5)' : '1px solid rgba(124, 124, 124, 0.39)',
-                            backdropFilter: 'blur(20px)',
-                            color: 'white'
-                          }}
-                        />
-                        <small className="text-white-50">
-                          {extractedData.name
-                            ? "✅ PAN holder name auto-detected from image. You can edit if needed."
-                            : "Upload PAN card image to auto-detect the name"
-                          }
-                        </small>
-                      </div>
+                      <small className="text-white-50">
+                        {extractedData.panNumber
+                          ? "✅ PAN number auto-detected from image. You can edit if needed."
+                          : "Upload PAN card image to auto-detect the number"
+                        }
+                      </small>
                     </div>
 
-                    {/* OCR Processing Status */}
-                    {extractedData.isExtracting && (
-                      <div className="alert alert-info rounded-4 mb-4" style={{
-                        background: 'rgba(13, 202, 240, 0.1)',
-                        border: '1px solid rgba(13, 202, 240, 0.3)',
-                        color: '#6bd4ff'
-                      }}>
-                        <div className="d-flex align-items-center">
-                          <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                          <span>Extracting PAN card details...</span>
-                        </div>
-                      </div>
-                    )}
+                    <div className="col-12 col-md-6">
+                      <label htmlFor="panHolderName" className="form-label text-white">
+                        PAN Holder Name
+                        {extractedData.name && <span className="text-success ms-2">(Auto-detected)</span>}
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control rounded-4"
+                        id="panHolderName"
+                        name="panHolderName"
+                        value={formData.panHolderName}
+                        onChange={handleChange}
+                        placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN holder name"}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: extractedData.name ? '1px solid rgba(40, 167, 69, 0.5)' : '1px solid rgba(124, 124, 124, 0.39)',
+                          backdropFilter: 'blur(20px)',
+                          color: 'white'
+                        }}
+                      />
+                      <small className="text-white-50">
+                        {extractedData.name
+                          ? "✅ PAN holder name auto-detected from image. You can edit if needed."
+                          : "Upload PAN card image to auto-detect the name"
+                        }
+                      </small>
+                    </div>
+                  </div>
 
-                    {/* Submit and Back buttons in one row (desktop) */}
-                    <div className="row">
-                      <div className="col-12 col-md-6 mb-3 mb-md-0">
-                        <button
-                          type="submit"
-                          className="btn rounded-4 w-100"
+                  {/* OCR Processing Status */}
+                  {extractedData.isExtracting && (
+                    <div className="alert alert-info rounded-4 mb-4" style={{
+                      background: 'rgba(13, 202, 240, 0.1)',
+                      border: '1px solid rgba(13, 202, 240, 0.3)',
+                      color: '#6bd4ff'
+                    }}>
+                      <div className="d-flex align-items-center">
+                        <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <span>Extracting PAN card details...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submit and Back buttons in one row (desktop) */}
+                  <div className="row">
+                    <div className="col-12 col-md-6 mb-3 mb-md-0">
+                      <button
+                        type="submit"
+                        className="btn rounded-4 w-100"
                           disabled={submitting || panValidation.available === false}
-                          style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
-                            backdropFilter: 'blur(20px)',
-                            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                            color: 'white'
-                          }}
-                        >
-                          {submitting ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                              Submitting KYC...
-                            </>
-                          ) : (
-                            'Submit KYC Verification'
-                          )}
-                        </button>
-                      </div>
-                      <div className="col-12 col-md-6">
-                        <button
-                          type="button"
-                          className="btn rounded-4 w-100"
-                          onClick={() => router.push('/dashboard')}
-                          style={{
-                            background: 'rgba(60, 58, 58, 0.03)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
-                            backdropFilter: 'blur(20px)',
-                            color: 'white'
-                          }}
-                        >
-                          Back to Dashboard
-                        </button>
-                      </div>
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
+                          color: 'white'
+                        }}
+                      >
+                        {submitting ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                            Submitting KYC...
+                          </>
+                        ) : (
+                          'Submit KYC Verification'
+                        )}
+                      </button>
                     </div>
-                  </form>
-                </div>
+                    <div className="col-12 col-md-6">
+                      <button
+                        type="button"
+                        className="btn rounded-4 w-100"
+                        onClick={() => router.push('/dashboard')}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          backdropFilter: 'blur(20px)',
+                          color: 'white'
+                        }}
+                      >
+                        Back to Dashboard
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
         </div>
-        <Footer />
       </div>
+      <Footer />
+    </div>
     </RouteGuard>
   );
 };

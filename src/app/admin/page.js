@@ -230,4 +230,14 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+import AdminWrapper from './AdminWrapper';
+
+const AdminDashboardPage = () => {
+  return (
+    <AdminWrapper>
+      <AdminDashboard />
+    </AdminWrapper>
+  );
+};
+
+export default AdminDashboardPage;

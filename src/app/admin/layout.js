@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FaTachometerAlt, 
-  FaUsers, 
-  FaClipboardList, 
-  FaQuestionCircle, 
+import { useAdminAuth } from '../contexts/AdminAuthContext';
+import {
+  FaTachometerAlt,
+  FaUsers,
+  FaClipboardList,
+  FaQuestionCircle,
   FaUsersCog,
   FaEnvelope,
   FaShareAlt,
@@ -20,69 +21,16 @@ import {
 } from 'react-icons/fa';
 
 const AdminLayout = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, loading, logout } = useAdminAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Don't check auth for login page
-    if (pathname === '/admin/login') {
-      setLoading(false);
-      return;
-    }
-    // Define checkAuth inside useEffect to avoid missing dependency warning
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          router.push('/admin/login');
-        }
-      } catch (error) {
-        router.push('/admin/login');
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    checkAuth();
-  }, [pathname, router]);
 
-  const checkAuth = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        setIsAuthenticated(true);
-      } else {
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      router.push('/admin/login');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleLogout = async () => {
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      router.push('/admin/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+
+
 
   const menuItems = [
     { name: 'Dashboard', icon: FaTachometerAlt, path: '/admin' },
@@ -97,10 +45,7 @@ const AdminLayout = ({ children }) => {
     { name: 'News', icon: FaNewspaper, path: '/admin/news' },
   ];
 
-  // For login page, just render children without layout
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
-  }
+
 
   if (loading) {
     return (
@@ -135,18 +80,17 @@ const AdminLayout = ({ children }) => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.path;
-              
+
               return (
                 <li key={item.name} className="nav-item mb-2">
                   <Link
                     href={item.path}
-                    className={`nav-link d-flex align-items-center text-decoration-none ${
-                      isActive
+                    className={`nav-link d-flex align-items-center text-decoration-none ${isActive
                         ? 'bg-primary text-white'
                         : 'text-white-50 hover-bg-secondary'
-                    }`}
+                      }`}
                     onClick={() => setSidebarOpen(false)}
-                    style={{ 
+                    style={{
                       padding: '0.75rem 1rem',
                       borderRadius: '0.375rem',
                       transition: 'all 0.2s'
@@ -163,7 +107,7 @@ const AdminLayout = ({ children }) => {
 
         <div className="position-absolute bottom-0 start-0 end-0 p-3 border-top border-secondary">
           <button
-            onClick={handleLogout}
+            onClick={logout}
             className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
           >
             <FaSignOutAlt className="me-2" size={16} />

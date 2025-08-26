@@ -43,7 +43,11 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
@@ -328,4 +332,14 @@ const AdminUsers = () => {
   );
 };
 
-export default AdminUsers;
+import AdminWrapper from '../AdminWrapper';
+
+const AdminUsersPage = () => {
+  return (
+    <AdminWrapper>
+      <AdminUsers />
+    </AdminWrapper>
+  );
+};
+
+export default AdminUsersPage;

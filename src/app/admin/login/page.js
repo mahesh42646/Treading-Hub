@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaLock, FaEnvelope } from 'react-icons/fa';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -12,66 +13,32 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { isAuthenticated, login } = useAdminAuth();
 
-  useEffect(() => {
-    // Check if already logged in
-    const check = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          router.push('/admin');
-        }
-      } catch (error) {
-        // Not authenticated, stay on login page
-      }
-    };
-    check();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
+  // If already authenticated, redirect to admin dashboard
+  if (isAuthenticated) {
+    router.push('/admin');
+    return null;
+  }
 
-  const checkAuth = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        router.push('/admin');
-      }
-    } catch (error) {
-      // Not authenticated, stay on login page
-    }
-  };
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
+    const result = await login(formData.email, formData.password);
 
-      const data = await response.json();
-
-      if (data.success) {
-        router.push('/admin');
-      } else {
-        setError(data.message || 'Login failed');
-      }
-    } catch (error) {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      router.push('/admin');
+    } else {
+      setError(result.message);
     }
+    
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -164,4 +131,14 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin;
+import LoginWrapper from './LoginWrapper';
+
+const AdminLoginPage = () => {
+  return (
+    <LoginWrapper>
+      <AdminLogin />
+    </LoginWrapper>
+  );
+};
+
+export default AdminLoginPage;

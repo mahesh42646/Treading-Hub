@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useAdminAuth } from '../contexts/AdminAuthContext';
 import {
   FaTachometerAlt,
   FaUsers,
@@ -21,7 +20,8 @@ import {
 } from 'react-icons/fa';
 
 const AdminLayout = ({ children }) => {
-  const { isAuthenticated, loading, logout } = useAdminAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -31,6 +31,54 @@ const AdminLayout = ({ children }) => {
 
 
 
+
+  useEffect(() => {
+    // Don't check auth for login page
+    if (pathname === '/admin/login') {
+      setLoading(false);
+      return;
+    }
+    
+    // Check authentication status
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          // Only redirect if not already on login page
+          if (pathname !== '/admin/login') {
+            router.push('/admin/login');
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // Only redirect if not already on login page
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [pathname, router]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   const menuItems = [
     { name: 'Dashboard', icon: FaTachometerAlt, path: '/admin' },
@@ -46,6 +94,11 @@ const AdminLayout = ({ children }) => {
   ];
 
 
+
+  // For login page, just render children without layout
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -107,7 +160,7 @@ const AdminLayout = ({ children }) => {
 
         <div className="position-absolute bottom-0 start-0 end-0 p-3 border-top border-secondary">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
           >
             <FaSignOutAlt className="me-2" size={16} />

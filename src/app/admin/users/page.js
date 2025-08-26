@@ -332,14 +332,4 @@ const AdminUsers = () => {
   );
 };
 
-import AdminWrapper from '../AdminWrapper';
-
-const AdminUsersPage = () => {
-  return (
-    <AdminWrapper>
-      <AdminUsers />
-    </AdminWrapper>
-  );
-};
-
-export default AdminUsersPage;
+export default AdminUsers;

@@ -58,10 +58,10 @@ const ContactPage = () => {
       <Header />
       
       <div className="container py-5">
-        <div className="row">
+        <div className="row py-5">
           {/* Left Column - Contact Information */}
-          <div className="col-lg-6 mb-4">
-            <div className="contact-info-card">
+          <div className="col-lg-6 mb-0 contact-info-card ">
+            <div className="p-3">
               {/* Contact Us Section */}
               <div className="mb-5">
                 <div className="d-flex align-items-center mb-3">

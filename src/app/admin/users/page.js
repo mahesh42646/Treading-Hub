@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FaSearch, 
   FaEye, 
@@ -21,11 +21,7 @@ const AdminUsers = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [kycActionLoading, setKycActionLoading] = useState(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, searchTerm, fetchUsers]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const params = new URLSearchParams({
         page: currentPage,

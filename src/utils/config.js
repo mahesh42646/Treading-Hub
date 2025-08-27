@@ -3,23 +3,23 @@ export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9988',
   ENDPOINTS: {
     // User endpoints
-    USERS: '/api/users',
-    USER_PROFILE: (uid) => `/api/users/profile/${uid}`,
-    USER_CREATE: '/api/users/create',
-    USER_CREATE_WITH_PROFILE: '/api/users/create-with-profile',
-    USER_PROFILE_SETUP: '/api/users/profile-setup',
-    USER_KYC_VERIFICATION: (uid) => `/api/users/kyc-verification/${uid}`,
-    USER_UPDATE_EMAIL_VERIFICATION: (uid) => `/api/users/update-email-verification/${uid}`,
-    USER_PROFILE_COMPLETION: (uid) => `/api/users/profile-completion/${uid}`,
-    USER_CHECK_PHONE: (phone) => `/api/users/check-phone/${phone}`,
-    USER_CHECK_PAN: (panNumber) => `/api/users/check-pan/${panNumber}`,
-    USER_CHECK_EMAIL: (email) => `/api/users/check-email/${email}`,
+    USERS: '/users',
+    USER_PROFILE: (uid) => `/users/profile/${uid}`,
+    USER_CREATE: '/users/create',
+    USER_CREATE_WITH_PROFILE: '/users/create-with-profile',
+    USER_PROFILE_SETUP: '/users/profile-setup',
+    USER_KYC_VERIFICATION: (uid) => `/users/kyc-verification/${uid}`,
+    USER_UPDATE_EMAIL_VERIFICATION: (uid) => `/users/update-email-verification/${uid}`,
+    USER_PROFILE_COMPLETION: (uid) => `/users/profile-completion/${uid}`,
+    USER_CHECK_PHONE: (phone) => `/users/check-phone/${phone}`,
+    USER_CHECK_PAN: (panNumber) => `/users/check-pan/${panNumber}`,
+    USER_CHECK_EMAIL: (email) => `/users/check-email/${email}`,
     
     // Admin endpoints
-    ADMIN_KYC_APPROVE: (uid) => `/api/users/admin/kyc-approve/${uid}`,
-    ADMIN_KYC_REJECT: (uid) => `/api/users/admin/kyc-reject/${uid}`,
-    ADMIN_KYC_PENDING: '/api/users/admin/kyc-pending',
-    ADMIN_KYC_STATS: '/api/users/admin/kyc-stats',
+    ADMIN_KYC_APPROVE: (uid) => `/users/admin/kyc-approve/${uid}`,
+    ADMIN_KYC_REJECT: (uid) => `/users/admin/kyc-reject/${uid}`,
+    ADMIN_KYC_PENDING: '/users/admin/kyc-pending',
+    ADMIN_KYC_STATS: '/users/admin/kyc-stats',
   }
 };
 
@@ -43,11 +43,6 @@ export const ENV_CONFIG = {
 
 // Helper function to build full API URL
 export const buildApiUrl = (endpoint) => {
-  // If BASE_URL already ends with /api and endpoint starts with /api, remove the /api from endpoint
-  if (API_CONFIG.BASE_URL.endsWith('/api') && endpoint.startsWith('/api')) {
-    return `${API_CONFIG.BASE_URL}${endpoint.substring(4)}`;
-  }
-  
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 

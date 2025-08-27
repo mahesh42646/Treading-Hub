@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { FaUsers, FaLightbulb, FaHandshake, FaGraduationCap, FaTrophy, FaGlobe, FaDiscord, FaFacebook } from 'react-icons/fa';
 import Header from '../../user/components/Header';
 import Footer from '../../user/components/Footer';
@@ -58,7 +59,7 @@ const AboutPage = () => {
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Meet Our <span className="text-info">Team</span></h2>
-            <p className="lead text-muted">The passionate individuals behind Trading Hub's success</p>
+            <p className="lead text-muted">The passionate individuals behind Trading Hub&apos;s success</p>
           </div>
 
           {error && (
@@ -81,11 +82,13 @@ const AboutPage = () => {
                     <div className="card-body text-center p-4">
                       <div className="mb-3">
                         {member.image ? (
-                          <img 
+                          <Image 
                             src={member.image} 
                             alt={member.name}
+                            width={120}
+                            height={120}
                             className="rounded-circle"
-                            style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                            style={{ objectFit: 'cover' }}
                           />
                         ) : (
                           <div 

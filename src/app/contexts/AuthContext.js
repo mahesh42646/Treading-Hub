@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Handle navigation based on user state and profile
-  const handleNavigation = (firebaseUser, userProfile) => {
+  const handleNavigation = useCallback((firebaseUser, userProfile) => {
     if (!firebaseUser) {
       // No user, redirect to login if not already there
       if (pathname !== '/login' && pathname !== '/register' && pathname !== '/') {
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       router.push('/dashboard');
       return;
     }
-  };
+  }, [pathname, router]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {

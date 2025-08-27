@@ -125,11 +125,11 @@ const AdminLogin = () => {
             </button>
           </form>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <p className="text-muted small mb-0">
               Default credentials: admin@gmail.com / admin@123
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

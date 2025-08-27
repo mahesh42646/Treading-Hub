@@ -104,16 +104,32 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
     }
 
     const users = await User.find(query)
-      .populate('profile')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
+
+    // Get profiles for these users
+    const userIds = users.map(user => user._id);
+    const profiles = await Profile.find({ userId: { $in: userIds } });
+    
+    // Create a map of userId to profile
+    const profileMap = {};
+    profiles.forEach(profile => {
+      profileMap[profile.userId.toString()] = profile;
+    });
+
+    // Attach profiles to users
+    const usersWithProfiles = users.map(user => {
+      const userObj = user.toObject();
+      userObj.profile = profileMap[user._id.toString()] || null;
+      return userObj;
+    });
 
     const total = await User.countDocuments(query);
 
     res.json({
       success: true,
-      users,
+      users: usersWithProfiles,
       pagination: {
         current: parseInt(page),
         total: Math.ceil(total / limit),
@@ -127,11 +143,18 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
 
 router.get('/users/:uid', verifyAdminAuth, async (req, res) => {
   try {
-    const user = await User.findOne({ uid: req.params.uid }).populate('profile');
+    const user = await User.findOne({ uid: req.params.uid });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    res.json({ success: true, user });
+    
+    // Get profile for this user
+    const profile = await Profile.findOne({ userId: user._id });
+    
+    const userWithProfile = user.toObject();
+    userWithProfile.profile = profile;
+    
+    res.json({ success: true, user: userWithProfile });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -141,9 +164,26 @@ router.get('/users/:uid', verifyAdminAuth, async (req, res) => {
 router.get('/kyc-pending', verifyAdminAuth, async (req, res) => {
   try {
     const profiles = await Profile.find({ 'profileCompletion.kycStatus': 'under_review' })
-      .populate('userId', 'email uid')
       .sort({ createdAt: -1 });
-    res.json({ success: true, profiles });
+    
+    // Get users for these profiles
+    const userIds = profiles.map(profile => profile.userId);
+    const users = await User.find({ _id: { $in: userIds } });
+    
+    // Create a map of userId to user
+    const userMap = {};
+    users.forEach(user => {
+      userMap[user._id.toString()] = user;
+    });
+    
+    // Attach users to profiles
+    const profilesWithUsers = profiles.map(profile => {
+      const profileObj = profile.toObject();
+      profileObj.user = userMap[profile.userId.toString()] || null;
+      return profileObj;
+    });
+    
+    res.json({ success: true, profiles: profilesWithUsers });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -151,11 +191,17 @@ router.get('/kyc-pending', verifyAdminAuth, async (req, res) => {
 
 router.put('/kyc-approve/:uid', verifyAdminAuth, async (req, res) => {
   try {
+    // First find the user by uid
+    const user = await User.findOne({ uid: req.params.uid });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
     const profile = await Profile.findOneAndUpdate(
-      { 'userId': req.params.uid },
+      { 'userId': user._id },
       { 
         'profileCompletion.kycStatus': 'approved',
-        'profileCompletion.completedFields': 100
+        'profileCompletion.percentage': 100
       },
       { new: true }
     );
@@ -168,8 +214,15 @@ router.put('/kyc-approve/:uid', verifyAdminAuth, async (req, res) => {
 router.put('/kyc-reject/:uid', verifyAdminAuth, async (req, res) => {
   try {
     const { reason } = req.body;
+    
+    // First find the user by uid
+    const user = await User.findOne({ uid: req.params.uid });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
     const profile = await Profile.findOneAndUpdate(
-      { 'userId': req.params.uid },
+      { 'userId': user._id },
       { 
         'profileCompletion.kycStatus': 'rejected',
         'profileCompletion.kycDetails.rejectionReason': reason

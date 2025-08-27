@@ -803,7 +803,7 @@ const KYCVerification = () => {
                             <strong>Current KYC Status:</strong> {profile?.profileCompletion?.kycStatus?.toUpperCase() || 'PENDING'}
                             {profile?.profileCompletion?.kycStatus === 'under_review' && (
                               <div className="small mt-1">
-                                Your KYC is under review. You will be notified once it's processed.
+                                Your KYC is under review. You will be notified once it&apos;s processed.
                               </div>
                             )}
                             {profile?.profileCompletion?.kycStatus === 'rejected' && (

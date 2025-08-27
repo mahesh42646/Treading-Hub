@@ -9,175 +9,80 @@ import Header from '../user/components/Header';
 import Footer from '../user/components/Footer';
 import { userApi } from '../../services/api';
 
-// Enhanced OCR function with image validation and fake detection
+// Simple and reliable OCR function for PAN card extraction
 const extractPANCardDetails = async (imageFile, userProfileName = '') => {
   try {
-    // Validate image format and quality
-    const validationResult = await validatePANCardImage(imageFile);
-    if (!validationResult.isValid) {
-      throw new Error(validationResult.error);
-    }
+    console.log('🔍 Starting simple OCR processing...');
 
     // Dynamically import Tesseract.js
     const Tesseract = await import('tesseract.js');
 
-    console.log('🔍 Starting enhanced OCR processing...');
-
-    // Perform OCR with enhanced settings for PAN cards
+    // Simple OCR with basic settings
     const result = await Tesseract.recognize(
       imageFile,
-      'eng', // English language
+      'eng',
       {
         logger: m => console.log('OCR Progress:', m.status, m.progress),
-        // Enhanced OCR settings for better accuracy on PAN cards
-        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /:()-.नामजन्मतिथिहस्ताक्षरस्थायीलेखासंख्याआयकरविभागभारतसरकारGOVTINDIA',
-        tessedit_pageseg_mode: '6', // Uniform block of text
-        tessedit_ocr_engine_mode: '1', // Neural nets LSTM engine
-        preserve_interword_spaces: '1',
-        tessedit_do_invert: '0', // Don't invert colors
-        textord_heavy_nr: '1', // Better handling of noise
-        textord_min_linesize: '2.0', // Minimum line size
-        tessedit_create_txt: '1',
-        tessedit_create_hocr: '0',
-        tessedit_create_tsv: '0',
-        tessedit_create_box: '0',
-        tessedit_create_unlv: '0',
-        tessedit_create_osd: '0'
+        // Simple, reliable settings
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ',
+        tessedit_pageseg_mode: '1', // Automatic page segmentation
+        tessedit_ocr_engine_mode: '3', // Default engine
+        preserve_interword_spaces: '1'
       }
     );
 
     console.log('📋 Raw OCR text:', result.data.text);
     console.log('📊 OCR Confidence:', result.data.confidence);
-    console.log('🔍 OCR Text by lines:');
-    result.data.text.split('\n').forEach((line, index) => {
-      console.log(`  Line ${index + 1}: "${line}"`);
-    });
 
-    // Debug: Check if OCR text contains expected patterns
-    const hasPANPattern = /[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(result.data.text);
-    const hasNamePattern = /name/i.test(result.data.text) || /नाम/i.test(result.data.text);
-    console.log('🔍 Debug - Has PAN pattern:', hasPANPattern);
-    console.log('🔍 Debug - Has name pattern:', hasNamePattern);
-
-    // Validate OCR quality
-    if (result.data.confidence < 30) {
-      throw new Error('Image quality too low. Please upload a clearer image.');
-    }
-
-    // Enhanced PAN number extraction with validation
+    // Simple PAN number extraction
+    let panNumber = null;
+    
+    // Look for PAN pattern in the text
     const panPattern = /[A-Z]{5}[0-9]{4}[A-Z]{1}/g;
     const panMatches = result.data.text.match(panPattern);
-    let panNumber = panMatches ? panMatches[0] : null;
-
-    // If no PAN found with standard pattern, try alternative patterns
-    if (!panNumber) {
-      // Look for PAN in different formats
-      const alternativePatterns = [
-        /[A-Z]{5}\s*[0-9]{4}\s*[A-Z]{1}/g, // PAN with spaces
-        /[A-Z]{5}[0-9]{4}[A-Z]{1}/g, // Standard PAN
-        /[A-Z]{5}[0-9]{4}[A-Z]/g // PAN without last character
+    
+    if (panMatches && panMatches.length > 0) {
+      panNumber = panMatches[0];
+      console.log('✅ Found PAN:', panNumber);
+    } else {
+      // Try alternative patterns
+      const altPatterns = [
+        /[A-Z]{5}\s*[0-9]{4}\s*[A-Z]{1}/g, // With spaces
+        /[A-Z]{5}[0-9]{4}/g, // Without last character
+        /[A-Z0-9]{10}/g // Any 10 character alphanumeric
       ];
-
-      for (const pattern of alternativePatterns) {
+      
+      for (const pattern of altPatterns) {
         const matches = result.data.text.match(pattern);
-        if (matches) {
-          panNumber = matches[0].replace(/\s/g, ''); // Remove spaces
+        if (matches && matches.length > 0) {
+          panNumber = matches[0].replace(/\s/g, '');
           console.log('✅ Found PAN with alternative pattern:', panNumber);
           break;
         }
       }
     }
 
-    // Validate PAN number format
-    if (panNumber) {
-      const isValidPAN = validatePANNumber(panNumber);
-      if (!isValidPAN) {
-        throw new Error('Invalid PAN number format detected. Please check the image.');
-      }
-    }
-
-    // Enhanced name extraction with user profile reference
-    const extractedName = extractNameFromText(result.data.text, userProfileName);
-
-    console.log('🔍 Extracted PAN:', panNumber);
-    console.log('🔍 Extracted Name:', extractedName);
-
-    // Fallback: If name extraction failed but we have a valid PAN, try manual override
-    let finalName = extractedName;
-    if (!finalName || finalName === 'Not detected') {
-      console.log('🔍 Name extraction failed, trying manual override...');
-
-      // Simple manual override: Look for any line with "Name" and extract
-      const lines = result.data.text.split('\n');
-      console.log('🔍 Manual override: Looking for name patterns...');
-
-      for (const line of lines) {
-        if (line.toLowerCase().includes('name')) {
-          // Try to extract name after "Name"
-          const nameMatch = line.match(/name\s*:?\s*([A-Za-z\s]+)/i);
-          if (nameMatch && nameMatch[1]) {
-            const extractedName = nameMatch[1].trim();
-
-            // Basic validation
-            if (extractedName.length >= 3 &&
-              extractedName.length <= 100 &&
-              /[A-Za-z]/.test(extractedName) &&
-              !extractedName.includes('Father') &&
-              !extractedName.includes('Mother') &&
-              !extractedName.includes('Date') &&
-              !extractedName.includes('Birth') &&
-              !extractedName.includes('Signature') &&
-              !extractedName.includes('Card') &&
-              !extractedName.includes('Number') &&
-              !extractedName.includes('Department') &&
-              !extractedName.includes('Government') &&
-              !extractedName.includes('India') &&
-              !extractedName.includes('Tax') &&
-              !extractedName.includes('Income') &&
-              !extractedName.includes('Permanent') &&
-              !extractedName.includes('Account')) {
-
-              finalName = extractedName.toUpperCase();
-              console.log('✅ Manual override found valid name:', finalName);
-              break;
-            }
-          }
-        }
-      }
-
-      // Manual patterns for name extraction
-      const manualPatterns = [
-        /[A-Z]{2,}\s+[A-Z]{2,}\s+[A-Z]{2,}/, // 3+ word names in caps
-        /[A-Z]{2,}\s+[A-Z]{2,}/, // 2 word names in caps
-        /[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+/ // 3+ word names with proper case
-      ];
-
-      for (const pattern of manualPatterns) {
-        const match = result.data.text.match(pattern);
-        if (match) {
-          finalName = match[0].toUpperCase();
-          console.log('✅ Manual override found name:', finalName);
-          break;
-        }
-      }
-
-      // If still no name, but we have a valid PAN, use a default
-      if (!finalName || finalName === 'Not detected') {
-        console.log('⚠️ No name found, using default');
-        finalName = 'Name to be verified';
-      }
-    }
+    // Skip name extraction - user will enter name manually
+    console.log('ℹ️ Skipping name extraction - user will enter name manually');
 
     return {
       panNumber: panNumber || 'Not detected',
-      name: finalName,
+      name: '', // Always return this - user will enter manually
       confidence: result.data.confidence,
       rawText: result.data.text,
-      imageQuality: validationResult.quality
+      imageQuality: 'Good'
     };
+    
   } catch (error) {
     console.error('OCR Error:', error);
-    throw new Error(error.message || 'Failed to extract PAN card details');
+    // Return default values instead of throwing error
+    return {
+      panNumber: 'Not detected',
+      name: 'Name to be verified', // Always return this - user will enter manually
+      confidence: 0,
+      rawText: '',
+      imageQuality: 'Error'
+    };
   }
 };
 
@@ -531,26 +436,16 @@ const KYCVerification = () => {
       }));
       console.log('👤 User profile name for reference:', userFullName);
 
-      // Check KYC status and handle accordingly
-      const kycStatus = profile?.kyc?.status || profile?.profileCompletion?.kycStatus;
+      // Check KYC status and show appropriate message
+      const kycStatus = profile.kyc?.status;
+      console.log('🔍 KYC Status:', kycStatus);
       
-      if (kycStatus === 'verified' || kycStatus === 'approved') {
-        setSuccess('KYC is already verified! Redirecting to dashboard...');
-        setTimeout(() => router.push('/dashboard'), 2000);
-        return;
+      // If 'not_applied' - allow to stay on page
+      if (kycStatus === 'not_applied') {
+        console.log('✅ User can apply for KYC. Status:', kycStatus);
+      } else {
+        console.log('❌ User cannot apply for KYC. Status:', kycStatus);
       }
-      
-      if (kycStatus === 'rejected') {
-        setError('Your KYC was rejected. Please contact support for assistance.');
-        setTimeout(() => router.push('/dashboard'), 3000);
-        return;
-      }
-      
-      // If status is 'not_applied', 'pending', 'applied', or undefined, user can stay on page
-      // 'not_applied' = can apply for KYC
-      // 'pending' = can apply for KYC (legacy)
-      // 'applied' = can view status but not apply again
-      console.log('✅ User can view KYC page. Status:', kycStatus);
     }
   }, [profile, router]);
 
@@ -679,9 +574,8 @@ const KYCVerification = () => {
         } catch (error) {
           console.error('❌ OCR extraction failed:', error);
           setExtractedData(prev => ({ ...prev, isExtracting: false }));
-          setError('OCR extraction failed. Please enter PAN card details manually. If the image is clear, try uploading again.');
-
-          // Don't reset image uploaded state - let user try again or enter manually
+          
+          // Don't show error message, just log it
           console.log('⚠️ OCR failed but keeping image for manual entry');
         }
       }
@@ -797,18 +691,18 @@ const KYCVerification = () => {
                         <div className="d-flex align-items-center">
                           <i className="bi bi-info-circle me-2"></i>
                           <div>
-                            <strong>Current KYC Status:</strong> {(profile?.kyc?.status || profile?.profileCompletion?.kycStatus || 'NOT_APPLIED').toUpperCase()}
-                            {(profile?.kyc?.status === 'not_applied' || profile?.profileCompletion?.kycStatus === 'pending' || !profile?.kyc?.status) && (
+                            <strong>Current KYC Status:</strong> {(profile?.kyc?.status || 'NOT_APPLIED').toUpperCase()}
+                            {profile?.kyc?.status === 'not_applied' && (
                               <div className="small mt-1">
-                                Your KYC is not applied yet. Please complete the form below to apply for KYC verification.
+                                Your KYC is not applied yet. You can apply for KYC verification using the form below.
                               </div>
                             )}
-                            {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review') && (
+                            {profile?.kyc?.status === 'applied' && (
                               <div className="small mt-1">
                                 Your KYC is under review. Admin verification is pending. You will be notified once it&apos;s processed.
                               </div>
                             )}
-                            {(profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified') && (
+                            {profile?.kyc?.status === 'approved' && (
                               <div className="small mt-1">
                                 Your KYC is complete and approved by admin.
                               </div>
@@ -845,7 +739,7 @@ const KYCVerification = () => {
                   </div>
                 )}
 
-                {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review') || (profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified') || profile?.kyc?.status === 'rejected' ? (
+                {(profile.kyc?.status && profile.kyc?.status !== 'not_applied') ? (
                   <div className="text-center py-4">
                     <div className="alert alert-warning rounded-4" style={{
                       background: 'rgba(255, 193, 7, 0.1)',
@@ -853,12 +747,11 @@ const KYCVerification = () => {
                       color: '#ffc107'
                     }}>
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review')
-                        ? 'KYC form is disabled while your application is under review.'
-                        : (profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified')
-                        ? 'KYC form is disabled as your KYC is already verified.'
-                        : 'KYC form is disabled as your KYC was rejected. Please contact support.'
-                      }
+                      {profile?.kyc?.status === 'applied' && 'You are not allowed to apply for KYC because your status is APPLIED (under review).'}
+                      {profile?.kyc?.status === 'approved' && 'You are not allowed to apply for KYC because your status is APPROVED.'}
+                      {profile?.kyc?.status === 'verified' && 'You are not allowed to apply for KYC because your status is VERIFIED.'}
+                      {profile?.kyc?.status === 'rejected' && 'You are not allowed to apply for KYC because your status is REJECTED.'}
+                      {!profile?.kyc?.status && 'You are not allowed to apply for KYC because your KYC status is not set.'}
                     </div>
                     <button
                       type="button"
@@ -876,185 +769,245 @@ const KYCVerification = () => {
                   </div>
                 ) : (
                 <form onSubmit={handleSubmit}>
-                  {/* Image Uploads in one row (desktop) */}
+                  {/* Image Upload Section */}
                   <div className="row mb-4">
-                    <div className="col-12 col-md-6 mb-3 mb-md-0">
-                      {!imageUploaded.panCard && (
-                        <div>
-                          <label htmlFor="panCardImage" className="form-label text-white">PAN Card Image *</label>
-                          <input
-                            type="file"
-                            className="form-control rounded-4"
-                            id="panCardImage"
-                            name="panCardImage"
-                            onChange={(e) => handleImageChange(e, 'panCardImage')}
-                            accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                            style={{
-                              background: 'rgba(60, 58, 58, 0.03)',
-                              border: '1px solid rgba(124, 124, 124, 0.39)',
-                              backdropFilter: 'blur(20px)',
-                              color: 'white'
-                            }}
-                          />
-                          <small className="text-white-50">
-                            Upload a clear image of your PAN card (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
-                          </small>
-                        </div>
-                      )}
+                    {/* PAN Card Image Upload */}
+                    <div className="col-12 col-md-6 mb-4">
+                      <div className="image-upload-container" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '2px dashed rgba(124, 124, 124, 0.39)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        textAlign: 'center',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        transition: 'all 0.3s ease'
+                      }}>
+                        {!imageUploaded.panCard ? (
+                          <>
+                            <div className="mb-3">
+                              <i className="bi bi-camera" style={{ fontSize: '2rem', color: '#6bd4ff' }}></i>
+                            </div>
+                            <label htmlFor="panCardImage" className="form-label text-white fw-bold mb-2">
+                              PAN Card Image *
+                            </label>
+                            <input
+                              type="file"
+                              className="form-control rounded-4"
+                              id="panCardImage"
+                              name="panCardImage"
+                              onChange={(e) => handleImageChange(e, 'panCardImage')}
+                              accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                backdropFilter: 'blur(20px)',
+                                color: 'white',
+                                fontSize: '0.9rem'
+                              }}
+                            />
+                            <small className="text-white-50 mt-2 d-block">
+                              Upload a clear image of your PAN card
+                            </small>
+                            <small className="text-white-50">
+                              JPEG, PNG, HEIC, WebP - Max 10MB
+                            </small>
+                          </>
+                        ) : (
+                          <div className="w-100">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <label className="form-label text-white mb-0 fw-bold">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                PAN Card Uploaded
+                              </label>
+                              <button
+                                type="button"
+                                className="btn btn-sm rounded-3"
+                                onClick={() => {
+                                  setImageUploaded(prev => ({ ...prev, panCard: false }));
+                                  setFormData(prev => ({ ...prev, panCardImage: null }));
+                                  setPreviewImages(prev => ({ ...prev, panCard: null }));
+                                  setExtractedData({ panNumber: '', name: '', isExtracting: false });
+                                }}
+                                style={{
+                                  background: 'rgba(255, 193, 7, 0.2)',
+                                  border: '1px solid rgba(255, 193, 7, 0.5)',
+                                  color: '#ffc107',
+                                  fontSize: '0.8rem'
+                                }}
+                              >
+                                <i className="bi bi-arrow-clockwise me-1"></i>
+                                Change
+                              </button>
+                            </div>
+                            <div className="image-preview-container" style={{
+                              background: 'rgba(60, 58, 58, 0.1)',
+                              borderRadius: '12px',
+                              padding: '10px',
+                              border: '1px solid rgba(124, 124, 124, 0.2)'
+                            }}>
+                              <Image
+                                src={previewImages.panCard}
+                                alt="PAN Card Preview"
+                                className="img-fluid rounded"
+                                style={{ maxHeight: '180px', width: 'auto' }}
+                                width={300}
+                                height={180}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="col-12 col-md-6">
-                      {!imageUploaded.profile && (
-                        <div>
-                          <label htmlFor="profilePhoto" className="form-label text-white">Profile Photo *</label>
-                          <input
-                            type="file"
-                            className="form-control rounded-4"
-                            id="profilePhoto"
-                            name="profilePhoto"
-                            onChange={(e) => handleImageChange(e, 'profilePhoto')}
-                            accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                            style={{
-                              background: 'rgba(60, 58, 58, 0.03)',
-                              border: '1px solid rgba(124, 124, 124, 0.39)',
-                              backdropFilter: 'blur(20px)',
-                              color: 'white'
-                            }}
-                          />
-                          <small className="text-white-50">
-                            Upload a clear profile photo (JPEG, PNG, HEIC, WebP - Max 10MB, Min 500x300px)
-                          </small>
-                        </div>
-                      )}
+                    {/* Profile Photo Upload */}
+                    <div className="col-12 col-md-6 mb-4">
+                      <div className="image-upload-container" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '2px dashed rgba(124, 124, 124, 0.39)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        textAlign: 'center',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        transition: 'all 0.3s ease'
+                      }}>
+                        {!imageUploaded.profile ? (
+                          <>
+                            <div className="mb-3">
+                              <i className="bi bi-person-circle" style={{ fontSize: '2rem', color: '#6bd4ff' }}></i>
+                            </div>
+                            <label htmlFor="profilePhoto" className="form-label text-white fw-bold mb-2">
+                              Profile Photo *
+                            </label>
+                            <input
+                              type="file"
+                              className="form-control rounded-4"
+                              id="profilePhoto"
+                              name="profilePhoto"
+                              onChange={(e) => handleImageChange(e, 'profilePhoto')}
+                              accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                backdropFilter: 'blur(20px)',
+                                color: 'white',
+                                fontSize: '0.9rem'
+                              }}
+                            />
+                            <small className="text-white-50 mt-2 d-block">
+                              Upload a clear profile photo
+                            </small>
+                            <small className="text-white-50">
+                              JPEG, PNG, HEIC, WebP - Max 10MB
+                            </small>
+                          </>
+                        ) : (
+                          <div className="w-100">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <label className="form-label text-white mb-0 fw-bold">
+                                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                Profile Photo Uploaded
+                              </label>
+                              <button
+                                type="button"
+                                className="btn btn-sm rounded-3"
+                                onClick={() => {
+                                  setImageUploaded(prev => ({ ...prev, profile: false }));
+                                  setFormData(prev => ({ ...prev, profilePhoto: null }));
+                                  setPreviewImages(prev => ({ ...prev, profile: null }));
+                                }}
+                                style={{
+                                  background: 'rgba(255, 193, 7, 0.2)',
+                                  border: '1px solid rgba(255, 193, 7, 0.5)',
+                                  color: '#ffc107',
+                                  fontSize: '0.8rem'
+                                }}
+                              >
+                                <i className="bi bi-arrow-clockwise me-1"></i>
+                                Change
+                              </button>
+                            </div>
+                            <div className="image-preview-container" style={{
+                              background: 'rgba(60, 58, 58, 0.1)',
+                              borderRadius: '12px',
+                              padding: '10px',
+                              border: '1px solid rgba(124, 124, 124, 0.2)'
+                            }}>
+                              <Image
+                                src={previewImages.profile}
+                                alt="Profile Photo Preview"
+                                className="img-fluid rounded"
+                                style={{ maxHeight: '180px', width: 'auto' }}
+                                width={300}
+                                height={180}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                <div className="row">
-                {previewImages.panCard && (
-                    <div className="mb-4 col-lg-6">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <label className="form-label text-white mb-0">PAN Card Preview:</label>
-                        <button
-                          type="button"
-                          className="btn btn-sm rounded-3"
-                          onClick={() => {
-                            setImageUploaded(prev => ({ ...prev, panCard: false }));
-                            setFormData(prev => ({ ...prev, panCardImage: null }));
-                            setPreviewImages(prev => ({ ...prev, panCard: null }));
-                            setExtractedData({ panNumber: '', name: '', isExtracting: false });
-                          }}
-                          style={{
-                            background: 'rgba(255, 193, 7, 0.2)',
-                            border: '1px solid rgba(255, 193, 7, 0.5)',
-                            color: '#ffc107'
-                          }}
-                        >
-                          <i className="bi bi-arrow-clockwise me-1"></i>
-                          Change Image
-                        </button>
-                      </div>
-                      <div className=" rounded-4 p-2" style={{
-                        background: 'rgba(60, 58, 58, 0.03)',
-                        backdropFilter: 'blur(20px)'
-                      }}>
-                            <Image
-                          src={previewImages.panCard}
-                          alt="PAN Card Preview"
-                          className="img-fluid rounded"
-                          style={{ maxHeight: '250px' }}
-                              width={400}
-                              height={250}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {previewImages.profile && (
-                    <div className="mb-4 col-lg-6">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <label className="form-label text-white mb-0">Profile Photo Preview:</label>
-                        <button
-                          type="button"
-                          className="btn btn-sm rounded-3"
-                          onClick={() => {
-                            setImageUploaded(prev => ({ ...prev, profile: false }));
-                            setFormData(prev => ({ ...prev, profilePhoto: null }));
-                            setPreviewImages(prev => ({ ...prev, profile: null }));
-                          }}
-                          style={{
-                            background: 'rgba(255, 193, 7, 0.2)',
-                            border: '1px solid rgba(255, 193, 7, 0.5)',
-                            color: '#ffc107'
-                          }}
-                        >
-                          <i className="bi bi-arrow-clockwise me-1"></i>
-                          Change Image
-                        </button>
-                      </div>
-                      <div className="border rounded-4 p-2" style={{
-                        background: 'rgba(60, 58, 58, 0.03)',
-                        border: '1px solid rgba(124, 124, 124, 0.39)',
-                        backdropFilter: 'blur(20px)'
-                      }}>
-                            <Image
-                          src={previewImages.profile}
-                          alt="Profile Photo Preview"
-                          className="img-fluid rounded"
-                          style={{ maxHeight: '200px' }}
-                              width={400}
-                              height={200}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <div className="row mb-4">
                     <div className="col-12 col-md-6 mb-3 mb-md-0">
-                      <label htmlFor="panCardNumber" className="form-label text-white">
-                        PAN Card Number
-                        {extractedData.panNumber && <span className="text-success ms-2">(Auto-detected)</span>}
+                      <label htmlFor="panCardNumber" className="form-label text-white fw-bold">
+                        PAN Card Number *
+                        {extractedData.panNumber && extractedData.panNumber !== 'Not detected' && (
+                          <span className="text-success ms-2">
+                            <i className="bi bi-check-circle-fill me-1"></i>
+                            Auto-detected
+                          </span>
+                        )}
                       </label>
                       <input
                         type="text"
-                          className={`form-control rounded-4 ${
-                            panValidation.available === false ? 'is-invalid' : 
-                            panValidation.available === true ? 'is-valid' : ''
-                          }`}
+                        className={`form-control rounded-4 ${
+                          panValidation.available === false ? 'is-invalid' : 
+                          panValidation.available === true ? 'is-valid' : ''
+                        }`}
                         id="panCardNumber"
                         name="panCardNumber"
                         value={formData.panCardNumber}
                         onChange={handleChange}
-                        placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN card number"}
+                        placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN card number (e.g., ABCDE1234F)"}
                         style={{
                           background: 'rgba(60, 58, 58, 0.03)',
-                            border: panValidation.available === false 
-                              ? '1px solid rgba(220, 53, 69, 0.5)' 
-                              : panValidation.available === true 
-                              ? '1px solid rgba(25, 135, 84, 0.5)' 
-                              : extractedData.panNumber 
-                              ? '1px solid rgba(40, 167, 69, 0.5)' 
-                              : '1px solid rgba(124, 124, 124, 0.39)',
+                          border: panValidation.available === false 
+                            ? '1px solid rgba(220, 53, 69, 0.5)' 
+                            : panValidation.available === true 
+                            ? '1px solid rgba(25, 135, 84, 0.5)' 
+                            : extractedData.panNumber && extractedData.panNumber !== 'Not detected'
+                            ? '1px solid rgba(40, 167, 69, 0.5)' 
+                            : '1px solid rgba(124, 124, 124, 0.39)',
                           backdropFilter: 'blur(10px)',
-                          color: 'white'
+                          color: 'white',
+                          fontSize: '1rem',
+                          padding: '12px 16px'
                         }}
                       />
-                        {panValidation.checking && (
-                          <small className="text-info">
-                            <i className="bi bi-arrow-clockwise me-1"></i>
-                            Checking PAN number availability...
-                          </small>
-                        )}
-                        {panValidation.message && !panValidation.checking && (
-                          <small className={`${
-                            panValidation.available === false ? 'text-danger' : 
-                            panValidation.available === true ? 'text-success' : 'text-warning'
-                          }`}>
-                            {panValidation.message}
-                          </small>
-                        )}
-                      <small className="text-white-50">
-                        {extractedData.panNumber
+                      {panValidation.checking && (
+                        <small className="text-info d-block mt-2">
+                          <i className="bi bi-arrow-clockwise me-1"></i>
+                          Checking PAN number availability...
+                        </small>
+                      )}
+                      {panValidation.message && !panValidation.checking && (
+                        <small className={`d-block mt-2 ${
+                          panValidation.available === false ? 'text-danger' : 
+                          panValidation.available === true ? 'text-success' : 'text-warning'
+                        }`}>
+                          {panValidation.message}
+                        </small>
+                      )}
+                      <small className="text-white-50 d-block mt-2">
+                        {extractedData.panNumber && extractedData.panNumber !== 'Not detected'
                           ? "✅ PAN number auto-detected from image. You can edit if needed."
                           : "Upload PAN card image to auto-detect the number"
                         }
@@ -1062,9 +1015,8 @@ const KYCVerification = () => {
                     </div>
 
                     <div className="col-12 col-md-6">
-                      <label htmlFor="panHolderName" className="form-label text-white">
-                        PAN Holder Name
-                        {extractedData.name && <span className="text-success ms-2">(Auto-detected)</span>}
+                      <label htmlFor="panHolderName" className="form-label text-white fw-bold">
+                        PAN Holder Name *
                       </label>
                       <input
                         type="text"
@@ -1073,19 +1025,19 @@ const KYCVerification = () => {
                         name="panHolderName"
                         value={formData.panHolderName}
                         onChange={handleChange}
-                        placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN holder name"}
+                        placeholder="Enter PAN holder name exactly as on PAN card"
                         style={{
                           background: 'rgba(60, 58, 58, 0.03)',
-                          border: extractedData.name ? '1px solid rgba(40, 167, 69, 0.5)' : '1px solid rgba(124, 124, 124, 0.39)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
                           backdropFilter: 'blur(20px)',
-                          color: 'white'
+                          color: 'white',
+                          fontSize: '1rem',
+                          padding: '12px 16px'
                         }}
                       />
-                      <small className="text-white-50">
-                        {extractedData.name
-                          ? "✅ PAN holder name auto-detected from image. You can edit if needed."
-                          : "Upload PAN card image to auto-detect the name"
-                        }
+                      <small className="text-white-50 d-block mt-2">
+                        <i className="bi bi-info-circle me-1"></i>
+                        Enter the name exactly as it appears on your PAN card
                       </small>
                     </div>
                   </div>

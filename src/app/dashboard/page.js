@@ -49,8 +49,12 @@ const Dashboard = () => {
   // Helper function to get KYC status display
   const getKYCStatusDisplay = (kycStatus) => {
     switch (kycStatus) {
+      case 'not_applied':
+        return { text: 'Not Applied', badge: 'bg-warning', message: 'KYC verification not applied yet' };
       case 'pending':
         return { text: 'Not Applied', badge: 'bg-warning', message: 'KYC verification not applied yet' };
+      case 'applied':
+        return { text: 'Under Review', badge: 'bg-info', message: 'KYC is under admin review' };
       case 'under_review':
         return { text: 'Under Review', badge: 'bg-info', message: 'KYC is under admin review' };
       case 'approved':
@@ -64,7 +68,7 @@ const Dashboard = () => {
     }
   };
 
-  const kycStatusInfo = profile ? getKYCStatusDisplay(profile.profileCompletion?.kycStatus) : null;
+  const kycStatusInfo = profile ? getKYCStatusDisplay(profile.kyc?.status || profile.profileCompletion?.kycStatus) : null;
 
   return (
     <RouteGuard requireAuth={true} requireProfile={false}>
@@ -170,7 +174,7 @@ const Dashboard = () => {
                       <strong>KYC Status: {kycStatusInfo?.text}</strong>
                       <p className="mb-2 mt-1">{kycStatusInfo?.message}</p>
                       <div className="d-flex gap-2">
-                        {(profile.profileCompletion.kycStatus === 'pending' || !profile.profileCompletion.kycStatus) && (
+                        {(profile.kyc?.status === 'not_applied' || profile.profileCompletion.kycStatus === 'pending' || !profile.kyc?.status) && (
                           <button 
                             className="btn btn-sm rounded-3"
                             onClick={() => router.push('/kyc-verification')}
@@ -183,7 +187,7 @@ const Dashboard = () => {
                             Complete KYC Now
                           </button>
                         )}
-                        {profile.profileCompletion.kycStatus === 'rejected' && (
+                        {profile.kyc?.status === 'rejected' && (
                           <button 
                             className="btn btn-sm rounded-3"
                             onClick={() => router.push('/kyc-verification')}
@@ -196,7 +200,7 @@ const Dashboard = () => {
                             Update KYC Data
                           </button>
                         )}
-                        {profile.profileCompletion.kycStatus === 'under_review' && (
+                        {(profile.kyc?.status === 'applied' || profile.profileCompletion.kycStatus === 'under_review') && (
                           <button 
                             className="btn btn-sm rounded-3"
                             style={{

@@ -33,30 +33,8 @@ const RouteGuard = ({ children, requireAuth = true, requireProfile = false, redi
 
       // If user has profile, handle KYC workflow access control
       if (user && profile) {
-        const kycStatus = profile.profileCompletion?.kycStatus;
-        
-        // If KYC is approved/verified, redirect away from KYC and profile setup pages
-        if (kycStatus === 'approved' || kycStatus === 'verified') {
-          if (window.location.pathname === '/profile-setup') {
-            console.log('✅ User has approved KYC, redirecting to dashboard');
-            router.push('/dashboard');
-            return;
-          }
-          if (window.location.pathname === '/kyc-verification') {
-            console.log('✅ KYC already approved, redirecting to dashboard');
-            router.push('/dashboard');
-            return;
-          }
-        }
-        
-        // If KYC is under review or pending, redirect away from KYC page (can't edit while under review)
-        if (kycStatus === 'under_review' || kycStatus === 'pending') {
-          if (window.location.pathname === '/kyc-verification') {
-            console.log('⏳ KYC under review, redirecting to dashboard');
-            router.push('/dashboard');
-            return;
-          }
-        }
+        // Let individual pages handle their own KYC logic
+        // No redirects from RouteGuard - let KYC page show status messages
         
         // If user has profile (even without KYC), redirect away from profile setup
         if (window.location.pathname === '/profile-setup') {

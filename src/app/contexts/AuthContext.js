@@ -80,24 +80,8 @@ export const AuthProvider = ({ children }) => {
       }
       // Don't redirect away from profile setup - let user complete it if they want
     } else {
-      // User has profile, check KYC status
-      const kycStatus = userProfile.profileCompletion?.kycStatus;
-      
-      // If KYC is approved, redirect away from KYC and profile setup pages
-      if (kycStatus === 'approved' || kycStatus === 'verified') {
-        if (pathname === '/kyc-verification' || pathname === '/profile-setup') {
-          router.push('/dashboard');
-          return;
-        }
-      }
-      
-      // If KYC is under review or pending, redirect away from KYC page (can't edit while under review)
-      if (kycStatus === 'under_review' || kycStatus === 'pending') {
-        if (pathname === '/kyc-verification') {
-          router.push('/dashboard');
-          return;
-        }
-      }
+      // User has profile - let KYC page handle status display
+      // No redirects from AuthContext - let individual pages handle their own logic
       
       // If user has profile (even without KYC), redirect away from profile setup
       if (pathname === '/profile-setup') {

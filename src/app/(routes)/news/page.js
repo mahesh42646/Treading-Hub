@@ -16,7 +16,7 @@ const NewsPage = () => {
 
   const fetchNews = async () => {
     try {
-      const response = await fetch('http://localhost:9988/api/news');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
       if (response.ok) {
         const data = await response.json();
         setNews(data.news || []);

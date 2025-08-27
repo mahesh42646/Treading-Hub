@@ -162,9 +162,15 @@ treading-hub/
 - `GET /api/admin/blogs` - Admin blog management
 
 ### Environment Configuration
-- Backend runs on `http://localhost:9988`
+- Backend runs on `http://localhost:9988` (configurable via `NEXT_PUBLIC_API_URL`)
 - Frontend runs on `http://localhost:3000`
 - MongoDB connection: `mongodb://localhost:27017/trading-hub`
+
+### Environment Variables
+The application uses `NEXT_PUBLIC_API_URL` environment variable for API endpoints:
+- Development: `http://localhost:9988`
+- Production: Your production API URL
+- All API calls use `${process.env.NEXT_PUBLIC_API_URL}/api/...` format
 
 ## 🎯 Key Features Demonstrated
 

@@ -24,7 +24,7 @@ const AdminBlogs = () => {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch(`http://localhost:9988/api/admin/blogs`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs`, {
         credentials: 'include'
       });
       
@@ -44,8 +44,8 @@ const AdminBlogs = () => {
     
     try {
       const url = editingBlog 
-        ? `http://localhost:9988/api/admin/blogs/${editingBlog._id}`
-        : `http://localhost:9988/api/admin/blogs`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs/${editingBlog._id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs`;
       
       const method = editingBlog ? 'PUT' : 'POST';
       
@@ -94,7 +94,7 @@ const AdminBlogs = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        const response = await fetch(`http://localhost:9988/api/admin/blogs/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs/${id}`, {
           method: 'DELETE',
           credentials: 'include'
         });

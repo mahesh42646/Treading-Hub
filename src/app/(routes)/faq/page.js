@@ -17,7 +17,7 @@ const FAQPage = () => {
 
   const fetchFAQs = async () => {
     try {
-      const response = await fetch('http://localhost:9988/api/faqs');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/faqs`);
       if (response.ok) {
         const data = await response.json();
         setFaqs(data.faqs || []);

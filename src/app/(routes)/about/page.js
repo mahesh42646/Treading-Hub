@@ -16,7 +16,7 @@ const AboutPage = () => {
 
   const fetchTeam = async () => {
     try {
-      const response = await fetch('http://localhost:9988/api/team');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/team`);
       if (response.ok) {
         const data = await response.json();
         setTeam(data.team || []);

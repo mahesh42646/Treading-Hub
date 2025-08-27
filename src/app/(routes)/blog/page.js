@@ -16,7 +16,7 @@ const BlogPage = () => {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:9988/api/blogs');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
       if (response.ok) {
         const data = await response.json();
         setBlogs(data.blogs || []);

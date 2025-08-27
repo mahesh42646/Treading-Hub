@@ -29,7 +29,7 @@ const AdminUsers = () => {
         search: searchTerm
       });
 
-      const response = await fetch(`http://localhost:9988/api/admin/users?${params}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?${params}`, {
         credentials: 'include'
       });
       
@@ -52,7 +52,7 @@ const AdminUsers = () => {
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
     try {
-      const response = await fetch(`http://localhost:9988/api/admin/kyc-${action}/${uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/kyc-${action}/${uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const AdminUsers = () => {
 
   const viewUserDetails = async (uid) => {
     try {
-      const response = await fetch(`http://localhost:9988/api/admin/users/${uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}`, {
         credentials: 'include'
       });
       

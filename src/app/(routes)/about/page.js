@@ -1,11 +1,36 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUsers, FaLightbulb, FaHandshake, FaGraduationCap, FaTrophy, FaGlobe, FaDiscord, FaFacebook } from 'react-icons/fa';
 import Header from '../../user/components/Header';
 import Footer from '../../user/components/Footer';
 
 const AboutPage = () => {
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchTeam();
+  }, []);
+
+  const fetchTeam = async () => {
+    try {
+      const response = await fetch('http://localhost:9988/api/team');
+      if (response.ok) {
+        const data = await response.json();
+        setTeam(data.team || []);
+      } else {
+        setError('Failed to load team');
+      }
+    } catch (error) {
+      console.error('Error fetching team:', error);
+      setError('Failed to load team');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page-content">
       <Header />
@@ -28,31 +53,87 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Team Photos Section */}
+      {/* Team Members Section */}
       <section className="py-5 bg-light">
         <div className="container">
-          <div className="row">
-            <div className="col-12">
-              <div className="d-flex justify-content-center gap-3 flex-wrap">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="team-photo" style={{
-                    width: '200px',
-                    height: '150px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    borderRadius: '15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '1.2rem',
-                    fontWeight: 'bold'
-                  }}>
-                    Team Photo {i}
-                  </div>
-                ))}
+          <div className="text-center mb-5">
+            <h2 className="display-5 fw-bold mb-3">Meet Our <span className="text-info">Team</span></h2>
+            <p className="lead text-muted">The passionate individuals behind Trading Hub's success</p>
+          </div>
+
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
-          </div>
+          ) : team.length > 0 ? (
+            <div className="row g-4">
+              {team.map((member) => (
+                <div key={member._id} className="col-md-6 col-lg-4">
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-body text-center p-4">
+                      <div className="mb-3">
+                        {member.image ? (
+                          <img 
+                            src={member.image} 
+                            alt={member.name}
+                            className="rounded-circle"
+                            style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div 
+                            className="rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                            style={{
+                              width: '120px',
+                              height: '120px',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              fontSize: '2rem',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {member.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                        )}
+                      </div>
+                      <h5 className="card-title fw-bold mb-2">{member.name}</h5>
+                      <p className="text-info mb-3">{member.position}</p>
+                      <p className="card-text text-muted mb-3">{member.bio}</p>
+                      <div className="d-flex justify-content-center gap-2">
+                        {member.socialLinks?.linkedin && (
+                          <a href={member.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm">
+                            <i className="bi bi-linkedin"></i>
+                          </a>
+                        )}
+                        {member.socialLinks?.twitter && (
+                          <a href={member.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="btn btn-outline-info btn-sm">
+                            <i className="bi bi-twitter"></i>
+                          </a>
+                        )}
+                        {member.socialLinks?.github && (
+                          <a href={member.socialLinks.github} target="_blank" rel="noopener noreferrer" className="btn btn-outline-dark btn-sm">
+                            <i className="bi bi-github"></i>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-5">
+              <h3 className="text-muted">No team members available at the moment</h3>
+              <p className="text-muted">Please check back later.</p>
+            </div>
+          )}
         </div>
       </section>
 

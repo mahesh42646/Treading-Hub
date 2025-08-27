@@ -16,7 +16,7 @@ const NewsPage = () => {
 
   const fetchNews = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
+      const response = await fetch('http://localhost:9988/api/news');
       if (response.ok) {
         const data = await response.json();
         setNews(data.news || []);
@@ -69,9 +69,9 @@ const NewsPage = () => {
                 {news.map((article) => (
                   <div key={article._id} className="col-md-6 col-lg-4 mb-4">
                     <div className="card h-100 shadow-sm">
-                      {article.image && (
+                      {article.featuredImage && (
                         <Image 
-                          src={article.image} 
+                          src={article.featuredImage} 
                           className="card-img-top" 
                           alt={article.title}
                           style={{ height: '200px', objectFit: 'cover' }}

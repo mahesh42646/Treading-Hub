@@ -16,7 +16,7 @@ const BlogPage = () => {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+      const response = await fetch('http://localhost:9988/api/blogs');
       if (response.ok) {
         const data = await response.json();
         setBlogs(data.blogs || []);
@@ -69,9 +69,9 @@ const BlogPage = () => {
                 {blogs.map((blog) => (
                   <div key={blog._id} className="col-md-6 col-lg-4 mb-4">
                     <div className="card h-100 shadow-sm">
-                      {blog.image && (
+                      {blog.featuredImage && (
                         <Image 
-                          src={blog.image} 
+                          src={blog.featuredImage} 
                           className="card-img-top" 
                           alt={blog.title}
                           style={{ height: '200px', objectFit: 'cover' }}

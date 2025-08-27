@@ -50,7 +50,7 @@ const Dashboard = () => {
   const getKYCStatusDisplay = (kycStatus) => {
     switch (kycStatus) {
       case 'pending':
-        return { text: 'Pending', badge: 'bg-warning', message: 'KYC verification pending' };
+        return { text: 'Not Applied', badge: 'bg-warning', message: 'KYC verification not applied yet' };
       case 'under_review':
         return { text: 'Under Review', badge: 'bg-info', message: 'KYC is under admin review' };
       case 'approved':
@@ -60,7 +60,7 @@ const Dashboard = () => {
       case 'rejected':
         return { text: 'Rejected', badge: 'bg-danger', message: 'KYC verification rejected' };
       default:
-        return { text: 'Not Started', badge: 'bg-secondary', message: 'KYC verification not started' };
+        return { text: 'Not Applied', badge: 'bg-secondary', message: 'KYC verification not applied yet' };
     }
   };
 
@@ -124,7 +124,7 @@ const Dashboard = () => {
               )}
               
               {/* KYC Status Alerts - Show different alerts based on KYC status */}
-              {profile && profile.profileCompletion?.kycStatus && (
+              {profile && (
                 <div className={`alert rounded-4 mb-4 ${
                   profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified' 
                     ? 'alert-success' 
@@ -170,7 +170,7 @@ const Dashboard = () => {
                       <strong>KYC Status: {kycStatusInfo?.text}</strong>
                       <p className="mb-2 mt-1">{kycStatusInfo?.message}</p>
                       <div className="d-flex gap-2">
-                        {profile.profileCompletion.kycStatus === 'pending' && (
+                        {(profile.profileCompletion.kycStatus === 'pending' || !profile.profileCompletion.kycStatus) && (
                           <button 
                             className="btn btn-sm rounded-3"
                             onClick={() => router.push('/kyc-verification')}

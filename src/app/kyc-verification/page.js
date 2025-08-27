@@ -540,20 +540,16 @@ const KYCVerification = () => {
         return;
       }
       
-      if (kycStatus === 'under_review') {
-        setSuccess('KYC is already submitted and under review! Redirecting to dashboard...');
-        setTimeout(() => router.push('/dashboard'), 2000);
-        return;
-      }
-      
       if (kycStatus === 'rejected') {
         setError('Your KYC was rejected. Please contact support for assistance.');
         setTimeout(() => router.push('/dashboard'), 3000);
         return;
       }
       
-      // If status is 'pending' or undefined, user can proceed with KYC
-      console.log('✅ User can proceed with KYC. Status:', kycStatus);
+      // If status is 'pending', 'under_review', or undefined, user can stay on page
+      // 'pending' = can apply for KYC
+      // 'under_review' = can view status but not apply again
+      console.log('✅ User can view KYC page. Status:', kycStatus);
     }
   }, [profile, router]);
 
@@ -800,15 +796,25 @@ const KYCVerification = () => {
                         <div className="d-flex align-items-center">
                           <i className="bi bi-info-circle me-2"></i>
                           <div>
-                            <strong>Current KYC Status:</strong> {profile?.profileCompletion?.kycStatus?.toUpperCase() || 'PENDING'}
+                            <strong>Current KYC Status:</strong> {profile?.profileCompletion?.kycStatus?.toUpperCase() || 'NOT APPLIED'}
+                            {profile?.profileCompletion?.kycStatus === 'pending' && (
+                              <div className="small mt-1">
+                                Your KYC is pending. Please complete the form below to apply for KYC verification.
+                              </div>
+                            )}
                             {profile?.profileCompletion?.kycStatus === 'under_review' && (
                               <div className="small mt-1">
-                                Your KYC is under review. You will be notified once it&apos;s processed.
+                                Your KYC is under review. Admin verification is pending. You will be notified once it&apos;s processed.
+                              </div>
+                            )}
+                            {profile?.profileCompletion?.kycStatus === 'verified' && (
+                              <div className="small mt-1">
+                                Your KYC is complete and approved by admin.
                               </div>
                             )}
                             {profile?.profileCompletion?.kycStatus === 'rejected' && (
                               <div className="small mt-1">
-                                Your KYC was rejected. Please contact support for assistance.
+                                Your KYC was rejected by admin. Please contact support for assistance.
                               </div>
                             )}
                           </div>
@@ -838,6 +844,34 @@ const KYCVerification = () => {
                   </div>
                 )}
 
+                {profile?.profileCompletion?.kycStatus === 'under_review' || profile?.profileCompletion?.kycStatus === 'verified' ? (
+                  <div className="text-center py-4">
+                    <div className="alert alert-warning rounded-4" style={{
+                      background: 'rgba(255, 193, 7, 0.1)',
+                      border: '1px solid rgba(255, 193, 7, 0.3)',
+                      color: '#ffc107'
+                    }}>
+                      <i className="bi bi-exclamation-triangle me-2"></i>
+                      {profile?.profileCompletion?.kycStatus === 'under_review' 
+                        ? 'KYC form is disabled while your application is under review.'
+                        : 'KYC form is disabled as your KYC is already verified.'
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      className="btn rounded-4 mt-3"
+                      onClick={() => router.push('/dashboard')}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        color: 'white'
+                      }}
+                    >
+                      Back to Dashboard
+                    </button>
+                  </div>
+                ) : (
                 <form onSubmit={handleSubmit}>
                   {/* Image Uploads in one row (desktop) */}
                   <div className="row mb-4">
@@ -1109,6 +1143,7 @@ const KYCVerification = () => {
                     </div>
                   </div>
                 </form>
+                )}
               </div>
             </div>
           </div>

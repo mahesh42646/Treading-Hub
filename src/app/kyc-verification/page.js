@@ -437,7 +437,7 @@ const KYCVerification = () => {
             console.log('👤 User profile name for reference:', userFullName);
 
       // Check KYC status and show appropriate message
-      const kycStatus = profile.kyc?.status;
+      const kycStatus = profile.kyc?.status || 'not_applied';
       console.log('🔍 KYC Status:', kycStatus);
       
       // If 'not_applied' - allow to stay on page
@@ -445,7 +445,7 @@ const KYCVerification = () => {
         console.log('✅ User can apply for KYC. Status:', kycStatus);
       } else {
         console.log('❌ User cannot apply for KYC. Status:', kycStatus);
-            }
+      }
           }
   }, [profile, router]);
 

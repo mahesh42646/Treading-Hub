@@ -68,7 +68,7 @@ const Dashboard = () => {
     }
   };
 
-  const kycStatusInfo = profile ? getKYCStatusDisplay(profile.kyc?.status || profile.profileCompletion?.kycStatus) : null;
+  const kycStatusInfo = profile ? getKYCStatusDisplay(profile.kyc?.status || 'not_applied') : null;
 
   return (
     <RouteGuard requireAuth={true} requireProfile={false}>
@@ -130,43 +130,43 @@ const Dashboard = () => {
               {/* KYC Status Alerts - Show different alerts based on KYC status */}
               {profile && (
                 <div className={`alert rounded-4 mb-4 ${
-                  profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified' 
+                  profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified' 
                     ? 'alert-success' 
-                    : profile.profileCompletion.kycStatus === 'rejected'
+                    : profile.kyc?.status === 'rejected'
                     ? 'alert-danger'
-                    : profile.profileCompletion.kycStatus === 'under_review'
+                    : profile.kyc?.status === 'applied'
                     ? 'alert-info'
                     : 'alert-warning'
                 }`} style={{
-                  background: profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified'
+                  background: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
                     ? 'rgba(25, 135, 84, 0.1)'
-                    : profile.profileCompletion.kycStatus === 'rejected'
+                    : profile.kyc?.status === 'rejected'
                     ? 'rgba(220, 53, 69, 0.1)'
-                    : profile.profileCompletion.kycStatus === 'under_review'
+                    : profile.kyc?.status === 'applied'
                     ? 'rgba(13, 202, 240, 0.1)'
                     : 'rgba(255, 193, 7, 0.1)',
-                  border: profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified'
+                  border: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
                     ? '1px solid rgba(25, 135, 84, 0.3)'
-                    : profile.profileCompletion.kycStatus === 'rejected'
+                    : profile.kyc?.status === 'rejected'
                     ? '1px solid rgba(220, 53, 69, 0.3)'
-                    : profile.profileCompletion.kycStatus === 'under_review'
+                    : profile.kyc?.status === 'applied'
                     ? '1px solid rgba(13, 202, 240, 0.3)'
                     : '1px solid rgba(255, 193, 7, 0.3)',
-                  color: profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified'
+                  color: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
                     ? '#6bff6b'
-                    : profile.profileCompletion.kycStatus === 'rejected'
+                    : profile.kyc?.status === 'rejected'
                     ? '#ff6b6b'
-                    : profile.profileCompletion.kycStatus === 'under_review'
+                    : profile.kyc?.status === 'applied'
                     ? '#6bd4ff'
                     : '#ffc107'
                 }}>
                   <div className="d-flex align-items-start">
                     <i className={`bi me-2 mt-1 ${
-                      profile.profileCompletion.kycStatus === 'approved' || profile.profileCompletion.kycStatus === 'verified'
+                      profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
                         ? 'bi-check-circle-fill'
-                        : profile.profileCompletion.kycStatus === 'rejected'
+                        : profile.kyc?.status === 'rejected'
                         ? 'bi-x-circle-fill'
-                        : profile.profileCompletion.kycStatus === 'under_review'
+                        : profile.kyc?.status === 'applied'
                         ? 'bi-clock-fill'
                         : 'bi-exclamation-triangle'
                     }`}></i>
@@ -174,7 +174,7 @@ const Dashboard = () => {
                       <strong>KYC Status: {kycStatusInfo?.text}</strong>
                       <p className="mb-2 mt-1">{kycStatusInfo?.message}</p>
                       <div className="d-flex gap-2">
-                        {(profile.kyc?.status === 'not_applied' || profile.profileCompletion.kycStatus === 'pending' || !profile.kyc?.status) && (
+                        {(profile.kyc?.status === 'not_applied' || !profile.kyc?.status) && (
                           <button 
                             className="btn btn-sm rounded-3"
                             onClick={() => router.push('/kyc-verification')}
@@ -200,7 +200,7 @@ const Dashboard = () => {
                             Update KYC Data
                           </button>
                         )}
-                        {(profile.kyc?.status === 'applied' || profile.profileCompletion.kycStatus === 'under_review') && (
+                        {profile.kyc?.status === 'applied' && (
                           <button 
                             className="btn btn-sm rounded-3"
                             style={{

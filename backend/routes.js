@@ -818,7 +818,6 @@ router.post('/kyc-verification/:uid', upload.fields([
       percentage: totalCompletion,
       isActive: totalCompletion >= 70,
       completedFields: completedFields,
-      kycStatus: kycStatus,
       kycDetails: kycDetails
     };
 
@@ -872,25 +871,24 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
     }
 
     // Check if KYC is under review
-    if (profile.profileCompletion?.kycStatus !== 'under_review') {
+    if (profile.kyc?.status !== 'applied') {
       return res.status(400).json({
         success: false,
         message: 'KYC is not under review'
       });
     }
 
-    // Update KYC status to verified
-    profile.profileCompletion.kycStatus = 'verified';
+    // Update KYC object
+    profile.kyc.status = 'approved';
+    profile.kyc.approvedAt = new Date();
+    profile.kyc.approvedBy = 'admin'; // You can pass admin ID here
+
+    // Update profile completion
     profile.profileCompletion.kycDetails.adminApproval = {
       approvedAt: new Date(),
       adminNotes: adminNotes || 'KYC verification approved',
       status: 'approved'
     };
-
-    // Update KYC object
-    profile.kyc.status = 'approved';
-    profile.kyc.approvedAt = new Date();
-    profile.kyc.approvedBy = 'admin'; // You can pass admin ID here
 
     await profile.save();
 
@@ -938,27 +936,26 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
     }
 
     // Check if KYC is under review
-    if (profile.profileCompletion?.kycStatus !== 'under_review') {
+    if (profile.kyc?.status !== 'applied') {
       return res.status(400).json({
         success: false,
         message: 'KYC is not under review'
       });
     }
 
-    // Update KYC status to rejected
-    profile.profileCompletion.kycStatus = 'rejected';
+    // Update KYC object
+    profile.kyc.status = 'rejected';
+    profile.kyc.rejectedAt = new Date();
+    profile.kyc.rejectedBy = 'admin'; // You can pass admin ID here
+    profile.kyc.rejectionNote = rejectionReason || adminNotes || 'Document verification failed';
+
+    // Update profile completion
     profile.profileCompletion.kycDetails.adminApproval = {
       rejectedAt: new Date(),
       adminNotes: adminNotes || 'KYC verification rejected',
       rejectionReason: rejectionReason || 'Document verification failed',
       status: 'rejected'
     };
-
-    // Update KYC object
-    profile.kyc.status = 'rejected';
-    profile.kyc.rejectedAt = new Date();
-    profile.kyc.rejectedBy = 'admin'; // You can pass admin ID here
-    profile.kyc.rejectionNote = rejectionReason || adminNotes || 'Document verification failed';
 
     await profile.save();
 
@@ -985,7 +982,7 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
 router.get('/admin/kyc-pending', async (req, res) => {
   try {
     const profiles = await Profile.find({
-      'profileCompletion.kycStatus': 'under_review'
+      'kyc.status': 'applied'
     }).populate('userId', 'uid email emailVerified');
 
     res.json({

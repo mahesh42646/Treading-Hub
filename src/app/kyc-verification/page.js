@@ -523,21 +523,38 @@ const KYCVerification = () => {
 
   useEffect(() => {
     if (profile) {
-            // Get user's profile name for reference
+      // Get user's profile name for reference
       const userFullName = `${profile.firstName} ${profile.lastName}`.trim();
-            setExtractedData(prev => ({
-              ...prev,
-              userProfileName: userFullName
-            }));
-            console.log('👤 User profile name for reference:', userFullName);
+      setExtractedData(prev => ({
+        ...prev,
+        userProfileName: userFullName
+      }));
+      console.log('👤 User profile name for reference:', userFullName);
 
-            // Check if KYC is already completed
-      if (profile?.profileCompletion?.kycStatus === 'verified') {
-              setSuccess('KYC is already verified! Redirecting to dashboard...');
-              setTimeout(() => router.push('/dashboard'), 2000);
-              return;
-            }
-          }
+      // Check KYC status and handle accordingly
+      const kycStatus = profile?.profileCompletion?.kycStatus;
+      
+      if (kycStatus === 'verified') {
+        setSuccess('KYC is already verified! Redirecting to dashboard...');
+        setTimeout(() => router.push('/dashboard'), 2000);
+        return;
+      }
+      
+      if (kycStatus === 'under_review') {
+        setSuccess('KYC is already submitted and under review! Redirecting to dashboard...');
+        setTimeout(() => router.push('/dashboard'), 2000);
+        return;
+      }
+      
+      if (kycStatus === 'rejected') {
+        setError('Your KYC was rejected. Please contact support for assistance.');
+        setTimeout(() => router.push('/dashboard'), 3000);
+        return;
+      }
+      
+      // If status is 'pending' or undefined, user can proceed with KYC
+      console.log('✅ User can proceed with KYC. Status:', kycStatus);
+    }
   }, [profile, router]);
 
   const handleChange = (e) => {
@@ -775,7 +792,28 @@ const KYCVerification = () => {
 
                   {profile && (
                     <div className="mb-4">
-
+                      <div className="alert alert-info rounded-4" style={{
+                        background: 'rgba(13, 202, 240, 0.1)',
+                        border: '1px solid rgba(13, 202, 240, 0.3)',
+                        color: '#6bd4ff'
+                      }}>
+                        <div className="d-flex align-items-center">
+                          <i className="bi bi-info-circle me-2"></i>
+                          <div>
+                            <strong>Current KYC Status:</strong> {profile?.profileCompletion?.kycStatus?.toUpperCase() || 'PENDING'}
+                            {profile?.profileCompletion?.kycStatus === 'under_review' && (
+                              <div className="small mt-1">
+                                Your KYC is under review. You will be notified once it's processed.
+                              </div>
+                            )}
+                            {profile?.profileCompletion?.kycStatus === 'rejected' && (
+                              <div className="small mt-1">
+                                Your KYC was rejected. Please contact support for assistance.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

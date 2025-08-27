@@ -760,11 +760,18 @@ router.post('/kyc-verification/:uid', upload.fields([
     const kycContribution = (kycCompletion / 100) * 25; // KYC contributes 25% to total
     const totalCompletion = Math.min(100, baseCompletion + kycContribution);
 
+    // Set KYC status based on submission
+    let kycStatus = 'pending';
+    if (panCardNumber || (req.files && (req.files.panCardImage || req.files.profilePhoto))) {
+      // If user has submitted PAN number or uploaded files, set to under_review
+      kycStatus = 'under_review';
+    }
+
     updateData.profileCompletion = {
       percentage: totalCompletion,
       isActive: totalCompletion >= 70,
       completedFields: completedFields,
-      kycStatus: kycCompletion === 100 ? 'under_review' : 'pending',
+      kycStatus: kycStatus,
       kycDetails: kycDetails
     };
 
@@ -825,8 +832,8 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
       });
     }
 
-    // Update KYC status to approved
-    profile.profileCompletion.kycStatus = 'approved';
+    // Update KYC status to verified
+    profile.profileCompletion.kycStatus = 'verified';
     profile.profileCompletion.kycDetails.adminApproval = {
       approvedAt: new Date(),
       adminNotes: adminNotes || 'KYC verification approved',

@@ -47,6 +47,11 @@ export const buildApiUrl = (endpoint) => {
   const baseUrl = API_CONFIG.BASE_URL;
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
+  // For production, use the /api/api/ structure that's currently working
+  if (baseUrl === 'https://0fare.com/api') {
+    return `${baseUrl}/api${cleanEndpoint}`;
+  }
+  
   // If base URL already ends with /api, don't add it again
   if (baseUrl.endsWith('/api')) {
     return `${baseUrl}${cleanEndpoint}`;

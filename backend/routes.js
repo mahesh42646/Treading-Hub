@@ -24,7 +24,8 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB limit
+    fieldSize: 20 * 1024 * 1024 // 20MB field size limit
   },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
@@ -662,7 +663,24 @@ router.post('/referral/:uid', async (req, res) => {
 router.post('/kyc-verification/:uid', upload.fields([
   { name: 'panCardImage', maxCount: 1 },
   { name: 'profilePhoto', maxCount: 1 }
-]), async (req, res) => {
+]), (req, res, next) => {
+  // Handle multer errors
+  if (req.fileValidationError) {
+    return res.status(400).json({
+      success: false,
+      message: req.fileValidationError
+    });
+  }
+  
+  if (req.filesValidationError) {
+    return res.status(400).json({
+      success: false,
+      message: req.filesValidationError
+    });
+  }
+  
+  next();
+}, async (req, res) => {
   try {
     const { uid } = req.params;
     const { panCardNumber, panHolderName } = req.body;

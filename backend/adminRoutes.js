@@ -26,7 +26,13 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB limit
+    fieldSize: 20 * 1024 * 1024 // 20MB field size limit
+  }
+});
 
 // Admin Authentication Routes
 router.post('/login', (req, res) => {

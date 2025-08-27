@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -12,8 +13,8 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN || 'https://0fare.com' : 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Serve uploaded files
@@ -99,6 +100,35 @@ app.get('/api/faqs', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+// Global error handler for multer errors
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        success: false,
+        message: 'File too large. Maximum file size is 20MB.'
+      });
+    }
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Too many files uploaded.'
+      });
+    }
+    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Unexpected file field.'
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      message: 'File upload error: ' + error.message
+    });
+  }
+  next(error);
 });
 
 app.get('/api/team', async (req, res) => {

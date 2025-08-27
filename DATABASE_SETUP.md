@@ -131,8 +131,8 @@ treading-hub/
 │   │   ├── blog/page.js      # Updated blog page
 │   │   ├── news/page.js      # Updated news page
 │   │   ├── faq/page.js       # Updated FAQ page
-│   │   ├── about/page.js     # Updated about page
-│   │   └── plans/page.js     # New plans page
+│   │   └── about/page.js     # Updated about page
+│   ├── plans/page.js         # Updated plans page
 │   └── admin/
 │       ├── users/page.js     # Updated admin users
 │       └── blogs/page.js     # Updated admin blogs

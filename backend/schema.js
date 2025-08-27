@@ -180,6 +180,46 @@ const profileSchema = new mongoose.Schema({
       userPhone: {
         type: String
       }
+    },
+    kyc: {
+      status: {
+        type: String,
+        enum: ['not_applied', 'applied', 'approved', 'rejected'],
+        default: 'not_applied'
+      },
+      panCardNumber: {
+        type: String,
+        trim: true
+      },
+      panCardImage: {
+        type: String
+      },
+      profilePhoto: {
+        type: String
+      },
+      panHolderName: {
+        type: String,
+        trim: true
+      },
+      rejectionNote: {
+        type: String,
+        default: null
+      },
+      appliedAt: {
+        type: Date
+      },
+      approvedAt: {
+        type: Date
+      },
+      rejectedAt: {
+        type: Date
+      },
+      approvedBy: {
+        type: String
+      },
+      rejectedBy: {
+        type: String
+      }
     }
   },
   createdAt: {

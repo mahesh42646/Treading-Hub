@@ -405,6 +405,19 @@ router.post('/profile-setup', async (req, res) => {
           panCardVerified: false,
           profilePhotoUploaded: false
         }
+      },
+      kyc: {
+        status: 'not_applied',
+        panCardNumber: null,
+        panCardImage: null,
+        profilePhoto: null,
+        panHolderName: null,
+        rejectionNote: null,
+        appliedAt: null,
+        approvedAt: null,
+        rejectedAt: null,
+        approvedBy: null,
+        rejectedBy: null
       }
     });
 
@@ -767,6 +780,21 @@ router.post('/kyc-verification/:uid', upload.fields([
       kycStatus = 'under_review';
     }
 
+    // Update KYC object
+    updateData.kyc = {
+      status: kycStatus === 'under_review' ? 'applied' : 'not_applied',
+      panCardNumber: panCardNumber || profile.kyc?.panCardNumber,
+      panCardImage: updateData.panCardImage || profile.kyc?.panCardImage,
+      profilePhoto: updateData.profilePhoto || profile.kyc?.profilePhoto,
+      panHolderName: panHolderName || profile.kyc?.panHolderName,
+      rejectionNote: null,
+      appliedAt: kycStatus === 'under_review' ? new Date() : profile.kyc?.appliedAt,
+      approvedAt: profile.kyc?.approvedAt,
+      rejectedAt: profile.kyc?.rejectedAt,
+      approvedBy: profile.kyc?.approvedBy,
+      rejectedBy: profile.kyc?.rejectedBy
+    };
+
     updateData.profileCompletion = {
       percentage: totalCompletion,
       isActive: totalCompletion >= 70,
@@ -840,6 +868,11 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
       status: 'approved'
     };
 
+    // Update KYC object
+    profile.kyc.status = 'approved';
+    profile.kyc.approvedAt = new Date();
+    profile.kyc.approvedBy = 'admin'; // You can pass admin ID here
+
     await profile.save();
 
     res.json({
@@ -901,6 +934,12 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
       rejectionReason: rejectionReason || 'Document verification failed',
       status: 'rejected'
     };
+
+    // Update KYC object
+    profile.kyc.status = 'rejected';
+    profile.kyc.rejectedAt = new Date();
+    profile.kyc.rejectedBy = 'admin'; // You can pass admin ID here
+    profile.kyc.rejectionNote = rejectionReason || adminNotes || 'Document verification failed';
 
     await profile.save();
 

@@ -532,9 +532,9 @@ const KYCVerification = () => {
       console.log('👤 User profile name for reference:', userFullName);
 
       // Check KYC status and handle accordingly
-      const kycStatus = profile?.profileCompletion?.kycStatus;
+      const kycStatus = profile?.kyc?.status || profile?.profileCompletion?.kycStatus;
       
-      if (kycStatus === 'verified') {
+      if (kycStatus === 'verified' || kycStatus === 'approved') {
         setSuccess('KYC is already verified! Redirecting to dashboard...');
         setTimeout(() => router.push('/dashboard'), 2000);
         return;
@@ -546,9 +546,10 @@ const KYCVerification = () => {
         return;
       }
       
-      // If status is 'pending', 'under_review', or undefined, user can stay on page
-      // 'pending' = can apply for KYC
-      // 'under_review' = can view status but not apply again
+      // If status is 'not_applied', 'pending', 'applied', or undefined, user can stay on page
+      // 'not_applied' = can apply for KYC
+      // 'pending' = can apply for KYC (legacy)
+      // 'applied' = can view status but not apply again
       console.log('✅ User can view KYC page. Status:', kycStatus);
     }
   }, [profile, router]);
@@ -796,25 +797,25 @@ const KYCVerification = () => {
                         <div className="d-flex align-items-center">
                           <i className="bi bi-info-circle me-2"></i>
                           <div>
-                            <strong>Current KYC Status:</strong> {profile?.profileCompletion?.kycStatus?.toUpperCase() || 'NOT APPLIED'}
-                            {profile?.profileCompletion?.kycStatus === 'pending' && (
+                            <strong>Current KYC Status:</strong> {(profile?.kyc?.status || profile?.profileCompletion?.kycStatus || 'NOT_APPLIED').toUpperCase()}
+                            {(profile?.kyc?.status === 'not_applied' || profile?.profileCompletion?.kycStatus === 'pending' || !profile?.kyc?.status) && (
                               <div className="small mt-1">
-                                Your KYC is pending. Please complete the form below to apply for KYC verification.
+                                Your KYC is not applied yet. Please complete the form below to apply for KYC verification.
                               </div>
                             )}
-                            {profile?.profileCompletion?.kycStatus === 'under_review' && (
+                            {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review') && (
                               <div className="small mt-1">
                                 Your KYC is under review. Admin verification is pending. You will be notified once it&apos;s processed.
                               </div>
                             )}
-                            {profile?.profileCompletion?.kycStatus === 'verified' && (
+                            {(profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified') && (
                               <div className="small mt-1">
                                 Your KYC is complete and approved by admin.
                               </div>
                             )}
-                            {profile?.profileCompletion?.kycStatus === 'rejected' && (
+                            {profile?.kyc?.status === 'rejected' && (
                               <div className="small mt-1">
-                                Your KYC was rejected by admin. Please contact support for assistance.
+                                Your KYC was rejected by admin. {profile?.kyc?.rejectionNote && `Reason: ${profile.kyc.rejectionNote}`}
                               </div>
                             )}
                           </div>
@@ -844,7 +845,7 @@ const KYCVerification = () => {
                   </div>
                 )}
 
-                {profile?.profileCompletion?.kycStatus === 'under_review' || profile?.profileCompletion?.kycStatus === 'verified' ? (
+                {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review') || (profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified') || profile?.kyc?.status === 'rejected' ? (
                   <div className="text-center py-4">
                     <div className="alert alert-warning rounded-4" style={{
                       background: 'rgba(255, 193, 7, 0.1)',
@@ -852,9 +853,11 @@ const KYCVerification = () => {
                       color: '#ffc107'
                     }}>
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      {profile?.profileCompletion?.kycStatus === 'under_review' 
+                      {(profile?.kyc?.status === 'applied' || profile?.profileCompletion?.kycStatus === 'under_review')
                         ? 'KYC form is disabled while your application is under review.'
-                        : 'KYC form is disabled as your KYC is already verified.'
+                        : (profile?.kyc?.status === 'approved' || profile?.profileCompletion?.kycStatus === 'verified')
+                        ? 'KYC form is disabled as your KYC is already verified.'
+                        : 'KYC form is disabled as your KYC was rejected. Please contact support.'
                       }
                     </div>
                     <button

@@ -43,7 +43,16 @@ export const ENV_CONFIG = {
 
 // Helper function to build full API URL
 export const buildApiUrl = (endpoint) => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  // Ensure we don't have duplicate /api in the URL
+  const baseUrl = API_CONFIG.BASE_URL;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // If base URL already ends with /api, don't add it again
+  if (baseUrl.endsWith('/api')) {
+    return `${baseUrl}${cleanEndpoint}`;
+  }
+  
+  return `${baseUrl}${cleanEndpoint}`;
 };
 
 // Helper function to get endpoint URL

@@ -89,16 +89,14 @@ const AdminUsers = () => {
 
   const getKycStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
-        return <span className="badge bg-warning">Pending</span>;
-      case 'under_review':
+      case 'not_applied':
+        return <span className="badge bg-secondary">Not Applied</span>;
+      case 'applied':
         return <span className="badge bg-info">Under Review</span>;
       case 'approved':
         return <span className="badge bg-success">Approved</span>;
       case 'rejected':
         return <span className="badge bg-danger">Rejected</span>;
-      case 'verified':
-        return <span className="badge bg-success">Verified</span>;
       default:
         return <span className="badge bg-secondary">Unknown</span>;
     }
@@ -183,8 +181,8 @@ const AdminUsers = () => {
                       )}
                     </td>
                     <td>
-                      {user.profile?.profileCompletion?.kycStatus ? (
-                        getKycStatusBadge(user.profile.profileCompletion.kycStatus)
+                      {user.profile?.kyc?.status ? (
+                        getKycStatusBadge(user.profile.kyc.status)
                       ) : (
                         <span className="badge bg-secondary">Not Started</span>
                       )}
@@ -202,7 +200,7 @@ const AdminUsers = () => {
                         >
                           <FaEye />
                         </button>
-                        {user.profile?.profileCompletion?.kycStatus === 'under_review' && (
+                        {user.profile?.kyc?.status === 'applied' && (
                           <>
                             <button 
                               className="btn btn-outline-success"
@@ -289,10 +287,11 @@ const AdminUsers = () => {
                   {selectedUser.profile && (
                     <div className="col-md-6">
                       <h6 className="fw-bold">Profile Information</h6>
-                      <p><strong>Name:</strong> {selectedUser.profile.personalDetails?.fullName || 'N/A'}</p>
-                      <p><strong>Phone:</strong> {selectedUser.profile.personalDetails?.phoneNumber || 'N/A'}</p>
-                      <p><strong>Date of Birth:</strong> {selectedUser.profile.personalDetails?.dateOfBirth || 'N/A'}</p>
-                      <p><strong>Address:</strong> {selectedUser.profile.personalDetails?.address || 'N/A'}</p>
+                      <p><strong>Name:</strong> {selectedUser.profile.personalInfo?.firstName} {selectedUser.profile.personalInfo?.lastName}</p>
+                      <p><strong>Phone:</strong> {selectedUser.profile.personalInfo?.phone || 'N/A'}</p>
+                      <p><strong>Date of Birth:</strong> {selectedUser.profile.personalInfo?.dateOfBirth ? new Date(selectedUser.profile.personalInfo.dateOfBirth).toLocaleDateString() : 'N/A'}</p>
+                      <p><strong>Location:</strong> {selectedUser.profile.personalInfo?.city}, {selectedUser.profile.personalInfo?.country}</p>
+                      <p><strong>Referral Code:</strong> {selectedUser.profile.referral?.code || 'N/A'}</p>
                     </div>
                   )}
                 </div>

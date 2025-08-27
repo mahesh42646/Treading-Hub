@@ -429,7 +429,7 @@ const KYCVerification = () => {
   useEffect(() => {
     if (profile) {
             // Get user's profile name for reference
-      const userFullName = `${profile.firstName} ${profile.lastName}`.trim();
+      const userFullName = `${profile.personalInfo?.firstName || profile.firstName} ${profile.personalInfo?.lastName || profile.lastName}`.trim();
             setExtractedData(prev => ({
               ...prev,
               userProfileName: userFullName
@@ -445,7 +445,7 @@ const KYCVerification = () => {
         console.log('✅ User can apply for KYC. Status:', kycStatus);
       } else {
         console.log('❌ User cannot apply for KYC. Status:', kycStatus);
-      }
+            }
           }
   }, [profile, router]);
 

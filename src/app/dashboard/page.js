@@ -84,7 +84,7 @@ const Dashboard = () => {
             <div className="col-12">
               <h1 className="display-4 fw-bold text-white mb-4">Welcome to Your Dashboard</h1>
               <p className="lead text-white-50 mb-5">
-                Hello {profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, welcome to Trading Hub!
+                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, welcome to Trading Hub!
               </p>
               
               {/* Profile Setup Alert - Show only if user doesn't have profile */}
@@ -297,7 +297,7 @@ const Dashboard = () => {
                     <>
                       <div className="mb-2">
                         <small className="text-white-50">Name:</small>
-                        <p className="text-white mb-0">{profile.firstName} {profile.lastName}</p>
+                        <p className="text-white mb-0">{profile.personalInfo?.firstName || profile.firstName} {profile.personalInfo?.lastName || profile.lastName}</p>
                       </div>
                       <div className="mb-2">
                         <small className="text-white-50">Email:</small>
@@ -305,15 +305,15 @@ const Dashboard = () => {
                       </div>
                       <div className="mb-2">
                         <small className="text-white-50">Phone:</small>
-                        <p className="text-white mb-0">{profile.phone}</p>
+                        <p className="text-white mb-0">{profile.personalInfo?.phone || profile.phone}</p>
                       </div>
                       <div className="mb-2">
                         <small className="text-white-50">Location:</small>
-                        <p className="text-white mb-0">{profile.city}, {profile.country}</p>
+                        <p className="text-white mb-0">{profile.personalInfo?.city || profile.city}, {profile.personalInfo?.country || profile.country}</p>
                       </div>
                       <div className="mb-2">
                         <small className="text-white-50">Referral Code:</small>
-                        <p className="text-white mb-0">{profile.referralCode}</p>
+                        <p className="text-white mb-0">{profile.referral?.code || profile.referralCode}</p>
                       </div>
                       <div className="mb-2">
                         <small className="text-white-50">Profile Completion:</small>
@@ -322,16 +322,16 @@ const Dashboard = () => {
                             <div 
                               className="progress-bar" 
                               style={{ 
-                                width: `${profile.profileCompletion?.percentage || 0}%`,
-                                background: profile.profileCompletion?.percentage >= 70 ? '#28a745' : '#ffc107'
+                                width: `${profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0}%`,
+                                background: (profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0) >= 70 ? '#28a745' : '#ffc107'
                               }}
                             ></div>
                           </div>
-                          <span className="text-white small">{profile.profileCompletion?.percentage || 0}%</span>
+                          <span className="text-white small">{profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0}%</span>
                         </div>
                         <small className="text-white-50">
-                          Status: <span className={`badge ${profile.profileCompletion?.isActive ? 'bg-success' : 'bg-warning'}`}>
-                            {profile.profileCompletion?.isActive ? 'Active' : 'Incomplete'}
+                          Status: <span className={`badge ${(profile.status?.isActive || profile.profileCompletion?.isActive) ? 'bg-success' : 'bg-warning'}`}>
+                            {(profile.status?.isActive || profile.profileCompletion?.isActive) ? 'Active' : 'Incomplete'}
                           </span>
                         </small>
                       </div>

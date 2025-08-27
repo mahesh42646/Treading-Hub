@@ -245,21 +245,25 @@ router.post('/create-with-profile', async (req, res) => {
     const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
     const completionPercentage = 75; // 75% complete without KYC
 
-    // Create profile
+    // Create profile with new schema structure
     const profile = new Profile({
       userId: user._id,
-      firstName,
-      lastName,
-      gender,
-      dateOfBirth: new Date(dateOfBirth),
-      country,
-      city,
-      phone,
-      profileCompletion: {
-        percentage: completionPercentage,
+      personalInfo: {
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth: new Date(dateOfBirth),
+        country,
+        city,
+        phone
+      },
+      status: {
         isActive: false, // Not active until KYC is completed
-        completedFields: completedFields,
-        kycStatus: 'pending'
+        completionPercentage: completionPercentage,
+        completedFields: completedFields
+      },
+      kyc: {
+        status: 'not_applied'
       }
     });
 
@@ -274,10 +278,11 @@ router.post('/create-with-profile', async (req, res) => {
         emailVerified: user.emailVerified
       },
       profile: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phone: profile.phone,
-        profileCompletion: profile.profileCompletion
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        phone: profile.personalInfo.phone,
+        status: profile.status,
+        kyc: profile.kyc
       }
     });
   } catch (error) {
@@ -729,30 +734,24 @@ router.post('/kyc-verification/:uid', upload.fields([
 
     // Update profile with KYC information
     const updateData = {};
-    const completedFields = [...profile.profileCompletion.completedFields];
-    const kycDetails = { ...profile.profileCompletion.kycDetails };
+    const completedFields = [...profile.status.completedFields];
 
     // Handle PAN card upload
     if (req.files && req.files.panCardImage) {
-      updateData.panCardImage = req.files.panCardImage[0].filename;
       if (!completedFields.includes('panCardImage')) {
         completedFields.push('panCardImage');
       }
-      kycDetails.panCardVerified = true;
     }
 
     // Handle profile photo upload
     if (req.files && req.files.profilePhoto) {
-      updateData.profilePhoto = req.files.profilePhoto[0].filename;
       if (!completedFields.includes('profilePhoto')) {
         completedFields.push('profilePhoto');
       }
-      kycDetails.profilePhotoUploaded = true;
     }
 
     // Handle PAN card number
     if (panCardNumber) {
-      updateData.panCardNumber = panCardNumber;
       if (!completedFields.includes('panCardNumber')) {
         completedFields.push('panCardNumber');
       }
@@ -760,7 +759,6 @@ router.post('/kyc-verification/:uid', upload.fields([
 
     // Handle PAN holder name
     if (panHolderName) {
-      updateData.panHolderName = panHolderName;
       if (!completedFields.includes('panHolderName')) {
         completedFields.push('panHolderName');
       }
@@ -768,57 +766,35 @@ router.post('/kyc-verification/:uid', upload.fields([
 
     // Check if email is verified
     if (user.emailVerified) {
-      kycDetails.emailVerified = true;
       if (!completedFields.includes('emailVerified')) {
         completedFields.push('emailVerified');
       }
     }
 
-    // Calculate KYC completion
-    const kycFields = ['emailVerified', 'panCardVerified', 'profilePhotoUploaded'];
-    const completedKYCFields = kycFields.filter(field => kycDetails[field]);
-    const kycCompletion = (completedKYCFields.length / kycFields.length) * 100;
-
-    // Add submission timestamp and user details
-    updateData.kycSubmission = {
-      submittedAt: new Date(),
-      submittedBy: user.uid,
-      userEmail: user.email,
-      userPhone: profile.phone
-    };
-
-    // Update completion percentage (75% base + KYC completion)
-    const baseCompletion = 75;
-    const kycContribution = (kycCompletion / 100) * 25; // KYC contributes 25% to total
-    const totalCompletion = Math.min(100, baseCompletion + kycContribution);
-
-    // Set KYC status based on submission
-    let kycStatus = 'pending';
-    if (panCardNumber || (req.files && (req.files.panCardImage || req.files.profilePhoto))) {
-      // If user has submitted PAN number or uploaded files, set to under_review
-      kycStatus = 'under_review';
-    }
+    // Calculate completion percentage
+    const totalFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone', 'emailVerified', 'panCardNumber', 'panHolderName', 'panCardImage', 'profilePhoto'];
+    const totalCompletion = Math.min(100, (completedFields.length / totalFields.length) * 100);
 
     // Update KYC object
     updateData.kyc = {
-      status: kycStatus === 'under_review' ? 'applied' : 'not_applied',
+      status: 'applied',
       panCardNumber: panCardNumber || profile.kyc?.panCardNumber,
-      panCardImage: updateData.panCardImage || profile.kyc?.panCardImage,
-      profilePhoto: updateData.profilePhoto || profile.kyc?.profilePhoto,
+      panCardImage: req.files?.panCardImage ? req.files.panCardImage[0].filename : profile.kyc?.panCardImage,
+      profilePhoto: req.files?.profilePhoto ? req.files.profilePhoto[0].filename : profile.kyc?.profilePhoto,
       panHolderName: panHolderName || profile.kyc?.panHolderName,
       rejectionNote: null,
-      appliedAt: kycStatus === 'under_review' ? new Date() : profile.kyc?.appliedAt,
+      appliedAt: new Date(),
       approvedAt: profile.kyc?.approvedAt,
       rejectedAt: profile.kyc?.rejectedAt,
       approvedBy: profile.kyc?.approvedBy,
       rejectedBy: profile.kyc?.rejectedBy
     };
 
-    updateData.profileCompletion = {
-      percentage: totalCompletion,
+    // Update status
+    updateData.status = {
       isActive: totalCompletion >= 70,
-      completedFields: completedFields,
-      kycDetails: kycDetails
+      completionPercentage: totalCompletion,
+      completedFields: completedFields
     };
 
     const updatedProfile = await Profile.findOneAndUpdate(
@@ -831,9 +807,10 @@ router.post('/kyc-verification/:uid', upload.fields([
       success: true,
       message: 'KYC verification updated successfully',
       profile: {
-        firstName: updatedProfile.firstName,
-        lastName: updatedProfile.lastName,
-        profileCompletion: updatedProfile.profileCompletion
+        firstName: updatedProfile.personalInfo.firstName,
+        lastName: updatedProfile.personalInfo.lastName,
+        status: updatedProfile.status,
+        kyc: updatedProfile.kyc
       }
     });
   } catch (error) {
@@ -896,9 +873,10 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
       success: true,
       message: 'KYC verification approved successfully',
       profile: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        profileCompletion: profile.profileCompletion
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        status: profile.status,
+        kyc: profile.kyc
       }
     });
   } catch (error) {
@@ -963,9 +941,10 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
       success: true,
       message: 'KYC verification rejected',
       profile: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        profileCompletion: profile.profileCompletion
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        status: profile.status,
+        kyc: profile.kyc
       }
     });
   } catch (error) {
@@ -991,11 +970,11 @@ router.get('/admin/kyc-pending', async (req, res) => {
       profiles: profiles.map(profile => ({
         uid: profile.userId.uid,
         email: profile.userId.email,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phone: profile.phone,
-        kycSubmission: profile.kycSubmission,
-        profileCompletion: profile.profileCompletion
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        phone: profile.personalInfo.phone,
+        kyc: profile.kyc,
+        status: profile.status
       }))
     });
   } catch (error) {
@@ -1012,17 +991,17 @@ router.get('/admin/kyc-pending', async (req, res) => {
 router.get('/admin/kyc-stats', async (req, res) => {
   try {
     const totalProfiles = await Profile.countDocuments();
-    const pendingKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'pending' });
-    const underReviewKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'under_review' });
-    const approvedKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'approved' });
-    const rejectedKYC = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'rejected' });
+    const notAppliedKYC = await Profile.countDocuments({ 'kyc.status': 'not_applied' });
+    const appliedKYC = await Profile.countDocuments({ 'kyc.status': 'applied' });
+    const approvedKYC = await Profile.countDocuments({ 'kyc.status': 'approved' });
+    const rejectedKYC = await Profile.countDocuments({ 'kyc.status': 'rejected' });
 
     res.json({
       success: true,
       stats: {
         totalProfiles,
-        pendingKYC,
-        underReviewKYC,
+        notAppliedKYC,
+        appliedKYC,
         approvedKYC,
         rejectedKYC
       }

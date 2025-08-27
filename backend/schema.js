@@ -16,14 +16,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
   status: {
     type: String,
     enum: ['active', 'inactive', 'suspended', 'blocked'],
@@ -38,76 +30,128 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Profile Schema
+// Profile Schema - Completely reworked with clean structure
 const profileSchema = new mongoose.Schema({
+  // Reference to User
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
     unique: true
   },
-  firstName: {
-    type: String,
-    required: true,
-    trim: true
+
+  // Personal Information
+  personalInfo: {
+    firstName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'other'],
+      required: true
+    },
+    dateOfBirth: {
+      type: Date,
+      required: true
+    },
+    phone: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true
+    }
   },
-  lastName: {
-    type: String,
-    required: true,
-    trim: true
+
+  // KYC Information
+  kyc: {
+    status: {
+      type: String,
+      enum: ['not_applied', 'applied', 'approved', 'rejected'],
+      default: 'not_applied'
+    },
+    panCardNumber: {
+      type: String,
+      trim: true
+    },
+    panHolderName: {
+      type: String,
+      trim: true
+    },
+    panCardImage: {
+      type: String
+    },
+    profilePhoto: {
+      type: String
+    },
+    rejectionNote: {
+      type: String,
+      default: null
+    },
+    appliedAt: {
+      type: Date
+    },
+    approvedAt: {
+      type: Date
+    },
+    rejectedAt: {
+      type: Date
+    },
+    approvedBy: {
+      type: String
+    },
+    rejectedBy: {
+      type: String
+    }
   },
-  gender: {
-    type: String,
-    enum: ['male', 'female', 'other'],
-    required: true
+
+  // Referral System
+  referral: {
+    code: {
+      type: String,
+      unique: true,
+      length: 10
+    },
+    referredBy: {
+      type: String,
+      default: null
+    },
+    referrals: [{
+      type: String
+    }]
   },
-  dateOfBirth: {
-    type: Date,
-    required: true
+
+  // Profile Status
+  status: {
+    isActive: {
+      type: Boolean,
+      default: false
+    },
+    completionPercentage: {
+      type: Number,
+      default: 0
+    },
+    completedFields: [{
+      type: String
+    }]
   },
-  country: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  city: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  phone: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  panCardNumber: {
-    type: String,
-    trim: true
-    // Removed unique constraint to avoid issues during profile setup
-    // Uniqueness will be enforced at application level
-  },
-  panHolderName: {
-    type: String,
-    trim: true
-  },
-  panCardImage: {
-    type: String
-  },
-  profilePhoto: {
-    type: String
-  },
-  referralCode: {
-    type: String,
-    unique: true,
-    length: 10
-  },
-  referredBy: {
-    type: String,
-    default: null
-  },
-  referrals: [{
-    type: String
-  }],
+
+  // Wallet (for future development)
   wallet: {
     balance: {
       type: Number,
@@ -118,6 +162,8 @@ const profileSchema = new mongoose.Schema({
       default: 'USD'
     }
   },
+
+  // Trading Stats (for future development)
   tradingStats: {
     totalTrades: {
       type: Number,
@@ -135,109 +181,16 @@ const profileSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
-  },
-  profileCompletion: {
-    percentage: {
-      type: Number,
-      default: 0
-    },
-    isActive: {
-      type: Boolean,
-      default: false
-    },
-    completedFields: [{
-      type: String
-    }],
-    kycStatus: {
-      type: String,
-      enum: ['pending', 'under_review', 'verified', 'rejected'],
-      default: 'pending'
-    },
-    kycDetails: {
-      emailVerified: {
-        type: Boolean,
-        default: false
-      },
-      panCardVerified: {
-        type: Boolean,
-        default: false
-      },
-      profilePhotoUploaded: {
-        type: Boolean,
-        default: false
-      }
-    },
-    kycSubmission: {
-      submittedAt: {
-        type: Date
-      },
-      submittedBy: {
-        type: String
-      },
-      userEmail: {
-        type: String
-      },
-      userPhone: {
-        type: String
-      }
-    },
-    kyc: {
-      status: {
-        type: String,
-        enum: ['not_applied', 'applied', 'approved', 'rejected'],
-        default: 'not_applied'
-      },
-      panCardNumber: {
-        type: String,
-        trim: true
-      },
-      panCardImage: {
-        type: String
-      },
-      profilePhoto: {
-        type: String
-      },
-      panHolderName: {
-        type: String,
-        trim: true
-      },
-      rejectionNote: {
-        type: String,
-        default: null
-      },
-      appliedAt: {
-        type: Date
-      },
-      approvedAt: {
-        type: Date
-      },
-      rejectedAt: {
-        type: Date
-      },
-      approvedBy: {
-        type: String
-      },
-      rejectedBy: {
-        type: String
-      }
-    }
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
+
 }, {
   timestamps: true
 });
 
 // Generate referral code function
 profileSchema.pre('save', function(next) {
-  if (!this.referralCode) {
-    this.referralCode = generateReferralCode();
+  if (!this.referral.code) {
+    this.referral.code = generateReferralCode();
   }
   next();
 });

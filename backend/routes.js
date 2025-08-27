@@ -43,7 +43,7 @@ router.get('/check-phone/:phone', async (req, res) => {
     const { phone } = req.params;
 
     // Check if phone number exists in any profile
-    const existingProfile = await Profile.findOne({ phone });
+    const existingProfile = await Profile.findOne({ 'personalInfo.phone': phone });
     
     res.json({
       success: true,
@@ -66,7 +66,7 @@ router.get('/check-pan/:panNumber', async (req, res) => {
     const { panNumber } = req.params;
 
     // Check if PAN number exists in any profile
-    const existingProfile = await Profile.findOne({ panCardNumber: panNumber });
+    const existingProfile = await Profile.findOne({ 'kyc.panCardNumber': panNumber });
     
     res.json({
       success: true,
@@ -376,7 +376,7 @@ router.post('/profile-setup', async (req, res) => {
 
     // Check if phone number already exists in another profile
     const existingPhoneProfile = await Profile.findOne({ 
-      phone: phone,
+      'personalInfo.phone': phone,
       userId: { $ne: user._id } // Exclude current user
     });
     
@@ -391,40 +391,25 @@ router.post('/profile-setup', async (req, res) => {
     const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
     const completionPercentage = 75; // 75% complete without PAN card
 
-    // Create profile
+    // Create profile with new schema structure
     const profile = new Profile({
       userId: user._id,
-      firstName,
-      lastName,
-      gender,
-      dateOfBirth: new Date(dateOfBirth),
-      country,
-      city,
-      phone,
-      // Don't set panCardNumber to null initially to avoid unique constraint issues
-      profileCompletion: {
-        percentage: completionPercentage,
+      personalInfo: {
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth: new Date(dateOfBirth),
+        country,
+        city,
+        phone
+      },
+      status: {
         isActive: completionPercentage >= 70,
-        completedFields: completedFields,
-        kycStatus: 'pending',
-        kycDetails: {
-          emailVerified: user.emailVerified || false,
-          panCardVerified: false,
-          profilePhotoUploaded: false
-        }
+        completionPercentage: completionPercentage,
+        completedFields: completedFields
       },
       kyc: {
-        status: 'not_applied',
-        panCardNumber: null,
-        panCardImage: null,
-        profilePhoto: null,
-        panHolderName: null,
-        rejectionNote: null,
-        appliedAt: null,
-        approvedAt: null,
-        rejectedAt: null,
-        approvedBy: null,
-        rejectedBy: null
+        status: 'not_applied'
       }
     });
 
@@ -440,14 +425,15 @@ router.post('/profile-setup', async (req, res) => {
       success: true,
       message: 'Profile created successfully',
       profile: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        gender: profile.gender,
-        country: profile.country,
-        city: profile.city,
-        phone: profile.phone,
-        referralCode: profile.referralCode,
-        profileCompletion: profile.profileCompletion
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        gender: profile.personalInfo.gender,
+        country: profile.personalInfo.country,
+        city: profile.personalInfo.city,
+        phone: profile.personalInfo.phone,
+        referralCode: profile.referral.code,
+        status: profile.status,
+        kyc: profile.kyc
       }
     });
   } catch (error) {
@@ -712,7 +698,7 @@ router.post('/kyc-verification/:uid', upload.fields([
     // Check if PAN card number already exists in another profile (only if provided)
     if (panCardNumber) {
       const existingPanCardProfile = await Profile.findOne({ 
-        panCardNumber: panCardNumber,
+        'kyc.panCardNumber': panCardNumber,
         _id: { $ne: profile._id } // Exclude current profile
       });
       

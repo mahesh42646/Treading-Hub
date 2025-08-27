@@ -52,6 +52,11 @@ export const buildApiUrl = (endpoint) => {
     return `${baseUrl}${cleanEndpoint}`;
   }
   
+  // If base URL doesn't end with /api, add it
+  if (!baseUrl.includes('/api')) {
+    return `${baseUrl}/api${cleanEndpoint}`;
+  }
+  
   return `${baseUrl}${cleanEndpoint}`;
 };
 

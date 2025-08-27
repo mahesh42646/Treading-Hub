@@ -82,9 +82,9 @@ const profileSchema = new mongoose.Schema({
   },
   panCardNumber: {
     type: String,
-    trim: true,
-    unique: true,
-    sparse: true // Allows multiple null values
+    trim: true
+    // Removed unique constraint to avoid issues during profile setup
+    // Uniqueness will be enforced at application level
   },
   panHolderName: {
     type: String,

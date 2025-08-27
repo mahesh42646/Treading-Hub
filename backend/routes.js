@@ -394,8 +394,7 @@ router.post('/profile-setup', async (req, res) => {
       country,
       city,
       phone,
-      panCardNumber: null,
-      panCardImage: null,
+      // Don't set panCardNumber to null initially to avoid unique constraint issues
       profileCompletion: {
         percentage: completionPercentage,
         isActive: completionPercentage >= 70,

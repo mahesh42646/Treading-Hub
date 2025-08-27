@@ -1056,43 +1056,54 @@ const KYCVerification = () => {
                     </div>
                   )}
 
-                  {/* Submit and Back buttons in one row (desktop) */}
-                  <div className="row">
+                  {/* Submit and Back buttons */}
+                  <div className="row mt-4">
                     <div className="col-12 col-md-6 mb-3 mb-md-0">
                       <button
                         type="submit"
-                        className="btn rounded-4 w-100"
-                          disabled={submitting || panValidation.available === false}
+                        className="btn rounded-4 w-100 py-3 fw-bold"
+                        disabled={submitting || panValidation.available === false || !formData.panCardNumber || !formData.panHolderName || !formData.panCardImage || !formData.profilePhoto}
                         style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                          color: 'white'
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          border: 'none',
+                          color: 'white',
+                          fontSize: '1.1rem',
+                          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                          transition: 'all 0.3s ease'
                         }}
                       >
                         {submitting ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Submitting KYC...
+                            Submitting KYC Application...
                           </>
                         ) : (
-                          'Submit KYC Verification'
+                          <>
+                            <i className="bi bi-shield-check me-2"></i>
+                            Submit KYC Application
+                          </>
                         )}
                       </button>
+                      <small className="text-white-50 d-block mt-2 text-center">
+                        <i className="bi bi-info-circle me-1"></i>
+                        Your KYC application will be reviewed within 24-48 hours
+                      </small>
                     </div>
                     <div className="col-12 col-md-6">
                       <button
                         type="button"
-                        className="btn rounded-4 w-100"
+                        className="btn rounded-4 w-100 py-3"
                         onClick={() => router.push('/dashboard')}
                         style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          background: 'rgba(60, 58, 58, 0.1)',
+                          border: '1px solid rgba(124, 124, 124, 0.3)',
                           backdropFilter: 'blur(20px)',
-                          color: 'white'
+                          color: 'white',
+                          fontSize: '1rem',
+                          transition: 'all 0.3s ease'
                         }}
                       >
+                        <i className="bi bi-arrow-left me-2"></i>
                         Back to Dashboard
                       </button>
                     </div>

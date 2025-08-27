@@ -4,12 +4,17 @@ import { getApiEndpoint, buildApiUrl } from '../utils/config';
 const apiRequest = async (endpoint, options = {}) => {
   const url = typeof endpoint === 'string' ? buildApiUrl(endpoint) : endpoint;
   
+  // Don't set Content-Type for FormData (browser will set it automatically with boundary)
   const defaultOptions = {
     headers: {
-      'Content-Type': 'application/json',
       ...options.headers,
     },
   };
+
+  // Only set Content-Type for JSON requests
+  if (!(options.body instanceof FormData)) {
+    defaultOptions.headers['Content-Type'] = 'application/json';
+  }
 
   const response = await fetch(url, { ...defaultOptions, ...options });
   

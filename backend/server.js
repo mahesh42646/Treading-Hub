@@ -13,8 +13,8 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN || 'https://0fare.com' : 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '1gb' }));
+app.use(express.urlencoded({ extended: true, limit: '1gb' }));
 app.use(cookieParser());
 
 // Serve uploaded files

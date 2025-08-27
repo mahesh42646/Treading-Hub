@@ -428,13 +428,13 @@ const KYCVerification = () => {
 
   useEffect(() => {
     if (profile) {
-      // Get user's profile name for reference
+            // Get user's profile name for reference
       const userFullName = `${profile.firstName} ${profile.lastName}`.trim();
-      setExtractedData(prev => ({
-        ...prev,
-        userProfileName: userFullName
-      }));
-      console.log('👤 User profile name for reference:', userFullName);
+            setExtractedData(prev => ({
+              ...prev,
+              userProfileName: userFullName
+            }));
+            console.log('👤 User profile name for reference:', userFullName);
 
       // Check KYC status and show appropriate message
       const kycStatus = profile.kyc?.status;
@@ -445,8 +445,8 @@ const KYCVerification = () => {
         console.log('✅ User can apply for KYC. Status:', kycStatus);
       } else {
         console.log('❌ User cannot apply for KYC. Status:', kycStatus);
-      }
-    }
+            }
+          }
   }, [profile, router]);
 
   const handleChange = (e) => {
@@ -574,7 +574,7 @@ const KYCVerification = () => {
         } catch (error) {
           console.error('❌ OCR extraction failed:', error);
           setExtractedData(prev => ({ ...prev, isExtracting: false }));
-          
+
           // Don't show error message, just log it
           console.log('⚠️ OCR failed but keeping image for manual entry');
         }
@@ -757,16 +757,16 @@ const KYCVerification = () => {
                       type="button"
                       className="btn rounded-4 mt-3"
                       onClick={() => router.push('/dashboard')}
-                      style={{
-                        background: 'rgba(60, 58, 58, 0.03)',
-                        border: '1px solid rgba(124, 124, 124, 0.39)',
-                        backdropFilter: 'blur(20px)',
-                        color: 'white'
-                      }}
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              backdropFilter: 'blur(20px)',
+                              color: 'white'
+                            }}
                     >
                       Back to Dashboard
                     </button>
-                  </div>
+                        </div>
                 ) : (
                 <form onSubmit={handleSubmit}>
                   {/* Image Upload Section */}
@@ -790,31 +790,31 @@ const KYCVerification = () => {
                           <>
                             <div className="mb-3">
                               <i className="bi bi-camera" style={{ fontSize: '2rem', color: '#6bd4ff' }}></i>
-                            </div>
+                    </div>
                             <label htmlFor="panCardImage" className="form-label text-white fw-bold mb-2">
                               PAN Card Image *
                             </label>
-                            <input
-                              type="file"
-                              className="form-control rounded-4"
+                          <input
+                            type="file"
+                            className="form-control rounded-4"
                               id="panCardImage"
                               name="panCardImage"
                               onChange={(e) => handleImageChange(e, 'panCardImage')}
-                              accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                              style={{
-                                background: 'rgba(60, 58, 58, 0.03)',
-                                border: '1px solid rgba(124, 124, 124, 0.39)',
-                                backdropFilter: 'blur(20px)',
+                            accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              backdropFilter: 'blur(20px)',
                                 color: 'white',
                                 fontSize: '0.9rem'
-                              }}
-                            />
+                            }}
+                          />
                             <small className="text-white-50 mt-2 d-block">
                               Upload a clear image of your PAN card
                             </small>
-                            <small className="text-white-50">
+                          <small className="text-white-50">
                               JPEG, PNG, HEIC, WebP - Max 10MB
-                            </small>
+                          </small>
                           </>
                         ) : (
                           <div className="w-100">
@@ -823,43 +823,43 @@ const KYCVerification = () => {
                                 <i className="bi bi-check-circle-fill text-success me-2"></i>
                                 PAN Card Uploaded
                               </label>
-                              <button
-                                type="button"
-                                className="btn btn-sm rounded-3"
-                                onClick={() => {
-                                  setImageUploaded(prev => ({ ...prev, panCard: false }));
-                                  setFormData(prev => ({ ...prev, panCardImage: null }));
-                                  setPreviewImages(prev => ({ ...prev, panCard: null }));
-                                  setExtractedData({ panNumber: '', name: '', isExtracting: false });
-                                }}
-                                style={{
-                                  background: 'rgba(255, 193, 7, 0.2)',
-                                  border: '1px solid rgba(255, 193, 7, 0.5)',
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-3"
+                          onClick={() => {
+                            setImageUploaded(prev => ({ ...prev, panCard: false }));
+                            setFormData(prev => ({ ...prev, panCardImage: null }));
+                            setPreviewImages(prev => ({ ...prev, panCard: null }));
+                            setExtractedData({ panNumber: '', name: '', isExtracting: false });
+                          }}
+                          style={{
+                            background: 'rgba(255, 193, 7, 0.2)',
+                            border: '1px solid rgba(255, 193, 7, 0.5)',
                                   color: '#ffc107',
                                   fontSize: '0.8rem'
-                                }}
-                              >
-                                <i className="bi bi-arrow-clockwise me-1"></i>
+                          }}
+                        >
+                          <i className="bi bi-arrow-clockwise me-1"></i>
                                 Change
-                              </button>
-                            </div>
+                        </button>
+                      </div>
                             <div className="image-preview-container" style={{
                               background: 'rgba(60, 58, 58, 0.1)',
                               borderRadius: '12px',
                               padding: '10px',
                               border: '1px solid rgba(124, 124, 124, 0.2)'
-                            }}>
-                              <Image
-                                src={previewImages.panCard}
-                                alt="PAN Card Preview"
-                                className="img-fluid rounded"
+                      }}>
+                            <Image
+                          src={previewImages.panCard}
+                          alt="PAN Card Preview"
+                          className="img-fluid rounded"
                                 style={{ maxHeight: '180px', width: 'auto' }}
                                 width={300}
                                 height={180}
-                              />
-                            </div>
-                          </div>
-                        )}
+                        />
+                      </div>
+                    </div>
+                  )}
                       </div>
                     </div>
 
@@ -915,45 +915,45 @@ const KYCVerification = () => {
                                 <i className="bi bi-check-circle-fill text-success me-2"></i>
                                 Profile Photo Uploaded
                               </label>
-                              <button
-                                type="button"
-                                className="btn btn-sm rounded-3"
-                                onClick={() => {
-                                  setImageUploaded(prev => ({ ...prev, profile: false }));
-                                  setFormData(prev => ({ ...prev, profilePhoto: null }));
-                                  setPreviewImages(prev => ({ ...prev, profile: null }));
-                                }}
-                                style={{
-                                  background: 'rgba(255, 193, 7, 0.2)',
-                                  border: '1px solid rgba(255, 193, 7, 0.5)',
+                        <button
+                          type="button"
+                          className="btn btn-sm rounded-3"
+                          onClick={() => {
+                            setImageUploaded(prev => ({ ...prev, profile: false }));
+                            setFormData(prev => ({ ...prev, profilePhoto: null }));
+                            setPreviewImages(prev => ({ ...prev, profile: null }));
+                          }}
+                          style={{
+                            background: 'rgba(255, 193, 7, 0.2)',
+                            border: '1px solid rgba(255, 193, 7, 0.5)',
                                   color: '#ffc107',
                                   fontSize: '0.8rem'
-                                }}
-                              >
-                                <i className="bi bi-arrow-clockwise me-1"></i>
+                          }}
+                        >
+                          <i className="bi bi-arrow-clockwise me-1"></i>
                                 Change
-                              </button>
-                            </div>
+                        </button>
+                      </div>
                             <div className="image-preview-container" style={{
                               background: 'rgba(60, 58, 58, 0.1)',
                               borderRadius: '12px',
                               padding: '10px',
                               border: '1px solid rgba(124, 124, 124, 0.2)'
-                            }}>
-                              <Image
-                                src={previewImages.profile}
-                                alt="Profile Photo Preview"
-                                className="img-fluid rounded"
+                      }}>
+                            <Image
+                          src={previewImages.profile}
+                          alt="Profile Photo Preview"
+                          className="img-fluid rounded"
                                 style={{ maxHeight: '180px', width: 'auto' }}
                                 width={300}
                                 height={180}
-                              />
-                            </div>
-                          </div>
-                        )}
+                        />
                       </div>
                     </div>
-                  </div>
+                  )}
+                      </div>
+                    </div>
+                </div>
 
                 <div className="row mb-4">
                     <div className="col-12 col-md-6 mb-3 mb-md-0">
@@ -968,10 +968,10 @@ const KYCVerification = () => {
                       </label>
                       <input
                         type="text"
-                        className={`form-control rounded-4 ${
-                          panValidation.available === false ? 'is-invalid' : 
-                          panValidation.available === true ? 'is-valid' : ''
-                        }`}
+                          className={`form-control rounded-4 ${
+                            panValidation.available === false ? 'is-invalid' : 
+                            panValidation.available === true ? 'is-valid' : ''
+                          }`}
                         id="panCardNumber"
                         name="panCardNumber"
                         value={formData.panCardNumber}
@@ -979,33 +979,33 @@ const KYCVerification = () => {
                         placeholder={extractedData.isExtracting ? "Extracting..." : "Enter PAN card number (e.g., ABCDE1234F)"}
                         style={{
                           background: 'rgba(60, 58, 58, 0.03)',
-                          border: panValidation.available === false 
-                            ? '1px solid rgba(220, 53, 69, 0.5)' 
-                            : panValidation.available === true 
-                            ? '1px solid rgba(25, 135, 84, 0.5)' 
+                            border: panValidation.available === false 
+                              ? '1px solid rgba(220, 53, 69, 0.5)' 
+                              : panValidation.available === true 
+                              ? '1px solid rgba(25, 135, 84, 0.5)' 
                             : extractedData.panNumber && extractedData.panNumber !== 'Not detected'
-                            ? '1px solid rgba(40, 167, 69, 0.5)' 
-                            : '1px solid rgba(124, 124, 124, 0.39)',
+                              ? '1px solid rgba(40, 167, 69, 0.5)' 
+                              : '1px solid rgba(124, 124, 124, 0.39)',
                           backdropFilter: 'blur(10px)',
                           color: 'white',
                           fontSize: '1rem',
                           padding: '12px 16px'
                         }}
                       />
-                      {panValidation.checking && (
+                        {panValidation.checking && (
                         <small className="text-info d-block mt-2">
-                          <i className="bi bi-arrow-clockwise me-1"></i>
-                          Checking PAN number availability...
-                        </small>
-                      )}
-                      {panValidation.message && !panValidation.checking && (
+                            <i className="bi bi-arrow-clockwise me-1"></i>
+                            Checking PAN number availability...
+                          </small>
+                        )}
+                        {panValidation.message && !panValidation.checking && (
                         <small className={`d-block mt-2 ${
-                          panValidation.available === false ? 'text-danger' : 
-                          panValidation.available === true ? 'text-success' : 'text-warning'
-                        }`}>
-                          {panValidation.message}
-                        </small>
-                      )}
+                            panValidation.available === false ? 'text-danger' : 
+                            panValidation.available === true ? 'text-success' : 'text-warning'
+                          }`}>
+                            {panValidation.message}
+                          </small>
+                        )}
                       <small className="text-white-50 d-block mt-2">
                         {extractedData.panNumber && extractedData.panNumber !== 'Not detected'
                           ? "✅ PAN number auto-detected from image. You can edit if needed."

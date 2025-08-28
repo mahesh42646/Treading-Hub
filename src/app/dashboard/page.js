@@ -3,17 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
-import RouteGuard from '../components/RouteGuard';
-import Header from '../user/components/Header';
-import Footer from '../user/components/Footer';
 import { sendEmailVerification } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
-import { userApi } from '../../services/api';
 
 const Dashboard = () => {
   const { user, profile, logout, refreshProfile, checkEmailVerification } = useAuth();
   const [resendingEmail, setResendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState([]);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -70,468 +67,221 @@ const Dashboard = () => {
 
   const kycStatusInfo = profile ? getKYCStatusDisplay(profile.kyc?.status || 'not_applied') : null;
 
+  // Dismiss alert
+  const dismissAlert = (alertId) => {
+    setDismissedAlerts(prev => [...prev, alertId]);
+  };
+
+  // Check if alert should be shown
+  const shouldShowAlert = (alertId) => {
+    return !dismissedAlerts.includes(alertId);
+  };
+
   return (
-    <RouteGuard requireAuth={true} requireProfile={false}>
-      <div style={{
-        background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
-        minHeight: '100vh',
-        color: 'white'
-      }}>
-        <Header />
-        
-        <div className="container py-5 mt-5">
-          <div className="row">
+    <div className="container-fluid py-4">
+      {/* Welcome Section */}
+      <div className="row mb-4">
             <div className="col-12">
-              <h1 className="display-4 fw-bold text-white mb-4">Welcome to Your Dashboard</h1>
-              <p className="lead text-white-50 mb-5">
-                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, welcome to Trading Hub!
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="fw-bold mb-1">Welcome back!</h2>
+              <p className="text-muted mb-0">
+                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, here's what's happening with your account.
               </p>
-              
-              {/* Profile Setup Alert - Show only if user doesn't have profile */}
-              {!profile && (
-                <div className="alert alert-info rounded-4 mb-4" style={{
-                  background: 'rgba(13, 202, 240, 0.1)',
-                  border: '1px solid rgba(13, 202, 240, 0.3)',
-                  color: '#6bd4ff'
-                }}>
+            </div>
+            <div className="text-end">
+              <div className="text-muted small">Last login</div>
+              <div className="fw-bold">{new Date().toLocaleDateString()}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts Section */}
+      <div className="row mb-4">
+        <div className="col-12">
+          {/* Profile Setup Alert */}
+          {!profile && shouldShowAlert('profile-setup') && (
+            <div className="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
                   <div className="d-flex align-items-start">
-                    <i className="bi bi-info-circle me-2 mt-1"></i>
+                <i className="bi bi-info-circle me-3 mt-1 fs-4"></i>
                     <div className="flex-grow-1">
-                      <strong>Complete Your Profile!</strong>
-                      <p className="mb-2 mt-1">Set up your profile to access all features and complete KYC verification.</p>
-                      <div className="d-flex gap-2">
+                  <h6 className="alert-heading mb-2">Complete Your Profile!</h6>
+                  <p className="mb-2">To start trading, you need to complete your profile setup. This includes your personal information and KYC verification.</p>
                         <button 
-                          className="btn btn-sm rounded-3"
+                    className="btn btn-primary btn-sm"
                           onClick={() => router.push('/profile-setup')}
-                          style={{
-                            background: 'rgba(13, 202, 240, 0.2)',
-                            border: '1px solid rgba(13, 202, 240, 0.5)',
-                            color: '#6bd4ff'
-                          }}
                         >
                           Complete Profile Setup
                         </button>
-                        <button 
-                          className="btn btn-sm rounded-3"
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            color: 'white'
-                          }}
-                        >
-                          Skip for Now
-                        </button>
                       </div>
                     </div>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => dismissAlert('profile-setup')}
+              ></button>
                   </div>
+          )}
+
+          {/* Email Verification Alert */}
+          {user && !user.emailVerified && shouldShowAlert('email-verification') && (
+            <div className="alert alert-warning alert-dismissible fade show rounded-3 mb-3" role="alert">
+              <div className="d-flex align-items-start">
+                <i className="bi bi-exclamation-triangle me-3 mt-1 fs-4"></i>
+                <div className="flex-grow-1">
+                  <h6 className="alert-heading mb-2">Email Verification Required</h6>
+                  <p className="mb-2">Please verify your email address to access all features. Check your inbox for the verification link.</p>
+                  <button 
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={handleResendEmail}
+                    disabled={resendingEmail}
+                  >
+                    {resendingEmail ? 'Sending...' : 'Resend Email'}
+                  </button>
+                  {emailSent && (
+                    <span className="text-success small">✓ Email sent successfully!</span>
+                  )}
+                </div>
+              </div>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => dismissAlert('email-verification')}
+              ></button>
                 </div>
               )}
               
-              {/* KYC Status Alerts - Show different alerts based on KYC status */}
-              {profile && (
-                <div className={`alert rounded-4 mb-4 ${
-                  profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified' 
-                    ? 'alert-success' 
-                    : profile.kyc?.status === 'rejected'
-                    ? 'alert-danger'
-                    : profile.kyc?.status === 'applied'
-                    ? 'alert-info'
-                    : 'alert-warning'
-                }`} style={{
-                  background: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
-                    ? 'rgba(25, 135, 84, 0.1)'
-                    : profile.kyc?.status === 'rejected'
-                    ? 'rgba(220, 53, 69, 0.1)'
-                    : profile.kyc?.status === 'applied'
-                    ? 'rgba(13, 202, 240, 0.1)'
-                    : 'rgba(255, 193, 7, 0.1)',
-                  border: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
-                    ? '1px solid rgba(25, 135, 84, 0.3)'
-                    : profile.kyc?.status === 'rejected'
-                    ? '1px solid rgba(220, 53, 69, 0.3)'
-                    : profile.kyc?.status === 'applied'
-                    ? '1px solid rgba(13, 202, 240, 0.3)'
-                    : '1px solid rgba(255, 193, 7, 0.3)',
-                  color: profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
-                    ? '#6bff6b'
-                    : profile.kyc?.status === 'rejected'
-                    ? '#ff6b6b'
-                    : profile.kyc?.status === 'applied'
-                    ? '#6bd4ff'
-                    : '#ffc107'
-                }}>
+          {/* KYC Status Alerts */}
+          {profile && kycStatusInfo && shouldShowAlert('kyc-status') && (
+            <div className={`alert alert-${kycStatusInfo.badge === 'bg-warning' ? 'warning' : kycStatusInfo.badge === 'bg-info' ? 'info' : kycStatusInfo.badge === 'bg-success' ? 'success' : kycStatusInfo.badge === 'bg-danger' ? 'danger' : 'secondary'} alert-dismissible fade show rounded-3 mb-3`} role="alert">
                   <div className="d-flex align-items-start">
-                    <i className={`bi me-2 mt-1 ${
-                      profile.kyc?.status === 'approved' || profile.kyc?.status === 'verified'
-                        ? 'bi-check-circle-fill'
-                        : profile.kyc?.status === 'rejected'
-                        ? 'bi-x-circle-fill'
-                        : profile.kyc?.status === 'applied'
-                        ? 'bi-clock-fill'
-                        : 'bi-exclamation-triangle'
-                    }`}></i>
+                <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`}></i>
                     <div className="flex-grow-1">
-                      <strong>KYC Status: {kycStatusInfo?.text}</strong>
-                      <p className="mb-2 mt-1">{kycStatusInfo?.message}</p>
-                      <div className="d-flex gap-2">
-                        {(profile.kyc?.status === 'not_applied' || !profile.kyc?.status) && (
+                  <h6 className="alert-heading mb-2">KYC Status: {kycStatusInfo.text}</h6>
+                  <p className="mb-2">{kycStatusInfo.message}</p>
+                  {kycStatusInfo.badge === 'bg-warning' && (
                           <button 
-                            className="btn btn-sm rounded-3"
+                      className="btn btn-warning btn-sm"
                             onClick={() => router.push('/kyc-verification')}
-                            style={{
-                              background: 'rgba(255, 193, 7, 0.2)',
-                              border: '1px solid rgba(255, 193, 7, 0.5)',
-                              color: '#ffc107'
-                            }}
                           >
                             Complete KYC Now
                           </button>
                         )}
-                        {profile.kyc?.status === 'rejected' && (
+                </div>
+              </div>
                           <button 
-                            className="btn btn-sm rounded-3"
-                            onClick={() => router.push('/kyc-verification')}
-                            style={{
-                              background: 'rgba(220, 53, 69, 0.2)',
-                              border: '1px solid rgba(220, 53, 69, 0.5)',
-                              color: '#ff6b6b'
-                            }}
-                          >
-                            Update KYC Data
-                          </button>
-                        )}
-                        {profile.kyc?.status === 'applied' && (
-                          <button 
-                            className="btn btn-sm rounded-3"
-                            style={{
-                              background: 'rgba(13, 202, 240, 0.2)',
-                              border: '1px solid rgba(13, 202, 240, 0.5)',
-                              color: '#6bd4ff'
-                            }}
-                          >
-                            View KYC Status
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Email Verification Success Alert */}
-              {user?.emailVerified && (
-                <div className="alert alert-success rounded-4 mb-4" style={{
-                  background: 'rgba(25, 135, 84, 0.1)',
-                  border: '1px solid rgba(25, 135, 84, 0.3)',
-                  color: '#6bff6b'
-                }}>
-                  <div className="d-flex align-items-start">
-                    <i className="bi bi-check-circle-fill me-2 mt-1"></i>
-                    <div className="flex-grow-1">
-                      <strong>Email Verified Successfully!</strong>
-                      <p className="mb-0 mt-1">Your email address has been verified. You can now complete KYC verification to activate your account.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Email Verification Alert */}
-              {!user?.emailVerified && (
-                <div className="alert alert-info rounded-4 mb-4" style={{
-                  background: 'rgba(13, 202, 240, 0.1)',
-                  border: '1px solid rgba(13, 202, 240, 0.3)',
-                  color: '#6bd4ff'
-                }}>
-                  <div className="d-flex align-items-start">
-                    <i className="bi bi-envelope me-2 mt-1"></i>
-                    <div className="flex-grow-1">
-                      <strong>Email Verification Required!</strong>
-                      <p className="mb-2 mt-1">Please verify your email address to complete the registration process.</p>
-                      <div className="d-flex gap-2">
-                        <button 
-                          className="btn btn-sm rounded-3"
-                          onClick={handleResendEmail}
-                          disabled={resendingEmail}
-                          style={{
-                            background: 'rgba(13, 202, 240, 0.2)',
-                            border: '1px solid rgba(13, 202, 240, 0.5)',
-                            color: '#6bd4ff'
-                          }}
-                        >
-                          {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
-                        </button>
-                        <button 
-                          className="btn btn-sm rounded-3"
-                          onClick={checkEmailVerification}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            color: 'white'
-                          }}
-                        >
-                          Check Verification Status
-                        </button>
-                      </div>
-                      {emailSent && (
-                        <p className="mt-2 text-success">Verification email sent! Check your inbox and click the verification link.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+                type="button" 
+                className="btn-close" 
+                onClick={() => dismissAlert('kyc-status')}
+              ></button>
             </div>
-          </div>
-
-          <div className="row g-4">
-            {/* Profile Card */}
-            <div className="col-lg-4">
-              <div className="card border-0 rounded-4" style={{
-                background: 'rgba(60, 58, 58, 0.03)',
-                border: '1px solid rgba(124, 124, 124, 0.39)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
-              }}>
-                <div className="card-body p-4">
-                  <h5 className="card-title text-white mb-3">Profile Information</h5>
-                  {profile ? (
-                    <>
-                      <div className="mb-2">
-                        <small className="text-white-50">Name:</small>
-                        <p className="text-white mb-0">{profile.personalInfo?.firstName || profile.firstName} {profile.personalInfo?.lastName || profile.lastName}</p>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">Email:</small>
-                        <p className="text-white mb-0">{user?.email}</p>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">Phone:</small>
-                        <p className="text-white mb-0">{profile.personalInfo?.phone || profile.phone}</p>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">Location:</small>
-                        <p className="text-white mb-0">{profile.personalInfo?.city || profile.city}, {profile.personalInfo?.country || profile.country}</p>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">Referral Code:</small>
-                        <p className="text-white mb-0">{profile.referral?.code || profile.referralCode}</p>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">Profile Completion:</small>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="progress flex-grow-1" style={{ height: '8px' }}>
-                            <div 
-                              className="progress-bar" 
-                              style={{ 
-                                width: `${profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0}%`,
-                                background: (profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0) >= 70 ? '#28a745' : '#ffc107'
-                              }}
-                            ></div>
-                          </div>
-                          <span className="text-white small">{profile.status?.completionPercentage || profile.profileCompletion?.percentage || 0}%</span>
-                        </div>
-                        <small className="text-white-50">
-                          Status: <span className={`badge ${(profile.status?.isActive || profile.profileCompletion?.isActive) ? 'bg-success' : 'bg-warning'}`}>
-                            {(profile.status?.isActive || profile.profileCompletion?.isActive) ? 'Active' : 'Incomplete'}
-                          </span>
-                        </small>
-                      </div>
-                      <div className="mb-2">
-                        <small className="text-white-50">KYC Status:</small>
-                        <div className="mt-1">
-                          <span className={`badge ${kycStatusInfo?.badge || 'bg-secondary'}`}>
-                            {kycStatusInfo?.text || 'Not Started'}
-                          </span>
-                        </div>
-                        {profile.profileCompletion?.kycDetails && (
-                          <div className="mt-2">
-                            <small className="text-white-50 d-block">
-                              <i className={`bi ${profile.profileCompletion?.kycDetails?.emailVerified ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
-                              Email Verified
-                            </small>
-                            <small className="text-white-50 d-block">
-                              <i className={`bi ${profile.profileCompletion?.kycDetails?.panCardVerified ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
-                              PAN Card Verified
-                            </small>
-                            <small className="text-white-50 d-block">
-                              <i className={`bi ${profile.profileCompletion?.kycDetails?.profilePhotoUploaded ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`}></i>
-                              Profile Photo Uploaded
-                            </small>
-                          </div>
                         )}
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-3">
-                      <i className="bi bi-person-circle text-white-50" style={{ fontSize: '3rem' }}></i>
-                      <p className="text-white-50 mt-3">Profile not set up yet</p>
-                      <button 
-                        className="btn btn-sm rounded-3"
-                        onClick={() => router.push('/profile-setup')}
-                        style={{
-                          background: 'rgba(13, 202, 240, 0.2)',
-                          border: '1px solid rgba(13, 202, 240, 0.5)',
-                          color: '#6bd4ff'
-                        }}
-                      >
-                        Set Up Profile
-                      </button>
                     </div>
-                  )}
+
+      {/* Analytics Cards */}
+      <div className="row mb-4">
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-primary bg-opacity-10 rounded-circle p-3">
+                    <i className="bi bi-wallet2 text-primary fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-muted mb-1">Account Balance</h6>
+                  <h4 className="fw-bold mb-0">₹0.00</h4>
+                  <small className="text-success">+₹0.00 today</small>
+                    </div>
+                  </div>
+                </div>
+                      </div>
+                    </div>
+
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-success bg-opacity-10 rounded-circle p-3">
+                    <i className="bi bi-graph-up text-success fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-muted mb-1">Total P&L</h6>
+                  <h4 className="fw-bold mb-0 text-success">+₹0.00</h4>
+                  <small className="text-success">+0.00% this month</small>
                 </div>
               </div>
             </div>
+                    </div>
+                  </div>
 
-            {/* Trading Stats */}
-            <div className="col-lg-4">
-              <div className="card border-0 rounded-4" style={{
-                background: 'rgba(60, 58, 58, 0.03)',
-                border: '1px solid rgba(124, 124, 124, 0.39)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
-              }}>
-                <div className="card-body p-4">
-                  <h5 className="card-title text-white mb-3">Trading Statistics</h5>
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between">
-                      <span className="text-white-50">Account Balance:</span>
-                      <span className="text-white fw-bold">$0.00</span>
-                    </div>
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-info bg-opacity-10 rounded-circle p-3">
+                    <i className="bi bi-person-check text-info fs-4"></i>
                   </div>
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between">
-                      <span className="text-white-50">Total Trades:</span>
-                      <span className="text-white fw-bold">0</span>
                     </div>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between">
-                      <span className="text-white-50">Win Rate:</span>
-                      <span className="text-white fw-bold">0%</span>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between">
-                      <span className="text-white-50">Profit/Loss:</span>
-                      <span className="text-white fw-bold">$0.00</span>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-muted mb-1">Profile Completion</h6>
+                  <h4 className="fw-bold mb-0">{profile?.status?.completionPercentage || 0}%</h4>
+                  <small className="text-muted">{profile?.status?.completedFields?.length || 0} of 12 fields</small>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="col-lg-4">
-              <div className="card border-0 rounded-4" style={{
-                background: 'rgba(60, 58, 58, 0.03)',
-                border: '1px solid rgba(124, 124, 124, 0.39)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
-              }}>
-                <div className="card-body p-4">
-                  <h5 className="card-title text-white mb-3">Quick Actions</h5>
-                  <div className="d-grid gap-2">
-                    <button className="btn rounded-4" style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)',
-                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                      color: 'white'
-                    }}>
-                      Start Trading
-                    </button>
-                    <button className="btn rounded-4" style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)',
-                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                      color: 'white'
-                    }}>
-                      View History
-                    </button>
-                    <button className="btn rounded-4" style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)',
-                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                      color: 'white'
-                    }}>
-                      Settings
-                    </button>
-                    {!profile && (
-                      <button 
-                        className="btn rounded-4" 
-                        onClick={() => router.push('/profile-setup')}
-                        style={{
-                          background: 'rgba(13, 202, 240, 0.1)',
-                          border: '1px solid rgba(13, 202, 240, 0.3)',
-                          backdropFilter: 'blur(20px)',
-                          color: '#6bd4ff'
-                        }}
-                      >
-                        Set Up Profile
-                      </button>
-                    )}
-                    {profile && profile.profileCompletion?.kycStatus === 'pending' && (
-                      <button 
-                        className="btn rounded-4" 
-                        onClick={() => router.push('/kyc-verification')}
-                        style={{
-                          background: 'rgba(255, 193, 7, 0.1)',
-                          border: '1px solid rgba(255, 193, 7, 0.3)',
-                          backdropFilter: 'blur(20px)',
-                          color: '#ffc107'
-                        }}
-                      >
-                        Complete KYC
-                      </button>
-                    )}
-                    {profile && profile.profileCompletion?.kycStatus === 'rejected' && (
-                      <button 
-                        className="btn rounded-4" 
-                        onClick={() => router.push('/kyc-verification')}
-                        style={{
-                          background: 'rgba(220, 53, 69, 0.1)',
-                          border: '1px solid rgba(220, 53, 69, 0.3)',
-                          backdropFilter: 'blur(20px)',
-                          color: '#ff6b6b'
-                        }}
-                      >
-                        Update KYC Data
-                      </button>
-                    )}
-                    <button 
-                      className="btn rounded-4" 
-                      onClick={handleLogout}
-                      style={{
-                        background: 'rgba(220, 53, 69, 0.1)',
-                        border: '1px solid rgba(220, 53, 69, 0.3)',
-                        backdropFilter: 'blur(20px)',
-                        color: '#ff6b6b'
-                      }}
-                    >
-                      Logout
-                    </button>
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
+                    <i className="bi bi-share text-warning fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-muted mb-1">Referral Code</h6>
+                  <h4 className="fw-bold mb-0">{profile?.referral?.code || 'N/A'}</h4>
+                  <small className="text-muted">0 referrals</small>
+                </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="row mt-5">
-            <div className="col-12">
-              <div className="card border-0 rounded-4" style={{
-                background: 'rgba(60, 58, 58, 0.03)',
-                border: '1px solid rgba(124, 124, 124, 0.39)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
-              }}>
-                <div className="card-body p-4">
-                  <h5 className="card-title text-white mb-3">Recent Activity</h5>
-                  <div className="text-center py-4">
-                    <i className="bi bi-activity text-white-50" style={{ fontSize: '3rem' }}></i>
-                    <p className="text-white-50 mt-3">No recent activity to display</p>
-                    <p className="text-white-50">Start trading to see your activity here</p>
+      {/* Recent Activity & Quick Actions */}
+      <div className="row">
+        <div className="col-lg-8 mb-4">
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-0">
+              <h5 className="mb-0">Recent Activity</h5>
+            </div>
+            <div className="card-body">
+              <div className="timeline">
+                <div className="timeline-item d-flex mb-3">
+                  <div className="timeline-marker bg-primary rounded-circle me-3" style={{ width: '12px', height: '12px', marginTop: '6px' }}></div>
+                  <div className="flex-grow-1">
+                    <h6 className="mb-1">Profile Created</h6>
+                    <p className="text-muted mb-0 small">Your profile was successfully created</p>
+                    <small className="text-muted">2 hours ago</small>
+                  </div>
+                </div>
+                <div className="timeline-item d-flex mb-3">
+                  <div className="timeline-marker bg-info rounded-circle me-3" style={{ width: '12px', height: '12px', marginTop: '6px' }}></div>
+                  <div className="flex-grow-1">
+                    <h6 className="mb-1">Account Registered</h6>
+                    <p className="text-muted mb-0 small">Welcome to Trading Hub! Your account has been created</p>
+                    <small className="text-muted">1 day ago</small>
                   </div>
                 </div>
               </div>
@@ -539,9 +289,51 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Footer />
+        <div className="col-lg-4 mb-4">
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-0">
+              <h5 className="mb-0">Quick Actions</h5>
+            </div>
+            <div className="card-body">
+              <div className="d-grid gap-2">
+                {!profile && (
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => router.push('/profile-setup')}
+                  >
+                    <i className="bi bi-person-plus me-2"></i>
+                    Complete Profile
+                  </button>
+                )}
+                {profile && kycStatusInfo?.badge === 'bg-warning' && (
+                  <button 
+                    className="btn btn-warning"
+                    onClick={() => router.push('/kyc-verification')}
+                  >
+                    <i className="bi bi-shield-check me-2"></i>
+                    Complete KYC
+                  </button>
+                )}
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={() => router.push('/dashboard/wallet')}
+                >
+                  <i className="bi bi-wallet2 me-2"></i>
+                  View Wallet
+                </button>
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={() => router.push('/dashboard/referral')}
+                >
+                  <i className="bi bi-share me-2"></i>
+                  Referral Program
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </RouteGuard>
+    </div>
   );
 };
 

@@ -15,6 +15,22 @@ export const API_CONFIG = {
     USER_CHECK_PAN: (panNumber) => `/users/check-pan/${panNumber}`,
     USER_CHECK_EMAIL: (email) => `/users/check-email/${email}`,
     
+    // Referral System endpoints
+    REFERRAL_CODE: (code) => `/referral/validate/${code}`,
+    REFERRAL_STATS: '/referral/stats',
+    REFERRAL_HISTORY: '/referral/history',
+    REFERRAL_ADD: '/referral/add',
+    REFERRAL_LINK: (code) => `/ref/${code}`,
+    
+    // Wallet System endpoints
+    WALLET_BALANCE: '/wallet/balance',
+    WALLET_DEPOSIT: '/wallet/deposit',
+    WALLET_WITHDRAW: '/wallet/withdraw',
+    WALLET_TRANSACTIONS: '/wallet/transactions',
+    WALLET_REFERRAL_BALANCE: '/wallet/referral-balance',
+    WALLET_RAZORPAY_ORDER: '/wallet/razorpay-order',
+    WALLET_RAZORPAY_VERIFY: '/wallet/razorpay-verify',
+    
     // Admin endpoints
     ADMIN_KYC_APPROVE: (uid) => `/users/admin/kyc-approve/${uid}`,
     ADMIN_KYC_REJECT: (uid) => `/users/admin/kyc-reject/${uid}`,

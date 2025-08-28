@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from './firebase';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,20 @@ const Register = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [referralCode, setReferralCode] = useState('');
+  const [referrerName, setReferrerName] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    // Check for referral code in localStorage
+    const storedReferralCode = localStorage.getItem('referralCode');
+    const storedReferrerName = localStorage.getItem('referrerName');
+    
+    if (storedReferralCode) {
+      setReferralCode(storedReferralCode);
+      setReferrerName(storedReferrerName || '');
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -35,6 +48,23 @@ const Register = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  // Handle Google login with referral
+  const handleGoogleLogin = async () => {
+    try {
+      // Store referral info before Google login
+      if (referralCode) {
+        localStorage.setItem('referralCode', referralCode);
+        localStorage.setItem('referrerName', referrerName);
+      }
+      
+      // Redirect to Google login (implement your Google auth)
+      // After successful Google login, the referral code will be available in localStorage
+      console.log('Google login with referral:', referralCode);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
   };
 
   // Handle resend email verification
@@ -141,7 +171,8 @@ const Register = () => {
         dateOfBirth: formData.dateOfBirth,
         country: formData.country,
         city: formData.city,
-        phone: formData.phone
+        phone: formData.phone,
+        referralCode: referralCode // Include referral code if available
       });
 
       if (!createResponse.success) {
@@ -149,6 +180,13 @@ const Register = () => {
       }
 
       console.log('✅ Registration completed successfully');
+      
+      // Clear referral data from localStorage after successful registration
+      if (referralCode) {
+        localStorage.removeItem('referralCode');
+        localStorage.removeItem('referrerName');
+      }
+      
       setEmailSent(true);
     } catch (error) {
       console.error('❌ Registration error:', error);
@@ -191,6 +229,18 @@ const Register = () => {
                   We&apos;ve sent a verification email to <strong>{formData.email}</strong>. 
                   Please check your inbox and click the verification link to continue.
                 </p>
+                {referralCode && (
+                  <div className="alert alert-success rounded-4 mb-4" style={{
+                    background: 'rgba(25, 135, 84, 0.1)',
+                    border: '1px solid rgba(25, 135, 84, 0.3)',
+                    color: '#198754'
+                  }}>
+                    <small>
+                      <strong>🎉 Referral Bonus:</strong> You've been referred by {referrerName || 'a Trading Hub member'}. 
+                      Complete your profile and make your first deposit to earn your referrer a ₹200 bonus!
+                    </small>
+                  </div>
+                )}
                 <div className="alert alert-warning rounded-4" style={{
                   background: 'rgba(255, 193, 7, 0.1)',
                   border: '1px solid rgba(255, 193, 7, 0.3)',
@@ -201,38 +251,26 @@ const Register = () => {
                   </small>
                 </div>
                 <div className="mt-4">
-                  <button 
-                    className="btn rounded-4 me-2"
+                  <button
                     onClick={handleResendEmail}
                     disabled={resendingEmail}
-                    style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
-                      backdropFilter: 'blur(20px)',
-                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                      color: 'white'
-                    }}
+                    className="btn btn-outline-light me-2"
                   >
-                    {resendingEmail ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                        Resending...
-                      </>
-                    ) : (
-                      'Resend Email'
-                    )}
+                    {resendingEmail ? 'Sending...' : 'Resend Email'}
                   </button>
-                  <Link href="/login" className="btn rounded-4" style={{
-                    background: 'rgba(60, 58, 58, 0.03)',
-                    border: '1px solid rgba(124, 124, 124, 0.39)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                    color: 'white',
-                    textDecoration: 'none'
-                  }}>
+                  <Link href="/login" className="btn btn-light">
                     Back to Login
                   </Link>
                 </div>
+                {emailSent && (
+                  <div className="alert alert-success mt-3 rounded-4" style={{
+                    background: 'rgba(25, 135, 84, 0.1)',
+                    border: '1px solid rgba(25, 135, 84, 0.3)',
+                    color: '#198754'
+                  }}>
+                    <small>✅ Verification email sent successfully!</small>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -242,12 +280,12 @@ const Register = () => {
   }
 
   return (
-    <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center py-5" style={{
+    <div className="container-fluid min-vh-100 d-flex align-items-center justify-content-center" style={{
       background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
       color: 'white'
     }}>
       <div className="row w-100 justify-content-center">
-        <div className="col-md-10 col-lg-8">
+        <div className="col-md-8 col-lg-6 col-xl-5">
           <div className="card border-0 rounded-4" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -255,308 +293,291 @@ const Register = () => {
             boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
           }}>
             <div className="card-body p-5">
+              {/* Header */}
               <div className="text-center mb-4">
-                <h2 className="fw-bold text-white">
-                  <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span>
+                <h2 className="fw-bold text-white mb-2">
+                  <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span> 
                   <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span>
                 </h2>
-                <p className="text-white-50">Create your account and start your trading journey</p>
+                <p className="text-white-50">Create your account to start trading</p>
+                {referralCode && (
+                  <div className="alert alert-success rounded-4" style={{
+                    background: 'rgba(25, 135, 84, 0.1)',
+                    border: '1px solid rgba(25, 135, 84, 0.3)',
+                    color: '#198754'
+                  }}>
+                    <small>
+                      <strong>🎉 Referral Bonus:</strong> You've been invited by {referrerName || 'a Trading Hub member'}! 
+                      Complete your profile and make your first deposit to earn your referrer a ₹200 bonus.
+                    </small>
+                  </div>
+                )}
               </div>
 
-              {error && (
-                <div className="alert alert-danger rounded-4" role="alert" style={{
-                  background: 'rgba(220, 53, 69, 0.1)',
-                  border: '1px solid rgba(220, 53, 69, 0.3)',
-                  color: '#ff6b6b'
-                }}>
-                  {error}
-                </div>
-              )}
-
+              {/* Registration Form */}
               <form onSubmit={handleSubmit}>
-                {/* Account Details */}
-                <div className="mb-4">
-                  <h5 className="text-white mb-3">Account Details</h5>
                 <div className="row">
+                  {/* Email and Password */}
                   <div className="col-md-6 mb-3">
-                      <label htmlFor="email" className="form-label text-white">Email address *</label>
-                  <input
-                    type="email"
-                        className="form-control rounded-4"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your email"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                  />
-                </div>
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="phone" className="form-label text-white">Phone Number *</label>
-                  <input
-                    type="tel"
-                        className="form-control rounded-4"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                        required
-                    placeholder="Enter your phone number"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                  />
-                </div>
+                    <label className="form-label text-white">Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your email"
+                      required
+                    />
                   </div>
-                <div className="row">
                   <div className="col-md-6 mb-3">
-                      <label htmlFor="password" className="form-label text-white">Password *</label>
+                    <label className="form-label text-white">Password</label>
                     <input
                       type="password"
-                        className="form-control rounded-4"
-                      id="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      required
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
                       placeholder="Create a password"
-                      minLength="6"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
+                      required
                     />
                   </div>
+                </div>
+
+                <div className="row">
                   <div className="col-md-6 mb-3">
-                      <label htmlFor="confirmPassword" className="form-label text-white">Confirm Password *</label>
+                    <label className="form-label text-white">Confirm Password</label>
                     <input
                       type="password"
-                        className="form-control rounded-4"
-                      id="confirmPassword"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      required
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
                       placeholder="Confirm your password"
-                      minLength="6"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your phone number"
+                      required
+                    />
                   </div>
                 </div>
 
-                {/* Personal Information */}
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">First Name</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your first name"
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your last name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">Gender</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="form-select rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      required
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">Date of Birth</label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">Country</label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your country"
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label text-white">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                      placeholder="Enter your city"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Terms and Conditions */}
                 <div className="mb-4">
-                  <h5 className="text-white mb-3">Personal Information</h5>
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="firstName" className="form-label text-white">First Name *</label>
-                      <input
-                        type="text"
-                        className="form-control rounded-4"
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your first name"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="lastName" className="form-label text-white">Last Name *</label>
-                      <input
-                        type="text"
-                        className="form-control rounded-4"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your last name"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="gender" className="form-label text-white">Gender *</label>
-                      <select
-                        className="form-select rounded-4"
-                        id="gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
-                        required
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="dateOfBirth" className="form-label text-white">Date of Birth *</label>
-                      <input
-                        type="date"
-                        className="form-control rounded-4"
-                        id="dateOfBirth"
-                        name="dateOfBirth"
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                        required
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="country" className="form-label text-white">Country *</label>
-                      <input
-                        type="text"
-                        className="form-control rounded-4"
-                        id="country"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your country"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="city" className="form-label text-white">City *</label>
-                      <input
-                        type="text"
-                        className="form-control rounded-4"
-                        id="city"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your city"
-                        style={{
-                          background: 'rgba(60, 58, 58, 0.03)',
-                          border: '1px solid rgba(124, 124, 124, 0.39)',
-                          backdropFilter: 'blur(20px)',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* KYC Notice */}
-                <div className="alert alert-info rounded-4 mb-4" style={{
-                  background: 'rgba(13, 202, 240, 0.1)',
-                  border: '1px solid rgba(13, 202, 240, 0.3)',
-                  color: '#6bd4ff'
-                }}>
-                  <div className="d-flex align-items-start">
-                    <i className="bi bi-info-circle me-2 mt-1"></i>
-                    <div>
-                      <strong>KYC Verification Required:</strong>
-                      <ul className="mb-0 mt-1">
-                        <li>Email verification via Firebase OTP</li>
-                        <li>PAN card upload and verification</li>
-                        <li>Profile photo upload</li>
-                      </ul>
-                      <small>Your account will be 75% complete after registration. Complete KYC to activate full features.</small>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3">
                   <div className="form-check">
                     <input
-                      className="form-check-input"
                       type="checkbox"
-                      id="agreeToTerms"
                       name="agreeToTerms"
                       checked={formData.agreeToTerms}
                       onChange={handleChange}
+                      className="form-check-input"
+                      id="agreeToTerms"
                       required
                     />
                     <label className="form-check-label text-white-50" htmlFor="agreeToTerms">
-                      I agree to the{' '}
-                      <Link href="/terms" className="text-decoration-none text-white">Terms & Conditions</Link>
-                      {' '}and{' '}
-                      <Link href="/privacy" className="text-decoration-none text-white">Privacy Policy</Link>
+                      I agree to the <Link href="/terms" className="text-primary">Terms and Conditions</Link> and{' '}
+                      <Link href="/privacy" className="text-primary">Privacy Policy</Link>
                     </label>
                   </div>
                 </div>
 
+                {/* Error Message */}
+                {error && (
+                  <div className="alert alert-danger rounded-4 mb-4" style={{
+                    background: 'rgba(220, 53, 69, 0.1)',
+                    border: '1px solid rgba(220, 53, 69, 0.3)',
+                    color: '#dc3545'
+                  }}>
+                    {error}
+                  </div>
+                )}
+
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="btn w-100 mb-3 rounded-4"
                   disabled={loading}
+                  className="btn btn-primary w-100 rounded-3 py-3 mb-3"
                   style={{
-                    background: 'rgba(60, 58, 58, 0.03)',
-                    border: '1px solid rgba(124, 124, 124, 0.39)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
-                    color: 'white'
+                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    border: 'none',
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
                   }}
                 >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      Creating Account...
-                    </>
-                  ) : (
-                    'Create Account'
-                  )}
+                  {loading ? 'Creating Account...' : 'Create Account'}
                 </button>
 
+                {/* Google Login */}
+                <div className="text-center mb-3">
+                  <div className="d-flex align-items-center justify-content-center mb-3">
+                    <hr className="flex-grow-1" style={{ borderColor: 'rgba(255,255,255,0.2)' }} />
+                    <span className="text-white-50 px-3">or</span>
+                    <hr className="flex-grow-1" style={{ borderColor: 'rgba(255,255,255,0.2)' }} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="btn btn-outline-light w-100 d-flex align-items-center justify-content-center"
+                    style={{
+                      borderRadius: '10px',
+                      padding: '12px 24px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      background: 'transparent'
+                    }}
+                  >
+                    <i className="bi bi-google me-2"></i>
+                    Continue with Google
+                  </button>
+                </div>
+
+                {/* Login Link */}
                 <div className="text-center">
-                  <p className="mb-0 text-white-50">
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-decoration-none text-white">
-                      Login here
-                    </Link>
-                  </p>
+                  <span className="text-white-50">Already have an account? </span>
+                  <Link href="/login" className="text-primary fw-bold">
+                    Login here
+                  </Link>
                 </div>
               </form>
             </div>

@@ -551,16 +551,16 @@ const dummyNews = [
 
 const dummyPlans = [
   {
-    name: 'Basic Plan',
+    name: 'BASIC',
     description: 'Perfect for beginners starting their trading journey',
-    price: 99,
+    price: 25,
     duration: 30,
     features: [
-      'Access to basic trading tools',
-      'Real-time market data',
-      'Email support',
-      'Mobile app access',
-      'Basic chart analysis'
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet'
     ],
     isActive: true,
     maxUsers: 1,
@@ -568,17 +568,16 @@ const dummyPlans = [
     priority: 1
   },
   {
-    name: 'Pro Plan',
-    description: 'Advanced features for serious traders',
-    price: 299,
+    name: 'STANDARD',
+    description: 'Great for intermediate traders',
+    price: 35,
     duration: 30,
     features: [
-      'All Basic features',
-      'Advanced charting tools',
-      'Priority customer support',
-      'Market alerts',
-      'Trading signals',
-      'Portfolio analytics'
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet'
     ],
     isActive: true,
     maxUsers: 1,
@@ -586,42 +585,21 @@ const dummyPlans = [
     priority: 2
   },
   {
-    name: 'Premium Plan',
-    description: 'Complete trading solution for professionals',
-    price: 599,
+    name: 'PREMIUM',
+    description: 'Advanced features for professionals',
+    price: 50,
     duration: 30,
     features: [
-      'All Pro features',
-      'AI-powered trading insights',
-      '24/7 phone support',
-      'Custom trading strategies',
-      'Advanced risk management',
-      'API access',
-      'Dedicated account manager'
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet',
+      'Lorem ipsum dolor sit amet'
     ],
     isActive: true,
     maxUsers: 1,
     maxTransactions: 500,
     priority: 3
-  },
-  {
-    name: 'Enterprise Plan',
-    description: 'Custom solutions for institutions and large teams',
-    price: 1999,
-    duration: 30,
-    features: [
-      'All Premium features',
-      'Multi-user access',
-      'Custom integrations',
-      'White-label solutions',
-      'Advanced reporting',
-      'Compliance tools',
-      'On-site training'
-    ],
-    isActive: true,
-    maxUsers: 10,
-    maxTransactions: 1000,
-    priority: 4
   }
 ];
 
@@ -650,8 +628,37 @@ async function seedData() {
     // Create profiles with user references
     console.log('Creating profiles...');
     const profilesWithUserIds = dummyProfiles.map((profile, index) => ({
-      ...profile,
-      userId: createdUsers[index]._id
+      userId: createdUsers[index]._id,
+      personalInfo: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        gender: profile.gender,
+        dateOfBirth: profile.dateOfBirth,
+        country: profile.country,
+        city: profile.city,
+        phone: profile.phone
+      },
+      status: {
+        isActive: profile.profileCompletion.isActive,
+        completionPercentage: profile.profileCompletion.percentage,
+        completedFields: profile.profileCompletion.completedFields
+      },
+      kyc: {
+        status: profile.profileCompletion.kycStatus === 'verified' ? 'approved' : 'not_applied',
+        panCardNumber: profile.panCardNumber,
+        panHolderName: profile.panHolderName
+      },
+      referral: {
+        code: profile.referralCode || `REF${Date.now()}${index}`,
+        referredBy: null
+      },
+      wallet: {
+        walletBalance: profile.wallet.balance,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        currency: 'INR'
+      }
     }));
     await Profile.insertMany(profilesWithUserIds);
 

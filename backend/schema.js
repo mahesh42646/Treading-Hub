@@ -151,17 +151,63 @@ const profileSchema = new mongoose.Schema({
     }]
   },
 
-  // Wallet (for future development)
+  // Wallet System
   wallet: {
-    balance: {
+    walletBalance: {
+      type: Number,
+      default: 0
+    },
+    referralBalance: {
+      type: Number,
+      default: 0
+    },
+    totalDeposits: {
+      type: Number,
+      default: 0
+    },
+    totalWithdrawals: {
       type: Number,
       default: 0
     },
     currency: {
       type: String,
-      default: 'USD'
+      default: 'INR'
     }
   },
+
+  // Transaction History
+  transactions: [{
+    type: {
+      type: String,
+      enum: ['deposit', 'withdrawal', 'referral_bonus', 'profit', 'fee'],
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed'],
+      default: 'pending'
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['razorpay', 'bank_transfer', 'upi', 'card'],
+      default: 'razorpay'
+    },
+    transactionId: {
+      type: String
+    },
+    date: {
+      type: Date,
+      default: Date.now
+    }
+  }],
 
   // Trading Stats (for future development)
   tradingStats: {

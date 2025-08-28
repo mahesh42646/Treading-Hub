@@ -236,7 +236,7 @@ const Register = () => {
                     color: '#198754'
                   }}>
                     <small>
-                      <strong>🎉 Referral Bonus:</strong> You've been referred by {referrerName || 'a Trading Hub member'}. 
+                      <strong>🎉 Referral Bonus:</strong> You&apos;ve been referred by {referrerName || 'a Trading Hub member'}. 
                       Complete your profile and make your first deposit to earn your referrer a ₹200 bonus!
                     </small>
                   </div>
@@ -307,7 +307,7 @@ const Register = () => {
                     color: '#198754'
                   }}>
                     <small>
-                      <strong>🎉 Referral Bonus:</strong> You've been invited by {referrerName || 'a Trading Hub member'}! 
+                      <strong>🎉 Referral Bonus:</strong> You&apos;ve been invited by {referrerName || 'a Trading Hub member'}! 
                       Complete your profile and make your first deposit to earn your referrer a ₹200 bonus.
                     </small>
                   </div>

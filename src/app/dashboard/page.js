@@ -85,8 +85,8 @@ const Dashboard = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="fw-bold mb-1">Welcome back!</h2>
-              <p className="text-muted mb-0">
-                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, here's what's happening with your account.
+                              <p className="text-muted mb-0">
+                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, here&apos;s what&apos;s happening with your account.
               </p>
             </div>
             <div className="text-end">

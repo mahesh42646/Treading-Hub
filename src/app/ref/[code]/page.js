@@ -107,7 +107,7 @@ export default function ReferralPage() {
         </div>
         <h4 className="text-success mb-3">Valid Referral Link!</h4>
         <p className="text-muted mb-2">
-          You've been invited by <strong>{referralData?.referrerName || 'a Trading Hub member'}</strong>
+          You&apos;ve been invited by <strong>{referralData?.referrerName || 'a Trading Hub member'}</strong>
         </p>
         <p className="text-muted mb-4">
           Redirecting you to registration page...

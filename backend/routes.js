@@ -9,11 +9,16 @@ const Plan = require('./models/Plan');
 
 const router = express.Router();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Initialize Razorpay (only if environment variables are available)
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn('Razorpay credentials not found. Payment features will be disabled.');
+}
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -1255,6 +1260,14 @@ router.get('/wallet/balance', async (req, res) => {
 // Create Razorpay order for deposit
 router.post('/wallet/razorpay-order', async (req, res) => {
   try {
+    // Check if Razorpay is initialized
+    if (!razorpay) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment service is currently unavailable. Please contact support.'
+      });
+    }
+
     const { amount, currency = 'INR' } = req.body;
     
     // Get user from session/token (implement your auth middleware)
@@ -1303,6 +1316,14 @@ router.post('/wallet/razorpay-order', async (req, res) => {
 // Verify Razorpay payment and credit wallet
 router.post('/wallet/razorpay-verify', async (req, res) => {
   try {
+    // Check if Razorpay is initialized
+    if (!razorpay) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment service is currently unavailable. Please contact support.'
+      });
+    }
+
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
     
     // Get user from session/token (implement your auth middleware)

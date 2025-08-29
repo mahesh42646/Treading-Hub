@@ -15,7 +15,7 @@ export const getUserDisplayInfo = (user, profile) => {
   // Get the correct upload URL based on environment
   const uploadBaseUrl = process.env.NEXT_PUBLIC_API_URL 
     ? `${process.env.NEXT_PUBLIC_API_URL}/uploads` 
-    : 'http://localhost:9988/uploads';
+    : 'https://0fare.com/uploads';  
 
   // Check if user has completed profile setup
   if (profile?.personalInfo?.firstName && profile?.personalInfo?.lastName) {
@@ -81,7 +81,7 @@ export const getUserAvatar = (user, profile, size = 50) => {
   // Get the correct upload URL based on environment
   const uploadBaseUrl = process.env.NEXT_PUBLIC_API_URL 
     ? `${process.env.NEXT_PUBLIC_API_URL}/uploads` 
-    : 'http://localhost:9988/uploads';
+    : 'https://0fare.com/uploads';  
   
   // 1. Check for KYC profile photo first
   if (profile?.kyc?.profilePhoto) {

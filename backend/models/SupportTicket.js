@@ -7,8 +7,7 @@ const supportTicketSchema = new mongoose.Schema({
     unique: true
   },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Firebase UID
     required: true
   },
   userEmail: {
@@ -87,9 +86,14 @@ const supportTicketSchema = new mongoose.Schema({
 
 // Generate ticket ID before saving
 supportTicketSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    const count = await this.constructor.countDocuments();
-    this.ticketId = `TKT${String(count + 1).padStart(6, '0')}`;
+  if (this.isNew && !this.ticketId) {
+    try {
+      const count = await this.constructor.countDocuments();
+      this.ticketId = `TKT${String(count + 1).padStart(6, '0')}`;
+    } catch (error) {
+      // Fallback to timestamp-based ID if count fails
+      this.ticketId = `TKT${Date.now()}`;
+    }
   }
   next();
 });

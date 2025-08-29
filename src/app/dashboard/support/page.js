@@ -29,7 +29,7 @@ const SupportPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch(buildApiUrl('/support/ticket'), {
+      const response = await fetch(buildApiUrl('/users/support/ticket'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -68,7 +68,7 @@ const SupportPage = () => {
   // Fetch user's tickets
   const fetchTickets = async () => {
     try {
-      const response = await fetch(buildApiUrl(`/support/tickets/${user.uid}`));
+      const response = await fetch(buildApiUrl(`/users/support/tickets/${user.uid}`));
       if (response.ok) {
         const result = await response.json();
         setTickets(result.tickets || []);

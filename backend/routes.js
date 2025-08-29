@@ -1658,18 +1658,9 @@ router.post('/support/ticket', async (req, res) => {
       });
     }
 
-    // Find user to verify
-    const user = await User.findOne({ uid: userId });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Create support ticket
+    // Create support ticket with Firebase UID
     const ticket = new SupportTicket({
-      userId: user._id,
+      userId: userId, // Use Firebase UID directly
       userEmail,
       subject,
       message,
@@ -1710,17 +1701,8 @@ router.get('/support/tickets/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find user to verify
-    const user = await User.findOne({ uid: userId });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Get user's tickets
-    const tickets = await SupportTicket.find({ userId: user._id })
+    // Get user's tickets using Firebase UID
+    const tickets = await SupportTicket.find({ userId: userId })
       .sort({ createdAt: -1 })
       .select('ticketId subject category status createdAt lastActivity');
 

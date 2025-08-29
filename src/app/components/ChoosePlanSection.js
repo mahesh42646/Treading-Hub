@@ -60,57 +60,9 @@ const ChoosePlanSection = () => {
           <h2 className="display-5 fw-bold mb-3 text-white">Choose the Best Plan</h2>
         </div>
 
-        {/* Plan Tabs - Dark Glossy Theme */}
-        <div className="d-flex justify-content-center mb-4">
-          <div className="btn-group" role="group">
-            {['Evaluation', 'Express', 'Stellar', 'One-Step'].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                className={`btn rounded-4 ${selectedTab === tab ? 'active' : ''}`}
-                style={{
-                  background: selectedTab === tab 
-                    ? 'rgba(139, 92, 246, 0.2)' 
-                    : 'rgba(60, 58, 58, 0.03)',
-                  border: '3px solid rgba(67, 34, 124, 0.74)',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '5px 4px 20px 1px rgba(70, 74, 103, 0.44)',
-                  color: 'white',
-                  transition: 'all 0.3s ease'
-                }}
-                onClick={() => setSelectedTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
+      
 
-        {/* Duration Toggle - Dark Glossy Theme */}
-        <div className="d-flex justify-content-center mb-4">
-          <div className="btn-group" role="group">
-            {['Monthly', 'Lifetime'].map((duration) => (
-              <button
-                key={duration}
-                type="button"
-                className={`btn rounded-4 ${selectedDuration === duration ? 'active' : ''}`}
-                style={{
-                  background: selectedDuration === duration 
-                    ? 'rgba(139, 92, 246, 0.2)' 
-                    : 'rgba(60, 58, 58, 0.03)',
-                  border: '3px solid rgba(67, 34, 124, 0.74)',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '5px 4px 20px 1px rgba(70, 74, 103, 0.44)',
-                  color: 'white',
-                  transition: 'all 0.3s ease'
-                }}
-                onClick={() => setSelectedDuration(duration)}
-              >
-                {duration}
-              </button>
-            ))}
-          </div>
-        </div>
+     
 
         {/* Plans Grid - Dark Glossy Theme */}
         <div className="row g-4 justify-content-center">
@@ -170,8 +122,8 @@ const ChoosePlanSection = () => {
                       {plan.name}
                     </h3>
                     <div className="text-center">
-                      <span className="display-6 fw-bold text-white">₹{plan.price}</span>
-                      <span className="text-white ms-2">PER MONTH</span>
+                      <span className="display-6 fw-bold text-white">${plan.price}</span>
+                      <span className="text-white ms-2">PER {plan.duration} DAYS</span>
                     </div>
                   </div>
 
@@ -186,7 +138,7 @@ const ChoosePlanSection = () => {
                       {plan.features && plan.features.map((feature, featureIndex) => (
                         <div key={featureIndex} className="d-flex align-items-center mb-2">
                           <div className="me-3">
-                            {featureIndex < 3 ? (
+                            {featureIndex < 20 ? (
                               <FaCheck className="text-success" size={16} />
                             ) : (
                               <FaTimes className="text-danger" size={16} />

@@ -6,6 +6,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { User, Profile } = require('./schema');
 const Plan = require('./models/Plan');
+const SupportTicket = require('./models/SupportTicket');
 
 const router = express.Router();
 
@@ -1637,6 +1638,227 @@ router.delete('/admin/plans/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete plan',
+      error: error.message
+    });
+  }
+});
+
+// ===== SUPPORT TICKET ROUTES =====
+
+// Create support ticket
+router.post('/support/ticket', async (req, res) => {
+  try {
+    const { subject, message, category, userId, userEmail } = req.body;
+
+    // Validate required fields
+    if (!subject || !message || !userId || !userEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject, message, userId, and userEmail are required'
+      });
+    }
+
+    // Find user to verify
+    const user = await User.findOne({ uid: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Create support ticket
+    const ticket = new SupportTicket({
+      userId: user._id,
+      userEmail,
+      subject,
+      message,
+      category: category || 'general',
+      responses: [{
+        from: 'user',
+        message: message,
+        timestamp: new Date()
+      }]
+    });
+
+    await ticket.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Support ticket created successfully',
+      ticket: {
+        id: ticket._id,
+        ticketId: ticket.ticketId,
+        subject: ticket.subject,
+        category: ticket.category,
+        status: ticket.status,
+        createdAt: ticket.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creating support ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create support ticket',
+      error: error.message
+    });
+  }
+});
+
+// Get user's support tickets
+router.get('/support/tickets/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find user to verify
+    const user = await User.findOne({ uid: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get user's tickets
+    const tickets = await SupportTicket.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .select('ticketId subject category status createdAt lastActivity');
+
+    res.json({
+      success: true,
+      tickets: tickets
+    });
+  } catch (error) {
+    console.error('Error fetching support tickets:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch support tickets',
+      error: error.message
+    });
+  }
+});
+
+// Get specific ticket details
+router.get('/support/ticket/:ticketId', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+
+    const ticket = await SupportTicket.findOne({ ticketId })
+      .populate('userId', 'uid email');
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error fetching ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ticket',
+      error: error.message
+    });
+  }
+});
+
+// Add response to ticket
+router.post('/support/ticket/:ticketId/response', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { message, from } = req.body;
+
+    if (!message || !from) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message and from field are required'
+      });
+    }
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    // Add response
+    ticket.responses.push({
+      from,
+      message,
+      timestamp: new Date()
+    });
+
+    // Update status if admin responds
+    if (from === 'admin') {
+      ticket.status = 'in_progress';
+    }
+
+    await ticket.save();
+
+    res.json({
+      success: true,
+      message: 'Response added successfully',
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error adding response:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add response',
+      error: error.message
+    });
+  }
+});
+
+// Update ticket status
+router.put('/support/ticket/:ticketId/status', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    ticket.status = status;
+    
+    if (status === 'resolved') {
+      ticket.isResolved = true;
+      ticket.resolvedAt = new Date();
+    } else if (status === 'closed') {
+      ticket.closedAt = new Date();
+    }
+
+    await ticket.save();
+
+    res.json({
+      success: true,
+      message: 'Ticket status updated successfully',
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error updating ticket status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update ticket status',
       error: error.message
     });
   }

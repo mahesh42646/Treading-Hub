@@ -3,12 +3,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { getUserDisplayInfo, getUserAvatar } from '../../utils/userDisplay';
 
 const DashboardHeader = () => {
   const { user, profile, logout } = useAuth();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  const displayInfo = getUserDisplayInfo(user, profile);
 
   const handleLogout = async () => {
     try {
@@ -19,25 +22,7 @@ const DashboardHeader = () => {
     }
   };
 
-  const getUserName = () => {
-    if (profile?.personalInfo?.firstName) {
-      return `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`;
-    }
-    if (profile?.firstName) {
-      return `${profile.firstName} ${profile.lastName}`;
-    }
-    return user?.email || 'User';
-  };
 
-  const getUserInitials = () => {
-    if (profile?.personalInfo?.firstName) {
-      return `${profile.personalInfo.firstName[0]}${profile.personalInfo.lastName[0]}`.toUpperCase();
-    }
-    if (profile?.firstName) {
-      return `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase();
-    }
-    return user?.email?.[0]?.toUpperCase() || 'U';
-  };
 
   return (
     <header className="bg-white shadow-sm border-bottom position-sticky top-0" style={{ zIndex: 1030 }}>
@@ -72,11 +57,10 @@ const DashboardHeader = () => {
                     className="btn btn-link text-dark d-flex align-items-center gap-2"
                     onClick={() => setShowUserMenu(!showUserMenu)}
                   >
-                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
-                         style={{ width: '40px', height: '40px' }}>
-                      <span className="text-white fw-bold small">{getUserInitials()}</span>
+                    <div style={{ width: '40px', height: '40px' }}>
+                      {getUserAvatar(user, profile, 40)}
                     </div>
-                    <span className="d-none d-md-block">{getUserName()}</span>
+                    <span className="d-none d-md-block">{displayInfo.name}</span>
                     <i className="bi bi-chevron-down d-none d-md-block"></i>
                   </button>
                   
@@ -84,32 +68,77 @@ const DashboardHeader = () => {
                       style={{ minWidth: '200px' }}>
                     <li>
                       <div className="dropdown-item-text">
-                        <div className="fw-bold">{getUserName()}</div>
-                        <small className="text-muted">{user?.email}</small>
+                        <div className="fw-bold">{displayInfo.name}</div>
+                        <small className="text-muted">{displayInfo.email}</small>
+                        <small className="text-muted d-block">
+                          {displayInfo.displayType === 'google' ? 'Google Account' : 
+                           displayInfo.displayType === 'profile' ? 'Verified Profile' : 
+                           'Email Account'}
+                        </small>
                       </div>
                     </li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button className="dropdown-item" onClick={() => router.push('/dashboard/profile')}>
+                      <button className="dropdown-item d-flex align-items-center" 
+                              onClick={() => router.push('/dashboard/profile')}
+                              style={{ transition: 'all 0.3s ease' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#f8f9fa';
+                                e.target.style.color = '#000';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#000';
+                              }}>
                         <i className="bi bi-person me-2"></i>
                         Profile
                       </button>
                     </li>
                     <li>
-                      <button className="dropdown-item" onClick={() => router.push('/dashboard/wallet')}>
+                      <button className="dropdown-item d-flex align-items-center" 
+                              onClick={() => router.push('/dashboard/wallet')}
+                              style={{ transition: 'all 0.3s ease' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#f8f9fa';
+                                e.target.style.color = '#000';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#000';
+                              }}>
                         <i className="bi bi-wallet2 me-2"></i>
                         Wallet
                       </button>
                     </li>
                     <li>
-                      <button className="dropdown-item" onClick={() => router.push('/dashboard/referral')}>
+                      <button className="dropdown-item d-flex align-items-center" 
+                              onClick={() => router.push('/dashboard/referral')}
+                              style={{ transition: 'all 0.3s ease' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#f8f9fa';
+                                e.target.style.color = '#000';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#000';
+                              }}>
                         <i className="bi bi-share me-2"></i>
                         Referrals
                       </button>
                     </li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button className="dropdown-item text-danger" onClick={handleLogout}>
+                      <button className="dropdown-item text-danger d-flex align-items-center" 
+                              onClick={handleLogout}
+                              style={{ transition: 'all 0.3s ease' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#f8f9fa';
+                                e.target.style.color = '#dc3545';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#dc3545';
+                              }}>
                         <i className="bi bi-box-arrow-right me-2"></i>
                         Logout
                       </button>

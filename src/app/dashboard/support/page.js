@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildApiUrl } from '../../../utils/config';
 
@@ -29,11 +29,10 @@ const SupportPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch(buildApiUrl('/support/ticket'), {
+      const response = await fetch(buildApiUrl('/users/support/ticket'), {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user.getIdToken()}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           subject: formData.subject,
@@ -45,22 +44,46 @@ const SupportPage = () => {
       });
 
       if (response.ok) {
+        const result = await response.json();
         setMessage('Support ticket submitted successfully! We will get back to you soon.');
         setFormData({
           subject: '',
           message: '',
           category: 'general'
         });
+        // Refresh tickets list
+        fetchTickets();
       } else {
         const error = await response.json();
         setMessage(error.message || 'Failed to submit ticket');
       }
     } catch (error) {
+      console.error('Error submitting ticket:', error);
       setMessage('Error submitting ticket');
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch user's tickets
+  const fetchTickets = async () => {
+    try {
+      const response = await fetch(buildApiUrl(`/users/support/tickets/${user.uid}`));
+      if (response.ok) {
+        const result = await response.json();
+        setTickets(result.tickets || []);
+      }
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    }
+  };
+
+  // Fetch tickets on component mount
+  useEffect(() => {
+    if (user?.uid) {
+      fetchTickets();
+    }
+  }, [user]);
 
   const getStatusBadge = (status) => {
     const statusMap = {
@@ -86,9 +109,9 @@ const SupportPage = () => {
   };
 
   return (
-    <div className="support-container">
-      {/* Page Header */}
-      <div className="page-header mb-4">
+    <div className="container py-4 px-lg-4">
+   
+        <div className="col-12">
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h1 className="page-title mb-1">Support Center</h1>
@@ -287,9 +310,9 @@ const SupportPage = () => {
                     </thead>
                     <tbody>
                       {tickets.map((ticket) => (
-                        <tr key={ticket.id}>
+                        <tr key={ticket._id}>
                           <td>
-                            <span className="badge bg-light text-dark">#{ticket.id}</span>
+                            <span className="badge bg-light text-dark">#{ticket.ticketId}</span>
                           </td>
                           <td>{ticket.subject}</td>
                           <td>

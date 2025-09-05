@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9988',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://0fare.com/api',
   ENDPOINTS: {
     // User endpoints
     USERS: '/users',

@@ -2,10 +2,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUserDisplayInfo, getUserAvatar } from '../../utils/userDisplay';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
+  
+  const displayInfo = getUserDisplayInfo(user, profile);
 
   const handleLogout = async () => {
     try {
@@ -16,6 +19,8 @@ export default function Header() {
   };
 
   return (
+    <>
+
     <header className="navbar navbar-expand-lg fixed-top" style={{
       background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
       backdropFilter: 'blur(20px)',
@@ -76,30 +81,164 @@ export default function Header() {
             {user ? (
               <>
                 <div className="dropdown">
-                  <button className="btn btn-outline-light dropdown-toggle rounded-3" type="button" data-bs-toggle="dropdown" style={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                  <button className="btn rounded-3 d-flex align-items-center" type="button" data-bs-toggle="dropdown" style={{
+                  
                     fontSize: '1.1rem',
                     color: 'white',
                     backdropFilter: 'blur(20px)', 
-                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
                     fontWeight: '500'
                   }}>
-                    <i className="bi bi-person-circle me-2"></i>
-                    Profile
+                    <div className="me-2" style={{ width: '38px', height: '38px' }}>
+                      {getUserAvatar(user, profile, 38, 38)}
+                    </div>
+                    <span className="d-none d-md-inline">{displayInfo.name}</span>
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end" style={{
-                    background: 'rgba(60, 58, 58, 0.95)',
+                  <ul className="dropdown-menu dropdown-menu-end w-100" style={{
+                    background: 'rgba(28, 28, 28, 0.66)',
                     border: '1px solid rgba(124, 124, 124, 0.39)',
                     backdropFilter: 'blur(20px)',
-                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
+                    borderRadius: '10px'
                   }}>
-                    <li><Link href="/dashboard" className="dropdown-item text-white">Dashboard</Link></li>
-                    <li><Link href="/profile" className="dropdown-item text-white">Profile</Link></li>
-                    <li><Link href="/wallet" className="dropdown-item text-white">Wallet</Link></li>
-                    <li><Link href="/referral" className="dropdown-item text-white">Referral</Link></li>
-                    <li><hr className="dropdown-divider" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} /></li>
-                    <li><button onClick={handleLogout} className="dropdown-item text-white">Logout</button></li>
+                    <li>
+                      <Link href="/dashboard" 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              padding: '8px 16px', 
+                              color: 'white', 
+                              textDecoration: 'none',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.color = 'black';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'black';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'white';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'white';
+                            }}>
+                        <i className="bi bi-speedometer2" style={{ marginRight: '8px', color: 'white' }}></i>
+                        Dashboard
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/profile" 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              padding: '8px 16px', 
+                              color: 'white', 
+                              textDecoration: 'none',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.color = 'black';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'black';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'white';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'white';
+                            }}>
+                        <i className="bi bi-person" style={{ marginRight: '8px', color: 'white' }}></i>
+                        Profile
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/wallet" 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              padding: '8px 16px', 
+                              color: 'white', 
+                              textDecoration: 'none',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.color = 'black';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'black';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'white';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'white';
+                            }}>
+                        <i className="bi bi-wallet2" style={{ marginRight: '8px', color: 'white' }}></i>
+                        Wallet
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/referral" 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              padding: '8px 16px', 
+                              color: 'white', 
+                              textDecoration: 'none',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.color = 'black';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'black';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'white';
+                              const icon = e.currentTarget.querySelector('i');
+                              if (icon) icon.style.color = 'white';
+                            }}>
+                        <i className="bi bi-share" style={{ marginRight: '8px', color: 'white' }}></i>
+                        Referral
+                      </Link>
+                    </li>
+                    <li><hr style={{ borderColor: 'rgba(124, 124, 124, 0.39)', margin: '8px 0' }} /></li>
+                    <li>
+                      <button onClick={handleLogout} 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                padding: '8px 16px', 
+                                color: 'white', 
+                                background: 'transparent',
+                                border: 'none',
+                                width: '100%',
+                                textAlign: 'left',
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'white';
+                                e.currentTarget.style.color = 'black';
+                                const icon = e.currentTarget.querySelector('i');
+                                if (icon) icon.style.color = 'black';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'white';
+                                const icon = e.currentTarget.querySelector('i');
+                                if (icon) icon.style.color = 'white';
+                              }}>
+                        <i className="bi bi-box-arrow-right" style={{ marginRight: '8px', color: 'white' }}></i>
+                        Logout
+                      </button>
+                    </li>
                   </ul>
                 </div>
               </>
@@ -133,5 +272,6 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 } 

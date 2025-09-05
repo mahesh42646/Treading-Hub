@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Hub - Pages & Links Sheet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .page-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .type-public {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .type-dashboard {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .type-admin {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .type-auth {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .link {
+            color: #007bff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .link:hover {
+            text-decoration: underline;
+        }
+        
+        .live-link {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stats {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+            
+            .stats {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Flow Diagram Styles */
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .flow-step {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 200px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+            border-color: #007bff;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .step-content h4 {
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .step-content p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .step-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .link-tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #007bff;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+
+        /* Clean Flow Diagram Styles */
+        .main-flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .flow-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .flow-box {
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .flow-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .box-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .box-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .box-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Entry Boxes */
+        .entry-box {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4, #ffffff);
+        }
+
+        .entry-box:hover {
+            border-color: #059669;
+        }
+
+        /* Auth Boxes */
+        .auth-box {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+        }
+
+        .auth-box:hover {
+            border-color: #2563eb;
+        }
+
+        .google-box {
+            border-color: #4285f4;
+            background: linear-gradient(135deg, #e8f0fe, #ffffff);
+            transform: scale(1.05);
+        }
+
+        .google-box:hover {
+            border-color: #1a73e8;
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .recommended-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Profile Box */
+        .profile-box {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb, #ffffff);
+        }
+
+        .profile-box:hover {
+            border-color: #d97706;
+        }
+
+        /* Dashboard Box */
+        .dashboard-box {
+            border-color: #8b5cf6;
+            background: linear-gradient(135deg, #faf5ff, #ffffff);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .dashboard-box:hover {
+            border-color: #7c3aed;
+        }
+
+        /* Option Boxes */
+        .option-box {
+            border-color: #6b7280;
+            background: linear-gradient(135deg, #f9fafb, #ffffff);
+            min-width: 120px;
+        }
+
+        .option-box:hover {
+            border-color: #374151;
+        }
+
+        /* Exit Box */
+        .exit-box {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2, #ffffff);
+        }
+
+        .exit-box:hover {
+            border-color: #dc2626;
+        }
+
+        /* Home Return Box */
+        .home-box {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4, #ffffff);
+        }
+
+        .home-box:hover {
+            border-color: #059669;
+        }
+
+        /* Arrows */
+        .flow-arrows {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 10px 0;
+        }
+
+        .arrow-down {
+            font-size: 24px;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .arrow-up {
+            font-size: 24px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .google-arrow {
+            color: #4285f4;
+        }
+
+        /* Dashboard Options */
+        .dashboard-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+
+        /* Return Arrows */
+        .return-arrows {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .return-arrow {
+            font-size: 18px;
+            color: #6b7280;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .flow-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .dashboard-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .flow-arrows {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .return-arrows {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Admin Flow Diagram Styles */
+        .admin-flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Admin Entry Box */
+        .admin-entry-box {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #fef2f2, #ffffff);
+        }
+
+        .admin-entry-box:hover {
+            border-color: #b91c1c;
+        }
+
+        /* Admin Dashboard Box */
+        .admin-dashboard-box {
+            border-color: #6f42c1;
+            background: linear-gradient(135deg, #f3e8ff, #ffffff);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .admin-dashboard-box:hover {
+            border-color: #5b21b6;
+        }
+
+        /* Admin Management Options */
+        .admin-management-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-width: 900px;
+            margin: 20px 0;
+        }
+
+        .admin-option-box {
+            border-color: #495057;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            min-width: 100px;
+        }
+
+        .admin-option-box:hover {
+            border-color: #212529;
+        }
+
+        /* Admin Return Arrows */
+        .admin-return-arrows {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .admin-return {
+            color: #6c757d;
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        /* Admin Actions */
+        .admin-actions {
+            margin: 20px 0;
+        }
+
+        .admin-action-row {
+            gap: 20px;
+        }
+
+        .admin-action-box {
+            border-color: #fd7e14;
+            background: linear-gradient(135deg, #fff4e6, #ffffff);
+            min-width: 120px;
+        }
+
+        .admin-action-box:hover {
+            border-color: #e8590c;
+        }
+
+        /* Admin Exit Box */
+        .admin-exit-box {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #fef2f2, #ffffff);
+        }
+
+        .admin-exit-box:hover {
+            border-color: #b91c1c;
+        }
+
+        /* Admin Arrow */
+        .admin-arrow {
+            color: #6f42c1;
+        }
+
+        /* Responsive Admin */
+        @media (max-width: 768px) {
+            .admin-management-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .admin-return-arrows {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .admin-action-row {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Responsive adjustments for flow sections */
+        @media (max-width: 768px) {
+            .flow-steps {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+            
+            .flow-item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Trading Hub - Pages & Links Sheet</h1>
+            <p>Complete inventory of all pages and links with live server URLs</p>
+        </div>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search pages, links, or descriptions...">
+            <button class="btn btn-primary" onclick="downloadCSV()">📥 Download CSV</button>
+            <button class="btn btn-success" onclick="downloadExcel()">📊 Download Excel</button>
+            <button class="btn btn-warning" onclick="exportWithRemarks()">📝 Export with Remarks</button>
+            <button class="btn btn-info" onclick="downloadUserFlowPDF()">📄 User Flow PDF</button>
+            <button class="btn btn-danger" onclick="downloadAdminFlowPDF()">📄 Admin Flow PDF</button>
+        </div>
+        
+        <div class="table-container">
+            <table id="pagesTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Page Name</th>
+                        <th>Page Type</th>
+                        <th>Route Path</th>
+                        <th>Live URL</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                        <th>Problems</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalPages">0</div>
+                <div class="stat-label">Total Pages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="publicPages">0</div>
+                <div class="stat-label">Public Pages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="dashboardPages">0</div>
+                <div class="stat-label">Dashboard Pages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="adminPages">0</div>
+                <div class="stat-label">Admin Pages</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flow Diagram Section -->
+    <div class="container" style="margin-top: 30px;">
+        <div class="header">
+            <h1>🔄 User Flow Diagram</h1>
+            <p>Complete user journey with clear visual connections</p>
+        </div>
+        
+        <div class="flow-container" style="padding: 30px; background: white;">
+            <!-- Google Login Promotion -->
+            <div class="google-login-promo" style="background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335); color: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.5rem;">🚀 Quick Start with Google</h3>
+                <p style="margin: 0 0 15px 0; opacity: 0.9;">Skip registration - Login directly with your Google account for instant access!</p>
+                <div class="google-benefits" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">⚡ Instant Access</span>
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">🔒 Secure Login</span>
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">📱 No Password</span>
+                </div>
+            </div>
+
+            <!-- Main Flow Diagram -->
+            <div class="main-flow-diagram">
+                <!-- Entry Points -->
+                <div class="flow-row entry-row">
+                    <div class="flow-box entry-box">
+                        <div class="box-icon">🏠</div>
+                        <div class="box-title">Home Page</div>
+                        <div class="box-desc">Landing page</div>
+                    </div>
+                    <div class="flow-box entry-box">
+                        <div class="box-icon">🔗</div>
+                        <div class="box-title">Direct Links</div>
+                        <div class="box-desc">Social, ads, referrals</div>
+                    </div>
+                </div>
+
+                <!-- Connection Arrows -->
+                <div class="flow-arrows">
+                    <div class="arrow-down">↓</div>
+                    <div class="arrow-down">↓</div>
+                </div>
+
+                <!-- Authentication Options -->
+                <div class="flow-row auth-row">
+                    <div class="flow-box auth-box google-box">
+                        <div class="box-icon">🔵</div>
+                        <div class="box-title">Google Login</div>
+                        <div class="box-desc">One-click access</div>
+                        <div class="recommended-badge">⭐ RECOMMENDED</div>
+                    </div>
+                    <div class="flow-box auth-box">
+                        <div class="box-icon">📧</div>
+                        <div class="box-title">Email Registration</div>
+                        <div class="box-desc">Traditional signup</div>
+                    </div>
+                    <div class="flow-box auth-box">
+                        <div class="box-icon">🔑</div>
+                        <div class="box-title">Email Login</div>
+                        <div class="box-desc">Existing users</div>
+                    </div>
+                </div>
+
+                <!-- Connection Arrows -->
+                <div class="flow-arrows">
+                    <div class="arrow-down google-arrow">↓</div>
+                    <div class="arrow-down">↓</div>
+                    <div class="arrow-down">↓</div>
+                </div>
+
+                <!-- Profile Setup -->
+                <div class="flow-row profile-row">
+                    <div class="flow-box profile-box">
+                        <div class="box-icon">📝</div>
+                        <div class="box-title">Profile Setup</div>
+                        <div class="box-desc">Complete profile & KYC</div>
+                    </div>
+                </div>
+
+                <!-- Connection Arrow -->
+                <div class="flow-arrows">
+                    <div class="arrow-down">↓</div>
+                </div>
+
+                <!-- Dashboard -->
+                <div class="flow-row dashboard-row">
+                    <div class="flow-box dashboard-box">
+                        <div class="box-icon">🏠</div>
+                        <div class="box-title">Dashboard</div>
+                        <div class="box-desc">Main hub</div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Options -->
+                <div class="dashboard-options">
+                    <div class="flow-box option-box">
+                        <div class="box-icon">👤</div>
+                        <div class="box-title">Profile</div>
+                        <div class="box-desc">Settings</div>
+                    </div>
+                    <div class="flow-box option-box">
+                        <div class="box-icon">💰</div>
+                        <div class="box-title">Wallet</div>
+                        <div class="box-desc">Funds</div>
+                    </div>
+                    <div class="flow-box option-box">
+                        <div class="box-icon">📈</div>
+                        <div class="box-title">Trading</div>
+                        <div class="box-desc">Account</div>
+                    </div>
+                    <div class="flow-box option-box">
+                        <div class="box-icon">🔗</div>
+                        <div class="box-title">Referral</div>
+                        <div class="box-desc">Program</div>
+                    </div>
+                    <div class="flow-box option-box">
+                        <div class="box-icon">🆘</div>
+                        <div class="box-title">Support</div>
+                        <div class="box-desc">Help</div>
+                    </div>
+                </div>
+
+                <!-- Return Arrows -->
+                <div class="return-arrows">
+                    <div class="return-arrow">↩</div>
+                    <div class="return-arrow">↩</div>
+                    <div class="return-arrow">↩</div>
+                    <div class="return-arrow">↩</div>
+                    <div class="return-arrow">↩</div>
+                </div>
+
+                <!-- Exit Flow -->
+                <div class="flow-row exit-row">
+                    <div class="flow-box exit-box">
+                        <div class="box-icon">🚪</div>
+                        <div class="box-title">Logout</div>
+                        <div class="box-desc">Exit platform</div>
+                    </div>
+                </div>
+
+                <!-- Return to Home -->
+                <div class="flow-arrows">
+                    <div class="arrow-up">↑</div>
+                </div>
+
+                <div class="flow-row home-return">
+                    <div class="flow-box home-box">
+                        <div class="box-icon">🏠</div>
+                        <div class="box-title">Back to Home</div>
+                        <div class="box-desc">Start over</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Flow Diagram Section -->
+    <div class="container" style="margin-top: 30px;">
+        <div class="header">
+            <h1>⚙️ Admin Flow Diagram</h1>
+            <p>Complete admin panel workflow and management processes</p>
+        </div>
+        
+        <div class="flow-container" style="padding: 30px; background: white;">
+            <!-- Admin Access Promotion -->
+            <div class="admin-access-promo" style="background: linear-gradient(135deg, #dc3545, #6f42c1); color: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.5rem;">🔐 Secure Admin Access</h3>
+                <p style="margin: 0 0 15px 0; opacity: 0.9;">Protected admin panel with role-based access control and comprehensive management tools</p>
+                <div class="admin-benefits" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">🔒 Secure Login</span>
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">👥 User Management</span>
+                    <span style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; font-size: 14px;">📊 Analytics</span>
+                </div>
+            </div>
+
+            <!-- Admin Flow Diagram -->
+            <div class="admin-flow-diagram">
+                <!-- Admin Entry -->
+                <div class="flow-row admin-entry-row">
+                    <div class="flow-box admin-entry-box">
+                        <div class="box-icon">🔐</div>
+                        <div class="box-title">Admin Login</div>
+                        <div class="box-desc">Secure authentication</div>
+                    </div>
+                </div>
+
+                <!-- Connection Arrow -->
+                <div class="flow-arrows">
+                    <div class="arrow-down admin-arrow">↓</div>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div class="flow-row admin-dashboard-row">
+                    <div class="flow-box admin-dashboard-box">
+                        <div class="box-icon">⚙️</div>
+                        <div class="box-title">Admin Dashboard</div>
+                        <div class="box-desc">Control center</div>
+                    </div>
+                </div>
+
+                <!-- Admin Management Options -->
+                <div class="admin-management-options">
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">👥</div>
+                        <div class="box-title">Users</div>
+                        <div class="box-desc">Manage users</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">📋</div>
+                        <div class="box-title">Plans</div>
+                        <div class="box-desc">Trading plans</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">❓</div>
+                        <div class="box-title">FAQs</div>
+                        <div class="box-desc">Manage FAQs</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">👨‍💼</div>
+                        <div class="box-title">Team</div>
+                        <div class="box-desc">Team members</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">📧</div>
+                        <div class="box-title">Contacts</div>
+                        <div class="box-desc">Inquiries</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">🔗</div>
+                        <div class="box-title">Referrals</div>
+                        <div class="box-desc">Referral program</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">💳</div>
+                        <div class="box-title">Transactions</div>
+                        <div class="box-desc">Payment history</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">📝</div>
+                        <div class="box-title">Blogs</div>
+                        <div class="box-desc">Content management</div>
+                    </div>
+                    <div class="flow-box admin-option-box">
+                        <div class="box-icon">📰</div>
+                        <div class="box-title">News</div>
+                        <div class="box-desc">News articles</div>
+                    </div>
+                </div>
+
+                <!-- Return Arrows -->
+                <div class="admin-return-arrows">
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                    <div class="return-arrow admin-return">↩</div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="admin-actions">
+                    <div class="flow-row admin-action-row">
+                        <div class="flow-box admin-action-box">
+                            <div class="box-icon">➕</div>
+                            <div class="box-title">Create</div>
+                            <div class="box-desc">Add new items</div>
+                        </div>
+                        <div class="flow-box admin-action-box">
+                            <div class="box-icon">✏️</div>
+                            <div class="box-title">Edit</div>
+                            <div class="box-desc">Modify existing</div>
+                        </div>
+                        <div class="flow-box admin-action-box">
+                            <div class="box-icon">🗑️</div>
+                            <div class="box-title">Delete</div>
+                            <div class="box-desc">Remove items</div>
+                        </div>
+                        <div class="flow-box admin-action-box">
+                            <div class="box-icon">📊</div>
+                            <div class="box-title">Analytics</div>
+                            <div class="box-desc">View reports</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Exit -->
+                <div class="flow-row admin-exit-row">
+                    <div class="flow-box admin-exit-box">
+                        <div class="box-icon">🚪</div>
+                        <div class="box-title">Admin Logout</div>
+                        <div class="box-desc">Secure exit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pages and links data
+        const pagesData = [
+            // Public Pages
+            {
+                name: "Home",
+                type: "public",
+                route: "/",
+                liveUrl: "https://0fare.com",
+                description: "Main landing page with hero section and plan comparison",
+                status: "active"
+            },
+            {
+                name: "About Us",
+                type: "public",
+                route: "/about",
+                liveUrl: "https://0fare.com/about",
+                description: "Company information and team members",
+                status: "active"
+            },
+            {
+                name: "Plans/Programs",
+                type: "public",
+                route: "/plans",
+                liveUrl: "https://0fare.com/plans",
+                description: "Trading plans and pricing information",
+                status: "active"
+            },
+            {
+                name: "FAQ",
+                type: "public",
+                route: "/faq",
+                liveUrl: "https://0fare.com/faq",
+                description: "Frequently asked questions",
+                status: "active"
+            },
+            {
+                name: "Contact Us",
+                type: "public",
+                route: "/contact",
+                liveUrl: "https://0fare.com/contact",
+                description: "Contact form and information",
+                status: "active"
+            },
+            {
+                name: "Blog",
+                type: "public",
+                route: "/blog",
+                liveUrl: "https://0fare.com/blog",
+                description: "Blog articles and trading insights",
+                status: "active"
+            },
+            {
+                name: "News",
+                type: "public",
+                route: "/news",
+                liveUrl: "https://0fare.com/news",
+                description: "Market news and updates",
+                status: "active"
+            },
+            {
+                name: "Careers",
+                type: "public",
+                route: "/careers",
+                liveUrl: "https://0fare.com/careers",
+                description: "Job opportunities and career information",
+                status: "active"
+            },
+            {
+                name: "Help",
+                type: "public",
+                route: "/help",
+                liveUrl: "https://0fare.com/help",
+                description: "Help center and support resources",
+                status: "active"
+            },
+            {
+                name: "Terms & Conditions",
+                type: "public",
+                route: "/terms",
+                liveUrl: "https://0fare.com/terms",
+                description: "Terms of service and conditions",
+                status: "active"
+            },
+            {
+                name: "Privacy Policy",
+                type: "public",
+                route: "/privacy",
+                liveUrl: "https://0fare.com/privacy",
+                description: "Privacy policy and data protection",
+                status: "active"
+            },
+            {
+                name: "Refund Policy",
+                type: "public",
+                route: "/refund",
+                liveUrl: "https://0fare.com/refund",
+                description: "Refund policy and procedures",
+                status: "active"
+            },
+            {
+                name: "Disclaimer",
+                type: "public",
+                route: "/disclaimer",
+                liveUrl: "https://0fare.com/disclaimer",
+                description: "Legal disclaimers and risk warnings",
+                status: "active"
+            },
+            {
+                name: "Rules",
+                type: "public",
+                route: "/rules",
+                liveUrl: "https://0fare.com/rules",
+                description: "Trading rules and guidelines",
+                status: "active"
+            },
+            {
+                name: "Cookies Policy",
+                type: "public",
+                route: "/cookies",
+                liveUrl: "https://0fare.com/cookies",
+                description: "Cookie usage and policy",
+                status: "active"
+            },
+            {
+                name: "Referral Program",
+                type: "public",
+                route: "/referral",
+                liveUrl: "https://0fare.com/referral",
+                description: "Referral program information",
+                status: "active"
+            },
+            {
+                name: "Wallet",
+                type: "public",
+                route: "/wallet",
+                liveUrl: "https://0fare.com/wallet",
+                description: "Wallet management page",
+                status: "active"
+            },
+            {
+                name: "Profile",
+                type: "public",
+                route: "/profile",
+                liveUrl: "https://0fare.com/profile",
+                description: "User profile management",
+                status: "active"
+            },
+            
+            // Authentication Pages
+            {
+                name: "Login",
+                type: "auth",
+                route: "/login",
+                liveUrl: "https://0fare.com/login",
+                description: "User login page",
+                status: "active"
+            },
+            {
+                name: "Register",
+                type: "auth",
+                route: "/register",
+                liveUrl: "https://0fare.com/register",
+                description: "User registration page",
+                status: "active"
+            },
+            {
+                name: "Forgot Password",
+                type: "auth",
+                route: "/forgot-password",
+                liveUrl: "https://0fare.com/forgot-password",
+                description: "Password recovery page",
+                status: "active"
+            },
+            {
+                name: "Profile Setup",
+                type: "auth",
+                route: "/profile-setup",
+                liveUrl: "https://0fare.com/profile-setup",
+                description: "Initial profile setup after registration",
+                status: "active"
+            },
+            {
+                name: "Profile Completion",
+                type: "auth",
+                route: "/profile-completion",
+                liveUrl: "https://0fare.com/profile-completion",
+                description: "Profile completion and verification",
+                status: "active"
+            },
+            {
+                name: "KYC Verification",
+                type: "auth",
+                route: "/kyc-verification",
+                liveUrl: "https://0fare.com/kyc-verification",
+                description: "Know Your Customer verification process",
+                status: "active"
+            },
+            
+            // Dashboard Pages
+            {
+                name: "Dashboard Home",
+                type: "dashboard",
+                route: "/dashboard",
+                liveUrl: "https://0fare.com/dashboard",
+                description: "Main dashboard overview",
+                status: "active"
+            },
+            {
+                name: "Dashboard Profile",
+                type: "dashboard",
+                route: "/dashboard/profile",
+                liveUrl: "https://0fare.com/dashboard/profile",
+                description: "Dashboard profile management",
+                status: "active"
+            },
+            {
+                name: "Dashboard Wallet",
+                type: "dashboard",
+                route: "/dashboard/wallet",
+                liveUrl: "https://0fare.com/dashboard/wallet",
+                description: "Dashboard wallet management",
+                status: "active"
+            },
+            {
+                name: "Trading Account",
+                type: "dashboard",
+                route: "/dashboard/trading-account",
+                liveUrl: "https://0fare.com/dashboard/trading-account",
+                description: "Trading account management",
+                status: "active"
+            },
+            {
+                name: "Dashboard Referral",
+                type: "dashboard",
+                route: "/dashboard/referral",
+                liveUrl: "https://0fare.com/dashboard/referral",
+                description: "Dashboard referral program",
+                status: "active"
+            },
+            {
+                name: "Dashboard Support",
+                type: "dashboard",
+                route: "/dashboard/support",
+                liveUrl: "https://0fare.com/dashboard/support",
+                description: "Dashboard support center",
+                status: "active"
+            },
+            
+            // Admin Pages
+            {
+                name: "Admin Login",
+                type: "admin",
+                route: "/admin/login",
+                liveUrl: "https://0fare.com/admin/login",
+                description: "Admin authentication page",
+                status: "active"
+            },
+            {
+                name: "Admin Dashboard",
+                type: "admin",
+                route: "/admin",
+                liveUrl: "https://0fare.com/admin",
+                description: "Main admin dashboard",
+                status: "active"
+            },
+            {
+                name: "Admin Users",
+                type: "admin",
+                route: "/admin/users",
+                liveUrl: "https://0fare.com/admin/users",
+                description: "User management for admins",
+                status: "active"
+            },
+            {
+                name: "Admin Plans",
+                type: "admin",
+                route: "/admin/plans",
+                liveUrl: "https://0fare.com/admin/plans",
+                description: "Plan management for admins",
+                status: "active"
+            },
+            {
+                name: "Admin FAQs",
+                type: "admin",
+                route: "/admin/faqs",
+                liveUrl: "https://0fare.com/admin/faqs",
+                description: "FAQ management for admins",
+                status: "active"
+            },
+            {
+                name: "Admin Team",
+                type: "admin",
+                route: "/admin/team",
+                liveUrl: "https://0fare.com/admin/team",
+                description: "Team member management",
+                status: "active"
+            },
+            {
+                name: "Admin Contacts",
+                type: "admin",
+                route: "/admin/contacts",
+                liveUrl: "https://0fare.com/admin/contacts",
+                description: "Contact inquiry management",
+                status: "active"
+            },
+            {
+                name: "Admin Referrals",
+                type: "admin",
+                route: "/admin/referrals",
+                liveUrl: "https://0fare.com/admin/referrals",
+                description: "Referral program management",
+                status: "active"
+            },
+            {
+                name: "Admin Transactions",
+                type: "admin",
+                route: "/admin/transactions",
+                liveUrl: "https://0fare.com/admin/transactions",
+                description: "Transaction management",
+                status: "active"
+            },
+            {
+                name: "Admin Blogs",
+                type: "admin",
+                route: "/admin/blogs",
+                liveUrl: "https://0fare.com/admin/blogs",
+                description: "Blog content management",
+                status: "active"
+            },
+            {
+                name: "Admin News",
+                type: "admin",
+                route: "/admin/news",
+                liveUrl: "https://0fare.com/admin/news",
+                description: "News content management",
+                status: "active"
+            },
+            
+            // Additional Links from Footer
+            {
+                name: "Evaluation Program",
+                type: "public",
+                route: "/evaluation",
+                liveUrl: "https://0fare.com/evaluation",
+                description: "Evaluation program details",
+                status: "pending"
+            },
+            {
+                name: "Express Program",
+                type: "public",
+                route: "/express",
+                liveUrl: "https://0fare.com/express",
+                description: "Express program details",
+                status: "pending"
+            },
+            {
+                name: "Stellar Program",
+                type: "public",
+                route: "/stellar",
+                liveUrl: "https://0fare.com/stellar",
+                description: "Stellar program details",
+                status: "pending"
+            },
+            {
+                name: "One-Step Program",
+                type: "public",
+                route: "/one-step",
+                liveUrl: "https://0fare.com/one-step",
+                description: "One-Step program details",
+                status: "pending"
+            },
+            {
+                name: "Scaling Program",
+                type: "public",
+                route: "/scaling",
+                liveUrl: "https://0fare.com/scaling",
+                description: "Scaling program details",
+                status: "pending"
+            },
+            {
+                name: "Payouts",
+                type: "public",
+                route: "/payouts",
+                liveUrl: "https://0fare.com/payouts",
+                description: "Payout information and procedures",
+                status: "pending"
+            },
+            {
+                name: "Platforms",
+                type: "public",
+                route: "/platforms",
+                liveUrl: "https://0fare.com/platforms",
+                description: "Supported trading platforms",
+                status: "pending"
+            },
+            {
+                name: "Affiliates",
+                type: "public",
+                route: "/affiliates",
+                liveUrl: "https://0fare.com/affiliates",
+                description: "Affiliate program information",
+                status: "pending"
+            },
+            {
+                name: "API Documentation",
+                type: "public",
+                route: "/api",
+                liveUrl: "https://0fare.com/api",
+                description: "API documentation and endpoints",
+                status: "pending"
+            },
+            {
+                name: "Referral Link",
+                type: "public",
+                route: "/ref/[code]",
+                liveUrl: "https://0fare.com/ref/[code]",
+                description: "Dynamic referral link with code parameter",
+                status: "active"
+            }
+        ];
+
+        // Initialize the table
+        function initializeTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            pagesData.forEach((page, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${page.name}</strong></td>
+                    <td><span class="page-type type-${page.type}">${page.type}</span></td>
+                    <td><code>${page.route}</code></td>
+                    <td><a href="${page.liveUrl}" target="_blank" class="link live-link">${page.liveUrl}</a></td>
+                    <td>${page.description}</td>
+                    <td><span class="status status-${page.status}">${page.status}</span></td>
+                    <td contenteditable="true" class="remarks-cell" data-page="${page.name}"></td>
+                    <td contenteditable="true" class="problems-cell" data-page="${page.name}"></td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalPages = pagesData.length;
+            const publicPages = pagesData.filter(p => p.type === 'public').length;
+            const dashboardPages = pagesData.filter(p => p.type === 'dashboard').length;
+            const adminPages = pagesData.filter(p => p.type === 'admin').length;
+            
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('publicPages').textContent = publicPages;
+            document.getElementById('dashboardPages').textContent = dashboardPages;
+            document.getElementById('adminPages').textContent = adminPages;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Download CSV
+        function downloadCSV() {
+            const headers = ['#', 'Page Name', 'Page Type', 'Route Path', 'Live URL', 'Description', 'Status', 'Remarks', 'Problems'];
+            const rows = [headers];
+            
+            const tableRows = document.querySelectorAll('#tableBody tr');
+            tableRows.forEach((row, index) => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [];
+                
+                cells.forEach((cell, cellIndex) => {
+                    if (cellIndex === 3) { // Route Path
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 4) { // Live URL
+                        rowData.push(cell.querySelector('a').href);
+                    } else if (cellIndex === 2) { // Page Type
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 6) { // Status
+                        rowData.push(cell.textContent);
+                    } else {
+                        rowData.push(cell.textContent);
+                    }
+                });
+                
+                rows.push(rowData);
+            });
+            
+            const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            downloadFile(csvContent, 'trading-hub-pages-links.csv', 'text/csv');
+        }
+
+        // Download Excel (CSV with .xlsx extension)
+        function downloadExcel() {
+            const headers = ['#', 'Page Name', 'Page Type', 'Route Path', 'Live URL', 'Description', 'Status', 'Remarks', 'Problems'];
+            const rows = [headers];
+            
+            const tableRows = document.querySelectorAll('#tableBody tr');
+            tableRows.forEach((row, index) => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [];
+                
+                cells.forEach((cell, cellIndex) => {
+                    if (cellIndex === 3) { // Route Path
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 4) { // Live URL
+                        rowData.push(cell.querySelector('a').href);
+                    } else if (cellIndex === 2) { // Page Type
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 6) { // Status
+                        rowData.push(cell.textContent);
+                    } else {
+                        rowData.push(cell.textContent);
+                    }
+                });
+                
+                rows.push(rowData);
+            });
+            
+            const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            downloadFile(csvContent, 'trading-hub-pages-links.xlsx', 'text/csv');
+        }
+
+        // Export with remarks
+        function exportWithRemarks() {
+            const headers = ['#', 'Page Name', 'Page Type', 'Route Path', 'Live URL', 'Description', 'Status', 'Remarks', 'Problems'];
+            const rows = [headers];
+            
+            const tableRows = document.querySelectorAll('#tableBody tr');
+            tableRows.forEach((row, index) => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [];
+                
+                cells.forEach((cell, cellIndex) => {
+                    if (cellIndex === 3) { // Route Path
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 4) { // Live URL
+                        rowData.push(cell.querySelector('a').href);
+                    } else if (cellIndex === 2) { // Page Type
+                        rowData.push(cell.textContent);
+                    } else if (cellIndex === 6) { // Status
+                        rowData.push(cell.textContent);
+                    } else {
+                        rowData.push(cell.textContent);
+                    }
+                });
+                
+                rows.push(rowData);
+            });
+            
+            const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            downloadFile(csvContent, 'trading-hub-pages-links-with-remarks.csv', 'text/csv');
+        }
+
+        // Download file helper
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeTable);
+
+        // PDF Download Functions
+        function downloadUserFlowPDF() {
+            // Get the user flow diagram container
+            const userFlowContainer = document.querySelector('.main-flow-diagram');
+            if (!userFlowContainer) {
+                alert('User flow diagram not found!');
+                return;
+            }
+
+            // Use html2canvas to capture the flow diagram
+            html2canvas(userFlowContainer, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: userFlowContainer.scrollWidth,
+                height: userFlowContainer.scrollHeight
+            }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Calculate dimensions
+                const imgWidth = 190; // A4 width - margins
+                const pageHeight = 297; // A4 height
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 10; // Top margin
+
+                // Add title
+                doc.setFontSize(20);
+                doc.setTextColor(30, 41, 59);
+                doc.text('Trading Hub - User Flow Diagram', 10, 20);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(100, 116, 139);
+                doc.text('Complete user journey with clear visual connections', 10, 30);
+
+                // Add the captured image
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 10, 40, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                // Add new pages if needed
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                // Add footer to last page
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setPage(pageCount);
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Generated from Trading Hub Pages & Links Sheet', 10, 290);
+                doc.text('Date: ' + new Date().toLocaleDateString(), 10, 295);
+
+                // Save the PDF
+                doc.save('trading-hub-user-flow-diagram.pdf');
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            });
+        }
+
+        function downloadAdminFlowPDF() {
+            // Get the admin flow diagram container
+            const adminFlowContainer = document.querySelector('.admin-flow-diagram');
+            if (!adminFlowContainer) {
+                alert('Admin flow diagram not found!');
+                return;
+            }
+
+            // Use html2canvas to capture the flow diagram
+            html2canvas(adminFlowContainer, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: adminFlowContainer.scrollWidth,
+                height: adminFlowContainer.scrollHeight
+            }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Calculate dimensions
+                const imgWidth = 190; // A4 width - margins
+                const pageHeight = 297; // A4 height
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 10; // Top margin
+
+                // Add title
+                doc.setFontSize(20);
+                doc.setTextColor(220, 53, 69);
+                doc.text('Trading Hub - Admin Flow Diagram', 10, 20);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(100, 116, 139);
+                doc.text('Complete admin panel workflow and management processes', 10, 30);
+
+                // Add the captured image
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 10, 40, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                // Add new pages if needed
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 10, position + 10, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                // Add footer to last page
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setPage(pageCount);
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Generated from Trading Hub Pages & Links Sheet', 10, 290);
+                doc.text('Date: ' + new Date().toLocaleDateString(), 10, 295);
+
+                // Save the PDF
+                doc.save('trading-hub-admin-flow-diagram.pdf');
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

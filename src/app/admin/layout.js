@@ -161,7 +161,7 @@ const AdminLayout = ({ children }) => {
         <div className="position-absolute bottom-0 start-0 end-0 p-3 border-top border-secondary">
           <button
             onClick={handleLogout}
-            className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
+            className="btn btn-outline-danger  d-flex align-items-center justify-content-center"
           >
             <FaSignOutAlt className="me-2" size={16} />
             Logout

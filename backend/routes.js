@@ -6,14 +6,20 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { User, Profile } = require('./schema');
 const Plan = require('./models/Plan');
+const SupportTicket = require('./models/SupportTicket');
 
 const router = express.Router();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Initialize Razorpay (only if environment variables are available)
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn('Razorpay credentials not found. Payment features will be disabled.');
+}
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -1255,6 +1261,14 @@ router.get('/wallet/balance', async (req, res) => {
 // Create Razorpay order for deposit
 router.post('/wallet/razorpay-order', async (req, res) => {
   try {
+    // Check if Razorpay is initialized
+    if (!razorpay) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment service is currently unavailable. Please contact support.'
+      });
+    }
+
     const { amount, currency = 'INR' } = req.body;
     
     // Get user from session/token (implement your auth middleware)
@@ -1303,6 +1317,14 @@ router.post('/wallet/razorpay-order', async (req, res) => {
 // Verify Razorpay payment and credit wallet
 router.post('/wallet/razorpay-verify', async (req, res) => {
   try {
+    // Check if Razorpay is initialized
+    if (!razorpay) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment service is currently unavailable. Please contact support.'
+      });
+    }
+
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
     
     // Get user from session/token (implement your auth middleware)
@@ -1616,6 +1638,209 @@ router.delete('/admin/plans/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete plan',
+      error: error.message
+    });
+  }
+});
+
+// ===== SUPPORT TICKET ROUTES =====
+
+// Create support ticket
+router.post('/support/ticket', async (req, res) => {
+  try {
+    const { subject, message, category, userId, userEmail } = req.body;
+
+    // Validate required fields
+    if (!subject || !message || !userId || !userEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject, message, userId, and userEmail are required'
+      });
+    }
+
+    // Create support ticket with Firebase UID
+    const ticket = new SupportTicket({
+      userId: userId, // Use Firebase UID directly
+      userEmail,
+      subject,
+      message,
+      category: category || 'general',
+      responses: [{
+        from: 'user',
+        message: message,
+        timestamp: new Date()
+      }]
+    });
+
+    await ticket.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Support ticket created successfully',
+      ticket: {
+        id: ticket._id,
+        ticketId: ticket.ticketId,
+        subject: ticket.subject,
+        category: ticket.category,
+        status: ticket.status,
+        createdAt: ticket.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creating support ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create support ticket',
+      error: error.message
+    });
+  }
+});
+
+// Get user's support tickets
+router.get('/support/tickets/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get user's tickets using Firebase UID
+    const tickets = await SupportTicket.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .select('ticketId subject category status createdAt lastActivity');
+
+    res.json({
+      success: true,
+      tickets: tickets
+    });
+  } catch (error) {
+    console.error('Error fetching support tickets:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch support tickets',
+      error: error.message
+    });
+  }
+});
+
+// Get specific ticket details
+router.get('/support/ticket/:ticketId', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+
+    const ticket = await SupportTicket.findOne({ ticketId })
+      .populate('userId', 'uid email');
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error fetching ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ticket',
+      error: error.message
+    });
+  }
+});
+
+// Add response to ticket
+router.post('/support/ticket/:ticketId/response', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { message, from } = req.body;
+
+    if (!message || !from) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message and from field are required'
+      });
+    }
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    // Add response
+    ticket.responses.push({
+      from,
+      message,
+      timestamp: new Date()
+    });
+
+    // Update status if admin responds
+    if (from === 'admin') {
+      ticket.status = 'in_progress';
+    }
+
+    await ticket.save();
+
+    res.json({
+      success: true,
+      message: 'Response added successfully',
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error adding response:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add response',
+      error: error.message
+    });
+  }
+});
+
+// Update ticket status
+router.put('/support/ticket/:ticketId/status', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    ticket.status = status;
+    
+    if (status === 'resolved') {
+      ticket.isResolved = true;
+      ticket.resolvedAt = new Date();
+    } else if (status === 'closed') {
+      ticket.closedAt = new Date();
+    }
+
+    await ticket.save();
+
+    res.json({
+      success: true,
+      message: 'Ticket status updated successfully',
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error updating ticket status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update ticket status',
       error: error.message
     });
   }

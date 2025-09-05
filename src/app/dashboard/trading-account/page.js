@@ -18,7 +18,7 @@ export default function DashboardTradingAccount() {
   };
 
   return (
-    <div className="container-fluid py-4">
+<div className="container-fluid py-4">
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">

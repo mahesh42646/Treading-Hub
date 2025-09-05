@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { sendEmailVerification } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
+import { getUserDisplayInfo } from '../utils/userDisplay';
 
 const Dashboard = () => {
   const { user, profile, logout, refreshProfile, checkEmailVerification } = useAuth();
@@ -12,6 +13,8 @@ const Dashboard = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
   const router = useRouter();
+  
+  const displayInfo = getUserDisplayInfo(user, profile);
 
   const handleLogout = async () => {
     try {
@@ -85,8 +88,8 @@ const Dashboard = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="fw-bold mb-1">Welcome back!</h2>
-              <p className="text-muted mb-0">
-                Hello {profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.email}, here's what's happening with your account.
+                              <p className="text-muted mb-0">
+                Hello {displayInfo.name}, here&apos;s what&apos;s happening with your account.
               </p>
             </div>
             <div className="text-end">

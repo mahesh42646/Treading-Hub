@@ -4,12 +4,16 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUserDisplayInfo, getUserAvatar, getProfileCompletionStatus } from '../../utils/userDisplay';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const { profile, user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  const displayInfo = getUserDisplayInfo(user, profile);
+  const completionStatus = getProfileCompletionStatus(profile);
 
   const menuItems = [
     {
@@ -44,32 +48,7 @@ const Sidebar = () => {
     },
   ];
 
-  const getUserName = () => {
-    if (profile?.personalInfo?.firstName) {
-      return `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`;
-    }
-    if (profile?.firstName) {
-      return `${profile.firstName} ${profile.lastName}`;
-    }
-    return user?.email || 'User';
-  };
 
-  const getUserInitials = () => {
-    if (profile?.personalInfo?.firstName) {
-      return `${profile.personalInfo.firstName[0]}${profile.personalInfo.lastName[0]}`.toUpperCase();
-    }
-    if (profile?.firstName) {
-      return `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase();
-    }
-    return user?.email?.[0]?.toUpperCase() || 'U';
-  };
-
-  const getProfileCompletion = () => {
-    if (profile?.status?.completionPercentage) {
-      return profile.status.completionPercentage;
-    }
-    return 0;
-  };
 
   const handleLogout = async () => {
     try {
@@ -134,35 +113,32 @@ const Sidebar = () => {
           </div>
           
           {/* User Profile Section */}
-          {!isCollapsed && (
+          {!isCollapsed ? (
             <div className="mb-4 p-3 bg-dark border border-secondary rounded-3">
               <div className="d-flex align-items-center mb-3">
                 <div className="flex-shrink-0">
-                  <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
-                       style={{ width: '50px', height: '50px' }}>
-                    <span className="text-white fw-bold">{getUserInitials()}</span>
-                  </div>
+                  {getUserAvatar(user, profile)}
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="mb-1 text-white">{getUserName()}</h6>
-                 
+                  <h6 className="mb-1 text-white">{displayInfo.name}</h6>
+                  <small className="text-muted d-block">{displayInfo.displayType === 'google' ? 'Google Account' : displayInfo.displayType === 'profile' ? 'Verified Profile' : 'Email Account'}</small>
                 </div>
-                
               </div>
-              <small className="text-white d-block overflow-hidden ">{user?.email}</small>
+              <small className="text-white d-block overflow-hidden text-truncate">{displayInfo.email}</small>
               
               {/* Profile Completion */}
               <div className="mb-2 text-white">
                 <div className="d-flex justify-content-between align-items-center mb-1">
                   <small className="text-white">Profile Completion</small>
-                  <small className="text-white">{getProfileCompletion()}%</small>
+                  <small className="text-white">{completionStatus.percentage}%</small>
                 </div>
                 <div className="progress" style={{ height: '6px' }}>
                   <div 
                     className="progress-bar bg-primary" 
-                    style={{ width: `${getProfileCompletion()}%` }}
+                    style={{ width: `${completionStatus.percentage}%` }}
                   ></div>
                 </div>
+                <small className="text-muted">{completionStatus.status}</small>
               </div>
 
               {/* Account Status */}
@@ -172,6 +148,11 @@ const Sidebar = () => {
                   {profile?.status?.isActive ? 'Active' : 'Pending'}
                 </span>
               </div>
+            </div>
+          ) : (
+            // Collapsed user profile section
+            <div className="mb-4 p-2 text-center">
+              {getUserAvatar(user, profile)}
             </div>
           )}
           

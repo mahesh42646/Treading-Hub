@@ -119,9 +119,9 @@ const ReferralPage = () => {
   }
 
   return (
-    <div className="referral-container">
+    <div className="container-fluid py-4">
       {/* Page Header */}
-      <div className="page-header mb-4">
+      <div className="page- mb-4">
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h1 className="page-title mb-1">Referral Program</h1>

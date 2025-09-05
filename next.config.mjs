@@ -15,6 +15,25 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['bootstrap'],
   },
+  // Configure allowed image domains
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '0fare.com',
+        port: '',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9988',
+        pathname: '/uploads/**',
+      },
+    ],
+    // Allow unoptimized images for local development
+    unoptimized: process.env.NODE_ENV === 'development',
+  },
 };
 
 export default nextConfig;

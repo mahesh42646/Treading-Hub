@@ -40,9 +40,9 @@ const AboutPage = () => {
       <section className="about-hero">
         <div className="container">
           <div className="row justify-content-center text-center">
-            <div className="col-lg-8">
-              <h1 className="display-3 fw-bold mb-4">
-                Meet the Team Behind <span className="text-info">Trading Hub</span>
+            <div className="col-lg-8 ">
+              <h1 className=" display-4 display-md-3 display-sm-5 fw-bold mb-4">
+                Meet the Team Behind <span className="text-info"> <br/>Trading Hub</span>
               </h1>
               <p className="lead mb-5">
                 We are a passionate team dedicated to empowering traders with the tools, 

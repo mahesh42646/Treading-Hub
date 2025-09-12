@@ -14,7 +14,7 @@ export default function Home() {
 
       {/* Hero Section - Exact FUNDEDNEXT Style */}
       <section
-        className="hero-section position-relative overflow-hidden py-5"
+        className="hero-section hero--landing position-relative overflow-hidden py-lg-5"
         style={{
           backgroundImage: "url('/hero-bg.jpg')",
           backgroundSize: 'cover',
@@ -31,21 +31,18 @@ export default function Home() {
         <div className="container position-relative">
           <div className="row align-items-center">
             <div className="col-lg-8 text-white">
-              <h1 className="display-4 fw-bold mb-4" style={{
-                fontSize: '3.5rem',
-                lineHeight: '1.1',
-                color: '#ffffff',
-                marginBottom: '2rem'
-              }}>
-                Empowering Promising<br />
-                <span style={{ color: '#ffffff' }}>Traders Worldwide</span>
-              </h1>
+            <h1 className="fw-bold mb-4 text-white hero-heading 
+                display-4 display-md-3 display-sm-5">
+  Empowering Promising <br />
+  <span className="text-white">Traders Worldwide</span>
+</h1>
+
 
               {/* Key Features - Exact FUNDEDNEXT Layout */}
-              <div className="row mb-1">
+              <div className="row mb-1 hero-features">
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3"
+                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
                       style={{ width: '50px', height: '50px' }}>
                       <Image src="/images/90-percent.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
                     </div>
@@ -58,7 +55,7 @@ export default function Home() {
 
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3"
+                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
                       style={{ width: '50px', height: '50px' }}>
                       <Image src="/images/simulated-accounts.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
                     </div>
@@ -71,7 +68,7 @@ export default function Home() {
 
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3"
+                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
                       style={{ width: '50px', height: '50px' }}>
                       <Image src="/images/win.gif" alt="Simulated Accounts" width={250} height={250} style={{ height: '60px', width: '60px' }} />
                     </div>
@@ -84,7 +81,7 @@ export default function Home() {
 
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3"
+                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
                       style={{ width: '50px', height: '50px' }}>
                       <Image src="/images/No-time-limit.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
                     </div>
@@ -96,8 +93,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Call-to-Action Buttons */}
-              <div className="d-flex gap-3 flex-wrap mb-4">
+              {/* Call-to-Action  Buttons */}
+              <div className="d-flex gap-3 flex-wrap mb-4 hero-cta">
                 <Link href="/register" className="btn btn-lg px-5 py-3 fw-bold  rounded-4 d-flex align-items-center gap-2" style={{
                   background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
                   border: 'none',
@@ -120,7 +117,7 @@ export default function Home() {
               </div>
 
               {/* Trustpilot Rating */}
-              <div className="d-flex align-items-center gap-2 mb-0">
+              <div className="d-flex align-items-center gap-2 mb-0 hero-trust">
                 <span className="fw-bold text-white">Excellent</span>
                 <div className="d-flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -139,7 +136,7 @@ export default function Home() {
           {/* Bottom Statistics Panel */}
           <div className="row mt-4">
             <div className="col-12">
-              <div className=" rounded-4 p-4" style={{
+              <div className=" rounded-4 p-4 hero-bottom-panel" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
                 border: '1px solid rgba(124, 124, 124, 0.39)',
                 backdropFilter: 'blur(20px)', boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
@@ -147,16 +144,16 @@ export default function Home() {
                 <div className="row align-items-center ">
                   <div className="col-lg-12">
                     <div className="row text-center justify-content-center ">
-                      <div className="col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1">156+</div>
+                      <div className="col-4 col-md-4 ">
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">156+</div>
                         <div className="text-white small">FundedNext Accounts</div>
                       </div>
-                      <div className="col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1">520+</div>
+                      <div className="col-4 col-md-4 ">
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">520+</div>
                         <div className="text-white small">Rewarded Traders</div>
                       </div>
-                      <div className="col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1">$185.2k+</div>
+                      <div className="col-4 col-md-4 ">
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">$185.2k+</div>
                         <div className="text-white small">Total Rewarded</div>
                       </div>
                     </div>
@@ -221,7 +218,7 @@ export default function Home() {
         };
 
         return (
-          <section className="py-5" style={{
+          <section className="py-5 key-highlights" style={{
             // backgroundImage: "url('/section-bg.jpg')",
             background: 'linear-gradient(135deg, #110A28 0%, #110A28 100%)',
             backgroundSize: 'cover',
@@ -235,19 +232,19 @@ export default function Home() {
           }}>
             <div className="container">
               <div className="text-center mb-5">
-                <h2 className="display-5 fw-bold mb-3 text-white">Key Highlights</h2>
+                <h2 className="  display-5 display-md-3 display-sm-5 fw-bold mb-3 text-white ">Key Highlights</h2>
               </div>
               <div className="row g-4">
                 {keyHighlights.map((card, idx) => (
                   <div className="col-lg-4 col-md-6" key={idx}>
-                    <div className="card shadow-0 h-100 border-0 rounded-4" style={cardStyle}>
+                    <div className="card shadow-0 h-100 border-0 rounded-4 kh-card" style={cardStyle}>
                       <div className="card-body p-4 text-center">
-                        <div className="d-flex align-items-center justify-content-center mb-4"
+                        <div className="d-flex align-items-center justify-content-center mb-4 kh-icon"
                           style={{ width: '100px', height: '100px', margin: '0 auto' }}>
                           <Image src={card.image} alt={card.alt} width={100} height={100} />
                         </div>
-                        <h5 className="card-title mb-3 text-white">{card.title}</h5>
-                        <p className="card-text text-white-50">
+                        <h5 className="card-title mb-3 text-white kh-title">{card.title}</h5>
+                        <p className="card-text text-white-50 kh-desc">
                           {card.description}
                         </p>
                       </div>
@@ -363,13 +360,13 @@ export default function Home() {
       <ChoosePlanSection />
 
       {/* Rewarding Our Best Traders Section - Dark Glossy Theme */}
-      <section className="py-5" style={{
+      <section className="py-5 best-traders-section" style={{
         background: 'linear-gradient(135deg, #110A28 0%, #110A28 100%)',
         color: 'white'
       }}>
         <div className="container">
           <div className="row align-items-center">
-            <div className="col-lg-6">
+            <div className="col-lg-6 col-12">
               <h2 className="display-5 fw-bold mb-4 text-white">Rewarding our best traders</h2>
 
               {/* Statistics - Dark Glossy Theme */}
@@ -389,7 +386,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="col-lg-6">
+            <div className="col-lg-6 col-12">
               <div className="card border-0 rounded-4" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
                 border: '3px solid rgba(67, 34, 124, 0.74)',
@@ -530,7 +527,7 @@ export default function Home() {
       </section>
 
       {/* Our Traders Love Us Section - Dark Glossy Theme */}
-      <section className="py-5" style={{
+      <section className="py-5 testimonials-section" style={{
         background: 'linear-gradient(135deg, #110A28 0%, #110A28 100%)',
         color: 'white'
       }}>
@@ -656,7 +653,7 @@ export default function Home() {
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
-              <h2 className="display-5 fw-bold mb-4 text-white">Collaborative Venture Powered by Expertise</h2>
+              <h2 className=" display-5 display-md-3 display-sm-5  fw-bold mb-4 text-white">Collaborative Venture Powered by Expertise</h2>
               <p className="lead text-white-50 mb-4">
                 We are a team of experienced traders, financial experts, and technology enthusiasts dedicated to providing the best trading experience.
               </p>
@@ -792,7 +789,7 @@ export default function Home() {
         color: 'white'
       }}>
         <div className="container text-center">
-          <h2 className="display-4 fw-bold mb-4 text-white">Ready to Start Your Trading Journey?</h2>
+          <h2 className="display-4 display-md-3 display-sm-5 fw-bold mb-4 text-white">Ready to Start Your Trading Journey?</h2>
           <p className="lead mb-4 text-white-50">
             Join thousands of successful traders and start earning from your skills today.
           </p>
@@ -803,6 +800,7 @@ export default function Home() {
               backdropFilter: 'blur(20px)',
               boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',
               fontSize: '1.1rem',
+              
               color: 'white'
             }}>
               Start Trading Now

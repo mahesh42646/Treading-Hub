@@ -56,8 +56,8 @@ const ChoosePlanSection = () => {
       color: 'white'
     }}>
       <div className="container">
-        <div className="text-center mb-5">
-          <h2 className="display-5 fw-bold mb-3 text-white">Choose the Best Plan</h2>
+        <div className="text-center mb-5 pt-lg-4">
+          <h2 className="  display-4 display-md-3 display-sm-5 fw-bold mb-3 text-white">Choose the Best Plan</h2>
         </div>
 
       

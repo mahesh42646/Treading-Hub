@@ -9,10 +9,10 @@ export default function Privacy() {
       
       {/* Hero Section */}
       <section className="bg-primary text-white py-5">
-        <div className="container">
+        <div className="container"> 
           <div className="row">
-            <div className="col-lg-8 mx-auto text-center">
-              <h1 className="display-4 fw-bold mb-4">Privacy Policy</h1>
+            <div className="col-lg-8 mx-auto text-center pt-lg-4  ">
+              <h1 className="display-4  display-md-3 display-sm-5 fw-bold mb-4">Privacy Policy</h1>
               <p className="lead">
                 Learn how we collect, use, and protect your personal information.
               </p>

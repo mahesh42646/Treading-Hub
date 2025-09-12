@@ -54,16 +54,16 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="page-content">
+    <div className="page-content contact-page">
       <Header />
       
       <div className="container py-5">
         <div className="row py-5">
           {/* Left Column - Contact Information */}
-          <div className="col-lg-6 mb-0 contact-info-card ">
+          <div className="col-lg-6  mb-0 contact-info-card ">
             <div className="p-3">
               {/* Contact Us Section */}
-              <div className="mb-5">
+              <div className="mb-5 ">
                 <div className="d-flex align-items-center mb-3">
                   <div className="bg-purple-light rounded-circle p-3 me-3">
                     <FaEnvelope className="text-purple" size={24} />

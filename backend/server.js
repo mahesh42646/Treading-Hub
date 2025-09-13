@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN || 'https://0fare.com' : 'http://localhost:3000',
+  origin: ['https://0fare.com', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json({ limit: '1gb' }));
@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/trading-hub', {
+mongoose.connect(process.env.MONGODB_URI , {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

@@ -13,13 +13,6 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    gender: '',
-    dateOfBirth: '',
-    country: '',
-    city: '',
-    phone: '',
     agreeToTerms: false
   });
   const [error, setError] = useState('');
@@ -79,7 +72,10 @@ const Register = () => {
     
     try {
       console.log('📧 Resending verification email to:', currentUser.email);
-      await sendEmailVerification(currentUser);
+      await sendEmailVerification(currentUser, {
+        url: `${window.location.origin}/login`,
+        handleCodeInApp: false
+      });
       console.log('✅ Verification email resent successfully');
       setEmailSent(true);
       setTimeout(() => setEmailSent(false), 3000); // Hide success message after 3 seconds
@@ -114,28 +110,9 @@ const Register = () => {
       return;
     }
 
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setError(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
       console.log('🚀 Starting registration process...');
       
-      // First check if phone number already exists using API service
-      const phoneCheckData = await userApi.checkPhone(formData.phone);
-      
-      if (phoneCheckData.exists) {
-        setError('An account with this phone number already exists. Please use a different phone number or login with existing account.');
-        setLoading(false);
-        return;
-      }
-
       console.log('📧 Creating Firebase user account...');
       const userCredential = await createUserWithEmailAndPassword(
         auth, 
@@ -147,10 +124,13 @@ const Register = () => {
       console.log('✅ Firebase user created:', user.uid);
       setCurrentUser(user); // Store user for resend functionality
 
-      // Send email verification
+      // Send email verification immediately after user creation
       console.log('📧 Sending verification email...');
       try {
-        await sendEmailVerification(user);
+        await sendEmailVerification(user, {
+          url: `${window.location.origin}/login`,
+          handleCodeInApp: false
+        });
         console.log('✅ Verification email sent successfully');
       } catch (emailError) {
         console.error('❌ Error sending verification email:', emailError);
@@ -159,24 +139,16 @@ const Register = () => {
         return;
       }
 
-      console.log('💾 Creating user profile in backend...');
-      // Create user with profile data in backend using API service
-      const createResponse = await userApi.createWithProfile({
+      console.log('💾 Creating basic user account in backend...');
+      // Create basic user account in backend (without profile)
+      const createResponse = await userApi.create({
         uid: user.uid,
         email: user.email,
-        emailVerified: false,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        gender: formData.gender,
-        dateOfBirth: formData.dateOfBirth,
-        country: formData.country,
-        city: formData.city,
-        phone: formData.phone,
-        referralCode: referralCode // Include referral code if available
+        emailVerified: false
       });
 
       if (!createResponse.success) {
-        throw new Error('Failed to create profile');
+        throw new Error('Failed to create user account');
       }
 
       console.log('✅ Registration completed successfully');
@@ -229,6 +201,9 @@ const Register = () => {
                   We&apos;ve sent a verification email to <strong>{formData.email}</strong>. 
                   Please check your inbox and click the verification link to continue.
                 </p>
+                <p className="text-white-50 mb-4">
+                  After email verification, you&apos;ll be able to complete your profile setup with personal details.
+                </p>
                 {referralCode && (
                   <div className="alert alert-success rounded-4 mb-4" style={{
                     background: 'rgba(25, 135, 84, 0.1)',
@@ -247,7 +222,7 @@ const Register = () => {
                   color: '#ffc107'
                 }}>
                   <small>
-                    <strong>KYC Pending:</strong> After email verification, complete KYC by uploading PAN card and profile photo to activate your account.
+                    <strong>Next Steps:</strong> After email verification, complete your profile setup and KYC by uploading PAN card and profile photo to activate your account.
                   </small>
                 </div>
                 <div className="mt-4">
@@ -285,7 +260,7 @@ const Register = () => {
       color: 'white'
     }}>
       <div className="row w-100 justify-content-center">
-        <div className="col-md-8 col-lg-6 col-xl-5">
+        <div className="col-md-6 col-lg-4">
           <div className="card border-0 rounded-4" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -316,192 +291,58 @@ const Register = () => {
 
               {/* Registration Form */}
               <form onSubmit={handleSubmit}>
-                <div className="row">
-                  {/* Email and Password */}
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Create a password"
-                      required
-                    />
-                  </div>
+                <div className="mb-3">
+                  <label className="form-label text-white">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="form-control rounded-3"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: 'white'
+                    }}
+                    placeholder="Enter your email"
+                    required
+                  />
                 </div>
 
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Confirm Password</label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Confirm your password"
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your phone number"
-                      required
-                    />
-                  </div>
+                <div className="mb-3">
+                  <label className="form-label text-white">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="form-control rounded-3"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: 'white'
+                    }}
+                    placeholder="Create a password"
+                    required
+                  />
                 </div>
 
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your first name"
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your last name"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Gender</label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      className="form-select rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      required
-                    >
-                      <option value="">Select gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Date of Birth</label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">Country</label>
-                    <input
-                      type="text"
-                      name="country"
-                      value={formData.country}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your country"
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label text-white">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        color: 'white'
-                      }}
-                      placeholder="Enter your city"
-                      required
-                    />
-                  </div>
+                <div className="mb-3">
+                  <label className="form-label text-white">Confirm Password</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="form-control rounded-3"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: 'white'
+                    }}
+                    placeholder="Confirm your password"
+                    required
+                  />
                 </div>
 
                 {/* Terms and Conditions */}

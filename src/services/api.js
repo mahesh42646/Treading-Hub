@@ -45,18 +45,14 @@ export const userApi = {
     apiRequest(getApiEndpoint('USER_PROFILE', uid)),
 
   // Create user
-  create: (userData) => 
+  create: (userData) =>
     apiRequest(getApiEndpoint('USER_CREATE'), {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
 
-  // Create user (alias for backward compatibility)
-  createUser: (userData) => 
-    apiRequest(getApiEndpoint('USER_CREATE'), {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }),
+  // Create user (alias for backward compatibility - redirects to create)
+  createUser: (userData) => userApi.create(userData),
 
   // Create user with profile
   createWithProfile: (userData) => 

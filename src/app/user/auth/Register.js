@@ -144,6 +144,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (loading) {
+      console.log('⚠️ Form already submitting, ignoring duplicate submission');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -202,15 +209,24 @@ const Register = () => {
         referralCodeTrimmed: referralCode?.trim()
       });
       
-      // Create basic user account in backend (include referral code if present)
-      const finalReferralCode = referralCode?.trim() || null;
-      console.log('🎯 Final referral code being sent:', finalReferralCode);
+      // Ensure we have the latest referral code from URL or localStorage
+      const urlReferralCode = searchParams.get('ref');
+      const storedReferralCode = localStorage.getItem('referralCode');
+      const finalReferralCode = (urlReferralCode || referralCode || storedReferralCode)?.trim() || null;
+      
+      console.log('🎯 Determining final referral code:', {
+        fromURL: urlReferralCode,
+        fromState: referralCode,
+        fromStorage: storedReferralCode,
+        finalChoice: finalReferralCode
+      });
       
       const createResponse = await userApi.create({
         uid: user.uid,
         email: user.email,
         emailVerified: false,
-        referredBy: finalReferralCode
+        referredBy: finalReferralCode,
+        _debugId: Date.now() + '-' + Math.random().toString(36).substr(2, 9)
       });
 
       console.log('📋 Backend response:', createResponse);
@@ -223,6 +239,9 @@ const Register = () => {
       console.log('✅ Backend confirmed referredBy:', createResponse.user?.referredBy);
 
       console.log('✅ Registration completed successfully');
+      
+      // Set flag to prevent AuthContext from creating duplicate user
+      localStorage.setItem('userCreatedInRegistration', 'true');
       
       // Clear referral data from localStorage after successful registration
       if (referralCode) {

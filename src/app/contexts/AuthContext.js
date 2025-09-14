@@ -46,11 +46,28 @@ export const AuthProvider = ({ children }) => {
   // Create user in database if doesn't exist
   const createUserInDatabase = async (firebaseUser) => {
     try {
+      const isGoogleUser = firebaseUser.providerData.some(provider => provider.providerId === 'google.com');
+      
+      // Check if user was already created during registration (for email users)
+      const userCreatedInRegistration = localStorage.getItem('userCreatedInRegistration');
+      if (!isGoogleUser && userCreatedInRegistration === 'true') {
+        console.log('ℹ️ Email user already created during registration, skipping duplicate creation');
+        localStorage.removeItem('userCreatedInRegistration'); // Clean up flag
+        return true;
+      }
+      
+      console.log('🔄 Creating user in database:', {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        isGoogleUser: isGoogleUser,
+        emailVerified: firebaseUser.emailVerified
+      });
+
       const data = await userApi.createUser({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         emailVerified: firebaseUser.emailVerified,
-        isGoogleUser: firebaseUser.providerData.some(provider => provider.providerId === 'google.com')
+        isGoogleUser: isGoogleUser
       });
 
       return data.success;

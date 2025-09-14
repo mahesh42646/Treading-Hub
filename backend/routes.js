@@ -163,20 +163,49 @@ router.post('/link-google', async (req, res) => {
 // Create user account (step 1) - supports both email and Google registration
 router.post('/create', async (req, res) => {
   try {
-    const { uid, email, emailVerified, isGoogleUser, referredBy } = req.body;
+    const { uid, email, emailVerified, isGoogleUser, referredBy, _debugId } = req.body;
     
     console.log('🔍 User creation request received:', {
+      _debugId,
       uid,
       email,
       emailVerified,
       isGoogleUser,
       referredBy,
-      bodyKeys: Object.keys(req.body)
+      bodyKeys: Object.keys(req.body),
+      timestamp: new Date().toISOString()
     });
 
     // Check if user already exists
     const existingUser = await User.findOne({ uid });
     if (existingUser) {
+      console.log('⚠️ User already exists:', {
+        existingReferredBy: existingUser.referredBy,
+        newReferredBy: referredBy,
+        shouldUpdate: !existingUser.referredBy && referredBy
+      });
+      
+      // If user exists but doesn't have referredBy and we have one, update it
+      if (!existingUser.referredBy && referredBy) {
+        console.log('🔄 Updating existing user with referral code:', referredBy);
+        
+        // Validate referral code first
+        const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
+        if (referrerProfile) {
+          existingUser.referredBy = referredBy;
+          await existingUser.save();
+          
+          // Update referrer's pending count
+          referrerProfile.referral.totalReferrals += 1;
+          referrerProfile.referral.pendingReferrals += 1;
+          await referrerProfile.save();
+          
+          console.log('✅ Updated existing user with referral code and referrer stats');
+        } else {
+          console.log('❌ Invalid referral code, not updating existing user');
+        }
+      }
+      
       // User exists, update email verification status if needed
       if (emailVerified && !existingUser.emailVerified) {
         existingUser.emailVerified = true;
@@ -189,7 +218,8 @@ router.post('/create', async (req, res) => {
         user: {
           uid: existingUser.uid,
           email: existingUser.email,
-          emailVerified: existingUser.emailVerified
+          emailVerified: existingUser.emailVerified,
+          referredBy: existingUser.referredBy
         }
       });
     }

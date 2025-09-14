@@ -1411,16 +1411,6 @@ router.post('/wallet/razorpay-order', async (req, res) => {
         message: 'Minimum deposit amount is ₹500'
       });
     }
-    
-    // Get user from session/token (implement your auth middleware)
-    const userId = req.user?.id; // Implement your auth middleware
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized'
-      });
-    }
 
     if (!amount || amount <= 0) {
       return res.status(400).json({
@@ -1466,15 +1456,12 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
       });
     }
 
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, uid } = req.body;
     
-    // Get user from session/token (implement your auth middleware)
-    const userId = req.user?.id; // Implement your auth middleware
-    
-    if (!userId) {
-      return res.status(401).json({
+    if (!uid) {
+      return res.status(400).json({
         success: false,
-        message: 'Unauthorized'
+        message: 'User ID is required'
       });
     }
 
@@ -1503,10 +1490,16 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
       });
     }
 
-    // Update user's wallet
-    const user = await User.findById(userId);
-    const profile = await Profile.findOne({ userId: user._id });
+    // Find user by uid
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
+    const profile = await Profile.findOne({ userId: user._id });
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -2126,87 +2119,6 @@ router.get('/wallet/balance/:uid', async (req, res) => {
   }
 });
 
-// Create Razorpay order for deposit
-router.post('/wallet/razorpay-order', async (req, res) => {
-  try {
-    const { amount, currency = 'INR' } = req.body;
-    
-    if (!razorpay) {
-      return res.status(500).json({
-        success: false,
-        message: 'Payment service not available'
-      });
-    }
-
-    const options = {
-      amount: amount, // amount in paise
-      currency: currency,
-      receipt: `deposit_${Date.now()}`
-    };
-
-    const order = await razorpay.orders.create(options);
-    
-    res.json({
-      success: true,
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency
-    });
-  } catch (error) {
-    console.error('Error creating Razorpay order:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create payment order',
-      error: error.message
-    });
-  }
-});
-
-// Verify Razorpay payment
-router.post('/wallet/razorpay-verify', async (req, res) => {
-  try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-    
-    if (!razorpay) {
-      return res.status(500).json({
-        success: false,
-        message: 'Payment service not available'
-      });
-    }
-
-    // Verify payment signature
-    const crypto = require('crypto');
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
-      .digest('hex');
-
-    if (expectedSignature === razorpay_signature) {
-      // Get order details
-      const order = await razorpay.orders.fetch(razorpay_order_id);
-      const amount = order.amount / 100; // Convert from paise to rupees
-      
-      res.json({
-        success: true,
-        message: 'Payment verified successfully',
-        amount: amount
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid payment signature'
-      });
-    }
-  } catch (error) {
-    console.error('Error verifying payment:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify payment',
-      error: error.message
-    });
-  }
-});
 
 // Process deposit
 router.post('/wallet/deposit', async (req, res) => {

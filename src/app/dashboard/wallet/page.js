@@ -111,13 +111,13 @@ export default function DashboardWallet() {
             const verifyResponse = await fetch(buildApiUrl('/wallet/razorpay-verify'), {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${await user.getIdToken()}`
+                'Content-Type': 'application/json'
               },
               body: JSON.stringify({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature
+                razorpay_signature: response.razorpay_signature,
+                uid: user.uid
               })
             });
 

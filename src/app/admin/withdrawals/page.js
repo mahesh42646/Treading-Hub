@@ -355,7 +355,7 @@ export default function AdminWithdrawals() {
                 {actionType === 'complete' && (
                   <div className="alert alert-info">
                     <i className="bi bi-info-circle me-2"></i>
-                    Mark this withdrawal as completed after manually transferring the amount to the user's account.
+                    Mark this withdrawal as completed after manually transferring the amount to the user&apos;s account.
                   </div>
                 )}
               </div>

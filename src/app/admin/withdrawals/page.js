@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAdminAuth } from '../AdminWrapper';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 export default function AdminWithdrawals() {
-  const { adminToken } = useAdminAuth();
+  const { isAuthenticated, loading: authLoading } = useAdminAuth();
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
@@ -17,8 +17,10 @@ export default function AdminWithdrawals() {
   });
 
   useEffect(() => {
-    fetchWithdrawals();
-  }, [filters]);
+    if (isAuthenticated && !authLoading) {
+      fetchWithdrawals();
+    }
+  }, [filters, isAuthenticated, authLoading]);
 
   const fetchWithdrawals = async () => {
     try {
@@ -28,9 +30,7 @@ export default function AdminWithdrawals() {
       if (filters.type) queryParams.append('type', filters.type);
       
       const response = await fetch(`/api/admin/withdrawals?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${adminToken}`
-        }
+        credentials: 'include'
       });
       
       if (response.ok) {
@@ -68,9 +68,9 @@ export default function AdminWithdrawals() {
       const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(body)
       });
 
@@ -116,6 +116,27 @@ export default function AdminWithdrawals() {
   const getTypeBadge = (type) => {
     return type === 'wallet' ? 'badge bg-primary' : 'badge bg-warning';
   };
+
+  if (authLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container-fluid py-4">
+        <div className="alert alert-danger">
+          <h4>Access Denied</h4>
+          <p>You need to be logged in as an admin to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid py-4">

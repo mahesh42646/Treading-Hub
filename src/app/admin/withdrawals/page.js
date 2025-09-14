@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 export default function AdminWithdrawals() {
-  const { isAuthenticated, loading: authLoading } = useAdminAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
@@ -17,10 +17,33 @@ export default function AdminWithdrawals() {
   });
 
   useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
     if (isAuthenticated && !authLoading) {
       fetchWithdrawals();
     }
   }, [filters, isAuthenticated, authLoading]);
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Admin auth check error:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const fetchWithdrawals = async () => {
     try {
@@ -29,7 +52,7 @@ export default function AdminWithdrawals() {
       if (filters.status) queryParams.append('status', filters.status);
       if (filters.type) queryParams.append('type', filters.type);
       
-      const response = await fetch(`/api/admin/withdrawals?${queryParams}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals?${queryParams}`, {
         credentials: 'include'
       });
       
@@ -53,15 +76,15 @@ export default function AdminWithdrawals() {
       
       switch (action) {
         case 'approve':
-          endpoint = `/api/admin/withdrawals/${withdrawalId}/approve`;
+          endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals/${withdrawalId}/approve`;
           body = { adminNotes: notes };
           break;
         case 'reject':
-          endpoint = `/api/admin/withdrawals/${withdrawalId}/reject`;
+          endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals/${withdrawalId}/reject`;
           body = { rejectionReason: notes };
           break;
         case 'complete':
-          endpoint = `/api/admin/withdrawals/${withdrawalId}/complete`;
+          endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals/${withdrawalId}/complete`;
           break;
       }
 

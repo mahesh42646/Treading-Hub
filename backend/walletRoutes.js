@@ -152,6 +152,23 @@ router.post('/razorpay-verify', async (req, res) => {
     profile.wallet.walletBalance += depositAmount;
     profile.wallet.totalDeposits += depositAmount;
 
+    // Create deposit transaction record
+    const depositTransaction = new Transaction({
+      userId: user._id,
+      type: 'deposit',
+      amount: depositAmount,
+      description: `Wallet deposit via Razorpay - Order: ${razorpay_order_id}`,
+      status: 'completed',
+      metadata: {
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+        paymentMethod: 'razorpay',
+        currency: 'INR'
+      },
+      processedAt: new Date()
+    });
+    await depositTransaction.save();
+
     // Check if this is the first deposit and user has a referrer
     if (profile.referral.referredBy && profile.wallet.totalDeposits === depositAmount) {
       // Find referrer and credit referral bonus
@@ -167,7 +184,26 @@ router.post('/razorpay-verify', async (req, res) => {
           };
         }
         
-        referrerProfile.wallet.referralBalance += 200; // ₹200 referral bonus
+        const referralBonus = depositAmount * 0.2; // 20% of first deposit
+        referrerProfile.wallet.referralBalance += referralBonus;
+        
+        // Create referral bonus transaction for referrer
+        const referralTransaction = new Transaction({
+          userId: referrerProfile.userId,
+          type: 'referral_bonus',
+          amount: referralBonus,
+          description: `Referral bonus from ${profile.personalInfo?.firstName || 'User'}'s first deposit`,
+          status: 'completed',
+          metadata: {
+            referredUserId: user._id,
+            referredUserUid: uid,
+            referredUserName: `${profile.personalInfo?.firstName || ''} ${profile.personalInfo?.lastName || ''}`.trim(),
+            depositAmount: depositAmount
+          },
+          processedAt: new Date()
+        });
+        await referralTransaction.save();
+        
         await referrerProfile.save();
       }
     }
@@ -227,12 +263,47 @@ router.get('/balance/:uid', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(50);
 
+    // Calculate today's change
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayTransactions = await Transaction.find({
+      userId: user._id,
+      createdAt: { $gte: today, $lt: tomorrow },
+      status: 'completed'
+    });
+
+    const todayDeposits = todayTransactions
+      .filter(t => t.type === 'deposit')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const todayWithdrawals = todayTransactions
+      .filter(t => t.type === 'withdrawal')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const todayChange = todayDeposits - todayWithdrawals;
+
+    // Calculate actual totals from transactions
+    const actualTotals = await Transaction.aggregate([
+      { $match: { userId: user._id, status: 'completed' } },
+      { $group: {
+        _id: '$type',
+        total: { $sum: '$amount' }
+      }}
+    ]);
+
+    const actualDeposits = actualTotals.find(t => t._id === 'deposit')?.total || 0;
+    const actualWithdrawals = actualTotals.find(t => t._id === 'withdrawal')?.total || 0;
+
     res.json({
       success: true,
       walletBalance: profile.wallet.walletBalance,
       referralBalance: profile.wallet.referralBalance,
-      totalDeposits: profile.wallet.totalDeposits,
-      totalWithdrawals: profile.wallet.totalWithdrawals,
+      totalDeposits: actualDeposits,
+      totalWithdrawals: actualWithdrawals,
+      todayChange: todayChange,
       transactions: transactions
     });
   } catch (error) {
@@ -421,6 +492,77 @@ router.get('/withdrawal/:withdrawalId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch withdrawal details',
+      error: error.message
+    });
+  }
+});
+
+// Get referral history for a user
+router.get('/referral-history/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Get referral transactions (referral bonuses earned)
+    const referralTransactions = await Transaction.find({ 
+      userId: user._id, 
+      type: 'referral_bonus' 
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+    // Get users who used this user's referral code
+    const referredUsers = await Profile.find({ 
+      'referral.referredBy': profile.referral.code 
+    })
+    .populate('userId', 'uid email')
+    .select('personalInfo referral wallet')
+    .sort({ createdAt: -1 });
+
+    // Get total referral earnings
+    const totalReferralEarnings = await Transaction.aggregate([
+      { $match: { userId: user._id, type: 'referral_bonus' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
+    res.json({
+      success: true,
+      referralTransactions: referralTransactions,
+      referredUsers: referredUsers.map(user => ({
+        uid: user.userId.uid,
+        email: user.userId.email,
+        name: `${user.personalInfo?.firstName || ''} ${user.personalInfo?.lastName || ''}`.trim(),
+        joinedAt: user.createdAt,
+        hasDeposited: user.wallet?.totalDeposits > 0,
+        totalDeposits: user.wallet?.totalDeposits || 0,
+        referralBonus: user.wallet?.totalDeposits > 0 ? user.wallet.totalDeposits * 0.2 : 0
+      })),
+      totalReferralEarnings: totalReferralEarnings[0]?.total || 0,
+      totalReferred: referredUsers.length,
+      activeReferred: referredUsers.filter(user => user.wallet?.totalDeposits > 0).length
+    });
+  } catch (error) {
+    console.error('Error fetching referral history:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referral history',
       error: error.message
     });
   }

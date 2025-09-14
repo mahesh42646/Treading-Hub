@@ -14,7 +14,15 @@ export default function DashboardWallet() {
     totalDeposits: 0.00,
     totalWithdrawals: 0.00,
     totalPnl: 0.00,
+    todayChange: 0.00,
     transactions: []
+  });
+  const [referralData, setReferralData] = useState({
+    referralTransactions: [],
+    referredUsers: [],
+    totalReferralEarnings: 0,
+    totalReferred: 0,
+    activeReferred: 0
   });
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -45,6 +53,7 @@ export default function DashboardWallet() {
     fetchWalletData();
     fetchSavedBanks();
     fetchWithdrawals();
+    fetchReferralData();
     
     // Load Razorpay script
     const script = document.createElement('script');
@@ -107,12 +116,28 @@ export default function DashboardWallet() {
         totalDeposits: data.totalDeposits,
         totalWithdrawals: data.totalWithdrawals,
         totalPnl: 0, // This would come from trading data
+        todayChange: data.todayChange || 0,
         transactions: data.transactions
       });
     } catch (error) {
       console.error('Error fetching wallet data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReferralData = async () => {
+    try {
+      const data = await api.get(`/wallet/referral-history/${user.uid}`);
+      setReferralData({
+        referralTransactions: data.referralTransactions,
+        referredUsers: data.referredUsers,
+        totalReferralEarnings: data.totalReferralEarnings,
+        totalReferred: data.totalReferred,
+        activeReferred: data.activeReferred
+      });
+    } catch (error) {
+      console.error('Error fetching referral data:', error);
     }
   };
 
@@ -347,7 +372,9 @@ export default function DashboardWallet() {
                 <div className="flex-grow-1 ms-3">
                   <h6 className="text-muted mb-1">Wallet Balance</h6>
                   <h4 className="fw-bold mb-0">₹{walletData.walletBalance.toFixed(2)}</h4>
-                  <small className="text-success">+₹0.00 today</small>
+                  <small className={walletData.todayChange >= 0 ? "text-success" : "text-danger"}>
+                    {walletData.todayChange >= 0 ? '+' : ''}₹{walletData.todayChange.toFixed(2)} today
+                  </small>
                 </div>
               </div>
             </div>
@@ -417,37 +444,41 @@ export default function DashboardWallet() {
         <div className="col-12">
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-white border-0">
-              <ul className="nav nav-tabs card-header-tabs">
-                <li className="nav-item">
+              <ul className="nav nav-tabs card-header-tabs flex-nowrap overflow-auto">
+                <li className="nav-item flex-shrink-0">
                   <button 
                     className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
                     onClick={() => setActiveTab('overview')}
                   >
+                    <i className="bi bi-house me-1"></i>
                     Overview
                   </button>
                 </li>
-                <li className="nav-item">
+                <li className="nav-item flex-shrink-0">
                   <button 
                     className={`nav-link ${activeTab === 'transactions' ? 'active' : ''}`}
                     onClick={() => setActiveTab('transactions')}
                   >
+                    <i className="bi bi-arrow-left-right me-1"></i>
                     Transactions
                   </button>
                 </li>
-                <li className="nav-item">
+                <li className="nav-item flex-shrink-0">
                   <button 
                     className={`nav-link ${activeTab === 'referrals' ? 'active' : ''}`}
                     onClick={() => setActiveTab('referrals')}
                   >
-                    Referral Earnings
+                    <i className="bi bi-people me-1"></i>
+                    Referral History
                   </button>
                 </li>
-                <li className="nav-item">
+                <li className="nav-item flex-shrink-0">
                   <button 
                     className={`nav-link ${activeTab === 'withdrawals' ? 'active' : ''}`}
                     onClick={() => setActiveTab('withdrawals')}
                   >
-                    Withdrawal History
+                    <i className="bi bi-arrow-up-circle me-1"></i>
+                    Withdrawals
                   </button>
                 </li>
               </ul>
@@ -525,16 +556,28 @@ export default function DashboardWallet() {
                         </thead>
                         <tbody>
                           {walletData.transactions.map((transaction) => (
-                            <tr key={transaction.id}>
+                            <tr key={transaction._id || transaction.id}>
                               <td>
                                 <i className={`bi ${getTransactionIcon(transaction.type)} me-2`}></i>
-                                {transaction.type.replace('_', ' ').toUpperCase()}
+                                <span className="text-capitalize">
+                                  {transaction.type.replace('_', ' ')}
+                                </span>
                               </td>
                               <td className="fw-bold">
-                                ₹{transaction.amount.toFixed(2)}
+                                <span className={transaction.type === 'deposit' || transaction.type === 'referral_bonus' ? 'text-success' : 'text-danger'}>
+                                  {transaction.type === 'deposit' || transaction.type === 'referral_bonus' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
+                                </span>
                               </td>
-                              <td>{transaction.description}</td>
-                              <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                              <td className="text-truncate" style={{maxWidth: '200px'}} title={transaction.description}>
+                                {transaction.description}
+                              </td>
+                              <td>
+                                <small>{new Date(transaction.createdAt || transaction.date).toLocaleDateString()}</small>
+                                <br/>
+                                <small className="text-muted">
+                                  {new Date(transaction.createdAt || transaction.date).toLocaleTimeString()}
+                                </small>
+                              </td>
                               <td>
                                 <span className={getStatusBadge(transaction.status)}>
                                   {transaction.status}
@@ -551,34 +594,148 @@ export default function DashboardWallet() {
 
               {activeTab === 'referrals' && (
                 <div>
-                  <h5 className="mb-3">Referral Earnings</h5>
-                  <div className="alert alert-success">
-                    <h6>How it works:</h6>
-                    <ul className="mb-0">
-                      <li>Share your referral link with friends</li>
-                      <li>When they complete their profile and make their first deposit</li>
-                      <li>You earn 20% of their first deposit as referral bonus</li>
-                      <li>Referral bonus is added to your referral balance</li>
-                    </ul>
-                  </div>
+                  <h5 className="mb-3">Referral History</h5>
                   
-                  <div className="row">
-                    <div className="col-md-6">
+                  {/* Referral Stats */}
+                  <div className="row mb-4">
+                    <div className="col-md-3 col-sm-6 mb-3">
                       <div className="card border-0 bg-light">
                         <div className="card-body text-center">
-                          <h4 className="text-warning">₹{walletData.referralBalance.toFixed(2)}</h4>
-                          <p className="text-muted mb-0">Total Referral Earnings</p>
+                          <h4 className="text-warning">₹{referralData.totalReferralEarnings.toFixed(2)}</h4>
+                          <p className="text-muted mb-0">Total Earnings</p>
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-3 col-sm-6 mb-3">
                       <div className="card border-0 bg-light">
                         <div className="card-body text-center">
-                          <h4 className="text-success">20%</h4>
-                          <p className="text-muted mb-0">Referral Bonus Rate</p>
+                          <h4 className="text-primary">{referralData.totalReferred}</h4>
+                          <p className="text-muted mb-0">Total Referred</p>
                         </div>
                       </div>
                     </div>
+                    <div className="col-md-3 col-sm-6 mb-3">
+                      <div className="card border-0 bg-light">
+                        <div className="card-body text-center">
+                          <h4 className="text-success">{referralData.activeReferred}</h4>
+                          <p className="text-muted mb-0">Active Users</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-3 col-sm-6 mb-3">
+                      <div className="card border-0 bg-light">
+                        <div className="card-body text-center">
+                          <h4 className="text-info">20%</h4>
+                          <p className="text-muted mb-0">Bonus Rate</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Referred Users Table */}
+                  <div className="mb-4">
+                    <h6 className="mb-3">Referred Users</h6>
+                    {referralData.referredUsers.length === 0 ? (
+                      <div className="text-center py-4">
+                        <i className="bi bi-people fs-1 text-muted"></i>
+                        <p className="text-muted mt-2">No referrals yet</p>
+                        <small className="text-muted">Share your referral code to start earning!</small>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Email</th>
+                              <th>Joined</th>
+                              <th>Status</th>
+                              <th>Deposits</th>
+                              <th>Your Bonus</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {referralData.referredUsers.map((user) => (
+                              <tr key={user.uid}>
+                                <td>
+                                  <div className="d-flex align-items-center">
+                                    <div className="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                      <i className="bi bi-person text-primary"></i>
+                                    </div>
+                                    <span className="fw-medium">{user.name || 'Unknown'}</span>
+                                  </div>
+                                </td>
+                                <td>
+                                  <small className="text-muted">{user.email}</small>
+                                </td>
+                                <td>
+                                  <small>{new Date(user.joinedAt).toLocaleDateString()}</small>
+                                </td>
+                                <td>
+                                  <span className={`badge ${user.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
+                                    {user.hasDeposited ? 'Active' : 'Pending'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="fw-medium">₹{user.totalDeposits.toFixed(2)}</span>
+                                </td>
+                                <td>
+                                  <span className="text-success fw-medium">₹{user.referralBonus.toFixed(2)}</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Referral Earnings History */}
+                  <div>
+                    <h6 className="mb-3">Referral Earnings History</h6>
+                    {referralData.referralTransactions.length === 0 ? (
+                      <div className="text-center py-4">
+                        <i className="bi bi-gift fs-1 text-muted"></i>
+                        <p className="text-muted mt-2">No referral earnings yet</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Amount</th>
+                              <th>From User</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {referralData.referralTransactions.map((transaction) => (
+                              <tr key={transaction._id}>
+                                <td>
+                                  <small>{new Date(transaction.createdAt).toLocaleDateString()}</small>
+                                  <br/>
+                                  <small className="text-muted">
+                                    {new Date(transaction.createdAt).toLocaleTimeString()}
+                                  </small>
+                                </td>
+                                <td>
+                                  <span className="text-success fw-bold">+₹{transaction.amount.toFixed(2)}</span>
+                                </td>
+                                <td>
+                                  <span className="text-muted">
+                                    {transaction.metadata?.referredUserName || 'Unknown User'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <small className="text-muted">{transaction.description}</small>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -609,6 +766,7 @@ export default function DashboardWallet() {
                             <tr key={withdrawal._id}>
                               <td>
                                 <span className={`badge ${withdrawal.type === 'wallet' ? 'bg-primary' : 'bg-warning'}`}>
+                                  <i className={`bi ${withdrawal.type === 'wallet' ? 'bi-wallet2' : 'bi-gift'} me-1`}></i>
                                   {withdrawal.type === 'wallet' ? 'Wallet' : 'Referral'}
                                 </span>
                               </td>
@@ -618,18 +776,36 @@ export default function DashboardWallet() {
                                   {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                                 </span>
                               </td>
-                              <td>{new Date(withdrawal.createdAt).toLocaleDateString()}</td>
                               <td>
-                                {withdrawal.processedAt 
-                                  ? new Date(withdrawal.processedAt).toLocaleDateString()
-                                  : '-'
-                                }
+                                <small>{new Date(withdrawal.createdAt).toLocaleDateString()}</small>
+                                <br/>
+                                <small className="text-muted">
+                                  {new Date(withdrawal.createdAt).toLocaleTimeString()}
+                                </small>
+                              </td>
+                              <td>
+                                {withdrawal.processedAt ? (
+                                  <>
+                                    <small>{new Date(withdrawal.processedAt).toLocaleDateString()}</small>
+                                    <br/>
+                                    <small className="text-muted">
+                                      {new Date(withdrawal.processedAt).toLocaleTimeString()}
+                                    </small>
+                                  </>
+                                ) : (
+                                  <span className="text-muted">-</span>
+                                )}
                               </td>
                               <td>
                                 {withdrawal.type === 'wallet' && withdrawal.accountDetails && (
-                                  <small className="text-muted">
-                                    {withdrawal.accountDetails.bankName} - ****{withdrawal.accountDetails.accountNumber?.slice(-4)}
-                                  </small>
+                                  <div>
+                                    <small className="text-muted d-block">
+                                      {withdrawal.accountDetails.bankName}
+                                    </small>
+                                    <small className="text-muted">
+                                      ****{withdrawal.accountDetails.accountNumber?.slice(-4)}
+                                    </small>
+                                  </div>
                                 )}
                                 {withdrawal.status === 'rejected' && withdrawal.rejectionReason && (
                                   <div className="mt-1">

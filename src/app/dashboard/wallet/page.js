@@ -447,7 +447,7 @@ export default function DashboardWallet() {
                         <li>Minimum withdrawal amount: ₹{MIN_WITHDRAWAL_AMOUNT}</li>
                         <li>Referral bonus can only be withdrawn after making at least one deposit</li>
                         <li>Withdrawal requests are processed within 24-48 hours</li>
-                        <li>Referral bonus: 20% of referred user's first deposit</li>
+                        <li>Referral bonus: 20% of referred user&apos;s first deposit</li>
                       </ul>
                     </div>
                   </div>

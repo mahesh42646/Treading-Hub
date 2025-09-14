@@ -57,19 +57,30 @@ const Register = () => {
 
   const validateReferralCode = async (code) => {
     try {
-      const response = await fetch(buildApiUrl(`/referral/validate/${code}`));
+      console.log('🔍 Validating referral code:', code);
+      const validateUrl = buildApiUrl(`/referral/validate/${code}`);
+      console.log('🔗 Validation URL:', validateUrl);
+      
+      const response = await fetch(validateUrl);
+      console.log('📡 Validation response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
         setReferrerName(data.referrerName || '');
         localStorage.setItem('referrerName', data.referrerName || '');
-        console.log('✅ Referral code validated:', data);
+        console.log('✅ Referral code validated successfully:', data);
       } else {
-        console.error('❌ Invalid referral code:', code);
-        setReferralCode(''); // Clear invalid code
+        const errorData = await response.text();
+        console.error('❌ Invalid referral code response:', { code, status: response.status, error: errorData });
+        console.error('❌ KEEPING referral code despite validation failure for registration');
+        // DON'T clear the referral code - keep it for registration
+        // setReferralCode(''); // Clear invalid code
       }
     } catch (error) {
       console.error('❌ Error validating referral code:', error);
-      setReferralCode(''); // Clear on error
+      console.error('❌ KEEPING referral code despite validation error for registration');
+      // DON'T clear the referral code - keep it for registration
+      // setReferralCode(''); // Clear on error
     }
   };
 
@@ -178,20 +189,28 @@ const Register = () => {
       }
 
       console.log('💾 Creating basic user account in backend...');
+      console.log('🔍 Current referralCode state:', referralCode);
+      console.log('🔍 typeof referralCode:', typeof referralCode);
+      console.log('🔍 referralCode length:', referralCode?.length);
       console.log('🔍 Referral data being sent:', {
         uid: user.uid,
         email: user.email,
         emailVerified: false,
         referredBy: referralCode || null,
-        actualReferralCode: referralCode
+        actualReferralCode: referralCode,
+        hasReferralCode: !!referralCode,
+        referralCodeTrimmed: referralCode?.trim()
       });
       
       // Create basic user account in backend (include referral code if present)
+      const finalReferralCode = referralCode?.trim() || null;
+      console.log('🎯 Final referral code being sent:', finalReferralCode);
+      
       const createResponse = await userApi.create({
         uid: user.uid,
         email: user.email,
         emailVerified: false,
-        referredBy: referralCode || null
+        referredBy: finalReferralCode
       });
 
       console.log('📋 Backend response:', createResponse);

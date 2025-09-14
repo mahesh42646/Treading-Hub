@@ -178,6 +178,14 @@ const Register = () => {
       }
 
       console.log('💾 Creating basic user account in backend...');
+      console.log('🔍 Referral data being sent:', {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: false,
+        referredBy: referralCode || null,
+        actualReferralCode: referralCode
+      });
+      
       // Create basic user account in backend (include referral code if present)
       const createResponse = await userApi.create({
         uid: user.uid,
@@ -186,11 +194,14 @@ const Register = () => {
         referredBy: referralCode || null
       });
 
+      console.log('📋 Backend response:', createResponse);
+
       if (!createResponse.success) {
         throw new Error('Failed to create user account');
       }
 
       console.log('✅ User created with referral code:', referralCode || 'None');
+      console.log('✅ Backend confirmed referredBy:', createResponse.user?.referredBy);
 
       console.log('✅ Registration completed successfully');
       
@@ -253,7 +264,7 @@ const Register = () => {
                   }}>
                     <small>
                       <strong>🎉 Referral Bonus:</strong> You&apos;ve been referred by {referrerName || 'a Trading Hub member'}. 
-                      Complete your profile and make your first deposit to earn your referrer a ₹200 bonus!
+                      Complete your profile and make your first deposit to earn your referrer 20% of your deposit amount!
                     </small>
                   </div>
                 )}

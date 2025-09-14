@@ -164,6 +164,15 @@ router.post('/link-google', async (req, res) => {
 router.post('/create', async (req, res) => {
   try {
     const { uid, email, emailVerified, isGoogleUser, referredBy } = req.body;
+    
+    console.log('🔍 User creation request received:', {
+      uid,
+      email,
+      emailVerified,
+      isGoogleUser,
+      referredBy,
+      bodyKeys: Object.keys(req.body)
+    });
 
     // Check if user already exists
     const existingUser = await User.findOne({ uid });
@@ -188,13 +197,21 @@ router.post('/create', async (req, res) => {
     // Validate referral code if provided
     let validReferralCode = null;
     if (referredBy) {
+      console.log('🔍 Validating referral code:', referredBy);
       const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
       if (referrerProfile) {
         validReferralCode = referredBy;
         console.log('✅ Valid referral code provided:', referredBy);
+        console.log('✅ Referrer found:', {
+          name: `${referrerProfile.personalInfo.firstName} ${referrerProfile.personalInfo.lastName}`,
+          userId: referrerProfile.userId
+        });
       } else {
         console.log('❌ Invalid referral code provided:', referredBy);
+        console.log('❌ No profile found with referral code:', referredBy);
       }
+    } else {
+      console.log('ℹ️ No referral code provided in request');
     }
 
     // Create new user
@@ -205,7 +222,16 @@ router.post('/create', async (req, res) => {
       referredBy: validReferralCode
     });
 
+    console.log('💾 About to save user with data:', {
+      uid: user.uid,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      referredBy: user.referredBy
+    });
+
     await user.save();
+    
+    console.log('✅ User saved successfully with referredBy:', user.referredBy);
 
     // If user was referred, update referrer's pending count
     if (validReferralCode) {
@@ -2267,6 +2293,46 @@ router.post('/wallet/deposit', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to process deposit',
+      error: error.message
+    });
+  }
+});
+
+// Debug endpoint to check user referral status
+router.get('/debug/user/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    const profile = await Profile.findOne({ userId: user._id });
+    
+    res.json({
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        referredBy: user.referredBy,
+        createdAt: user.createdAt
+      },
+      profile: profile ? {
+        name: `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`,
+        referral: profile.referral,
+        createdAt: profile.createdAt
+      } : null
+    });
+  } catch (error) {
+    console.error('Error checking user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check user',
       error: error.message
     });
   }

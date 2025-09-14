@@ -39,12 +39,13 @@ const Contact = require('./models/Contact');
 // Import routes
 const userRoutes = require('./routes');
 const adminRoutes = require('./adminRoutes');
+const walletRoutes = require('./walletRoutes');
 
 // User routes
 app.use('/api/users', userRoutes);
 
-// Wallet routes (from userRoutes but accessible at /api/wallet)
-app.use('/api/wallet', userRoutes);
+// Wallet routes
+app.use('/api/wallet', walletRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);

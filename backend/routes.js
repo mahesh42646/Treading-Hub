@@ -1403,6 +1403,15 @@ router.post('/wallet/razorpay-order', async (req, res) => {
 
     const { amount, currency = 'INR' } = req.body;
     
+    // Validate minimum deposit amount (amount is in paise)
+    const MIN_DEPOSIT_AMOUNT_PAISE = 50000; // ₹500 in paise
+    if (amount < MIN_DEPOSIT_AMOUNT_PAISE) {
+      return res.status(400).json({
+        success: false,
+        message: 'Minimum deposit amount is ₹500'
+      });
+    }
+    
     // Get user from session/token (implement your auth middleware)
     const userId = req.user?.id; // Implement your auth middleware
     
@@ -2204,6 +2213,15 @@ router.post('/wallet/deposit', async (req, res) => {
   try {
     const { uid, amount, paymentId } = req.body;
     
+    // Validate minimum deposit amount
+    const MIN_DEPOSIT_AMOUNT = 500;
+    if (amount < MIN_DEPOSIT_AMOUNT) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum deposit amount is ₹${MIN_DEPOSIT_AMOUNT}`
+      });
+    }
+    
     const user = await User.findOne({ uid });
     if (!user) {
       return res.status(404).json({
@@ -2375,6 +2393,15 @@ router.get('/debug/user/:uid', async (req, res) => {
 router.post('/wallet/withdraw', async (req, res) => {
   try {
     const { uid, amount, type, accountDetails } = req.body; // type: 'wallet' or 'referral'
+    
+    // Validate minimum withdrawal amount
+    const MIN_WITHDRAWAL_AMOUNT = 500;
+    if (amount < MIN_WITHDRAWAL_AMOUNT) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum withdrawal amount is ₹${MIN_WITHDRAWAL_AMOUNT}`
+      });
+    }
     
     const user = await User.findOne({ uid });
     if (!user) {

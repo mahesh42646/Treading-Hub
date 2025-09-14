@@ -22,11 +22,24 @@ export default function DashboardWallet() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
+  const MIN_DEPOSIT_AMOUNT = 500;
   const MIN_WITHDRAWAL_AMOUNT = 500;
-  const REFERRAL_BONUS_AMOUNT = 200;
 
   useEffect(() => {
     fetchWalletData();
+    
+    // Load Razorpay script
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      // Cleanup
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
   }, []);
 
   const fetchWalletData = async () => {
@@ -57,8 +70,8 @@ export default function DashboardWallet() {
   };
 
   const handleDeposit = async () => {
-    if (!depositAmount || parseFloat(depositAmount) <= 0) {
-      alert('Please enter a valid amount');
+    if (!depositAmount || parseFloat(depositAmount) < MIN_DEPOSIT_AMOUNT) {
+      alert(`Minimum deposit amount is ₹${MIN_DEPOSIT_AMOUNT}`);
       return;
     }
 
@@ -434,7 +447,7 @@ export default function DashboardWallet() {
                         <li>Minimum withdrawal amount: ₹{MIN_WITHDRAWAL_AMOUNT}</li>
                         <li>Referral bonus can only be withdrawn after making at least one deposit</li>
                         <li>Withdrawal requests are processed within 24-48 hours</li>
-                        <li>Referral bonus: ₹{REFERRAL_BONUS_AMOUNT} per successful referral</li>
+                        <li>Referral bonus: 20% of referred user's first deposit</li>
                       </ul>
                     </div>
                   </div>
@@ -495,7 +508,7 @@ export default function DashboardWallet() {
                     <ul className="mb-0">
                       <li>Share your referral link with friends</li>
                       <li>When they complete their profile and make their first deposit</li>
-                      <li>You earn ₹{REFERRAL_BONUS_AMOUNT} as referral bonus</li>
+                      <li>You earn 20% of their first deposit as referral bonus</li>
                       <li>Referral bonus is added to your referral balance</li>
                     </ul>
                   </div>
@@ -512,8 +525,8 @@ export default function DashboardWallet() {
                     <div className="col-md-6">
                       <div className="card border-0 bg-light">
                         <div className="card-body text-center">
-                          <h4 className="text-success">₹{REFERRAL_BONUS_AMOUNT}</h4>
-                          <p className="text-muted mb-0">Per Referral Bonus</p>
+                          <h4 className="text-success">20%</h4>
+                          <p className="text-muted mb-0">Referral Bonus Rate</p>
                         </div>
                       </div>
                     </div>
@@ -546,13 +559,14 @@ export default function DashboardWallet() {
                     className="form-control"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    placeholder="Enter amount"
-                    min="1"
+                    placeholder={`Enter amount (min: ₹${MIN_DEPOSIT_AMOUNT})`}
+                    min={MIN_DEPOSIT_AMOUNT}
                   />
                 </div>
                 <div className="alert alert-info">
                   <small>
                     <i className="bi bi-info-circle me-2"></i>
+                    <strong>Minimum deposit: ₹{MIN_DEPOSIT_AMOUNT}</strong><br/>
                     Payment will be processed securely through Razorpay
                   </small>
                 </div>
@@ -569,7 +583,7 @@ export default function DashboardWallet() {
                   type="button" 
                   className="btn btn-primary"
                   onClick={handleDeposit}
-                  disabled={loading || !depositAmount}
+                  disabled={loading || !depositAmount || parseFloat(depositAmount) < MIN_DEPOSIT_AMOUNT}
                 >
                   {loading ? 'Processing...' : 'Proceed to Payment'}
                 </button>

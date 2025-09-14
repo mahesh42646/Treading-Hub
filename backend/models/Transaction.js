@@ -8,59 +8,41 @@ const transactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['deposit', 'withdrawal', 'commission', 'refund', 'fee'],
+    enum: ['deposit', 'withdrawal', 'referral_bonus', 'profit', 'loss', 'refund'],
     required: true
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
-  currency: {
+  description: {
     type: String,
-    default: 'INR'
+    required: true
   },
   status: {
     type: String,
     enum: ['pending', 'completed', 'failed', 'cancelled'],
     default: 'pending'
   },
-  paymentMethod: {
-    type: String,
-    enum: ['upi', 'bank_transfer', 'card', 'wallet', 'crypto'],
-    required: true
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
-  transactionId: {
+  paymentId: {
     type: String,
-    unique: true,
-    sparse: true
-  },
-  gatewayResponse: {
-    type: Object
-  },
-  description: {
-    type: String,
-    trim: true
-  },
-  adminNotes: {
-    type: String,
-    trim: true
+    default: null
   },
   processedAt: {
-    type: Date
-  },
-  createdAt: {
     type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    default: null
   }
+}, {
+  timestamps: true
 });
 
-transactionSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Index for better query performance
+transactionSchema.index({ userId: 1, createdAt: -1 });
+transactionSchema.index({ type: 1, status: 1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

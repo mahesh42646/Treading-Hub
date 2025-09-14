@@ -4,9 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from './firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { userApi } from '../../../services/api';
+import { buildApiUrl } from '../../../utils/config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -23,17 +24,35 @@ const Register = () => {
   const [referralCode, setReferralCode] = useState('');
   const [referrerName, setReferrerName] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Check for referral code in localStorage
-    const storedReferralCode = localStorage.getItem('referralCode');
-    const storedReferrerName = localStorage.getItem('referrerName');
+    // Check for referral code in URL parameters first
+    const urlReferralCode = searchParams.get('ref');
+    const urlReferrerName = searchParams.get('referrer');
     
-    if (storedReferralCode) {
-      setReferralCode(storedReferralCode);
-      setReferrerName(storedReferrerName || '');
+    if (urlReferralCode) {
+      setReferralCode(urlReferralCode);
+      setReferrerName(urlReferrerName || '');
+      console.log('✅ Referral data from URL:', { code: urlReferralCode, name: urlReferrerName });
+      
+      // Also store in localStorage as backup
+      localStorage.setItem('referralCode', urlReferralCode);
+      localStorage.setItem('referrerName', urlReferrerName || '');
+    } else {
+      // Fallback to localStorage if no URL params
+      const storedReferralCode = localStorage.getItem('referralCode');
+      const storedReferrerName = localStorage.getItem('referrerName');
+      
+      console.log('🔍 Checking for referral data in localStorage:', { storedReferralCode, storedReferrerName });
+      
+      if (storedReferralCode) {
+        setReferralCode(storedReferralCode);
+        setReferrerName(storedReferrerName || '');
+        console.log('✅ Referral data loaded from localStorage:', { code: storedReferralCode, name: storedReferrerName });
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -149,6 +168,36 @@ const Register = () => {
 
       if (!createResponse.success) {
         throw new Error('Failed to create user account');
+      }
+
+      // If user was referred, update referrer's profile
+      if (referralCode) {
+        console.log('🔗 Processing referral:', { code: referralCode, referrer: referrerName });
+        try {
+          const referralResponse = await fetch(buildApiUrl('/referral/process'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${await user.getIdToken()}`
+            },
+            body: JSON.stringify({
+              referredUserId: user.uid,
+              referredUserEmail: user.email,
+              referralCode: referralCode
+            })
+          });
+
+          const referralData = await referralResponse.json();
+          if (referralResponse.ok) {
+            console.log('✅ Referral processed successfully:', referralData);
+          } else {
+            console.error('❌ Failed to process referral:', referralData);
+          }
+        } catch (error) {
+          console.error('❌ Error processing referral:', error);
+        }
+      } else {
+        console.log('ℹ️ No referral code found for this registration');
       }
 
       console.log('✅ Registration completed successfully');
@@ -276,15 +325,21 @@ const Register = () => {
                 </h2>
                 <p className="text-white-50">Create your account to start trading</p>
                 {referralCode && (
-                  <div className="alert alert-success rounded-4" style={{
+                  <div className="alert alert-success rounded-4 mb-4" style={{
                     background: 'rgba(25, 135, 84, 0.1)',
                     border: '1px solid rgba(25, 135, 84, 0.3)',
                     color: '#198754'
                   }}>
-                    <small>
-                      <strong>🎉 Referral Bonus:</strong> You&apos;ve been invited by {referrerName || 'a Trading Hub member'}! 
-                      Complete your profile and make your first deposit to earn your referrer a ₹200 bonus.
-                    </small>
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-gift-fill me-2" style={{ fontSize: '1.2rem' }}></i>
+                      <div>
+                        <div className="fw-bold">🎉 You've been referred!</div>
+                        <small>
+                          Invited by <strong>{referrerName || 'a Trading Hub member'}</strong>. 
+                          Complete registration and get special benefits!
+                        </small>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

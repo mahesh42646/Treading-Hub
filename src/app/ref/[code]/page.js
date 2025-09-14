@@ -28,8 +28,7 @@ export default function ReferralPage() {
       setLoading(true);
       
       const response = await fetch(buildApiUrl(`/referral/validate/${code}`), {
-        method: 'GET',
-        credentials: 'include'
+        method: 'GET'
       });
 
       if (response.ok) {
@@ -40,12 +39,15 @@ export default function ReferralPage() {
         localStorage.setItem('referralCode', code);
         localStorage.setItem('referrerName', data.referrerName || '');
         
-        // Redirect to registration page after a short delay
-        setTimeout(() => {
-          router.push('/register');
-        }, 3000);
+        console.log('✅ Referral data stored:', { code, referrerName: data.referrerName });
+        
+        // Immediately redirect to registration page with referral code in URL
+        console.log('🔄 Redirecting to registration...');
+        window.location.href = `/register?ref=${code}&referrer=${encodeURIComponent(data.referrerName || '')}`;
       } else {
-        setError('Invalid or expired referral link');
+        const errorData = await response.json();
+        console.error('❌ Referral validation failed:', errorData);
+        setError(errorData.message || 'Invalid or expired referral link');
       }
     } catch (error) {
       console.error('Error validating referral code:', error);
@@ -105,12 +107,12 @@ export default function ReferralPage() {
              style={{ width: '80px', height: '80px' }}>
           <i className="bi bi-check-circle text-white fs-1"></i>
         </div>
-        <h4 className="text-success mb-3">Valid Referral Link!</h4>
+        <h4 className="text-success mb-3">Welcome to Trading Hub!</h4>
         <p className="text-muted mb-2">
           You&apos;ve been invited by <strong>{referralData?.referrerName || 'a Trading Hub member'}</strong>
         </p>
         <p className="text-muted mb-4">
-          Redirecting you to registration page...
+          Creating your account...
         </p>
         
         <div className="alert alert-info d-inline-block text-start">
@@ -124,19 +126,10 @@ export default function ReferralPage() {
         </div>
         
         <div className="mt-4">
-          <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
+          <div className="spinner-border text-primary me-2" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <span className="text-muted">Redirecting in 3 seconds...</span>
-        </div>
-        
-        <div className="mt-3">
-          <button 
-            className="btn btn-primary"
-            onClick={() => router.push('/register')}
-          >
-            Continue Now
-          </button>
+          <span className="text-muted">Setting up your account...</span>
         </div>
       </div>
     </div>

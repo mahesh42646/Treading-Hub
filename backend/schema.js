@@ -131,8 +131,45 @@ const profileSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    totalReferrals: {
+      type: Number,
+      default: 0
+    },
+    completedReferrals: {
+      type: Number,
+      default: 0
+    },
+    pendingReferrals: {
+      type: Number,
+      default: 0
+    },
+    totalEarnings: {
+      type: Number,
+      default: 0
+    },
     referrals: [{
-      type: String
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      userName: String,
+      phone: String,
+      joinedAt: {
+        type: Date,
+        default: Date.now
+      },
+      completionPercentage: {
+        type: Number,
+        default: 0
+      },
+      hasDeposited: {
+        type: Boolean,
+        default: false
+      },
+      bonusEarned: {
+        type: Number,
+        default: 0
+      }
     }]
   },
 

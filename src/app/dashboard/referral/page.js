@@ -24,7 +24,7 @@ const ReferralPage = () => {
   }, [profile]);
 
   const fetchReferralData = async () => {
-    if (!profile?.referral?.code) {
+    if (!user?.uid) {
       setLoading(false);
       return;
     }
@@ -32,41 +32,56 @@ const ReferralPage = () => {
     try {
       // Generate dynamic link based on current domain
       const currentDomain = window.location.origin;
-      const referralCode = profile.referral.code;
+      const referralCode = profile?.referral?.code || 'N/A';
       const referralLink = `${currentDomain}/ref/${referralCode}`;
       
-      // Set referral data with the generated link
+      // Fetch referral stats from API
+      const response = await fetch(buildApiUrl(`/referral/stats/${user.uid}`), {
+        headers: {
+          'Authorization': `Bearer ${await user.getIdToken()}`
+        }
+      });
+
+      if (response.ok) {
+        const apiData = await response.json();
+        setReferralData({
+          code: apiData.stats.referralCode,
+          link: referralLink,
+          totalReferrals: apiData.stats.totalReferrals,
+          activeReferrals: apiData.stats.totalReferrals,
+          totalEarnings: apiData.stats.totalEarnings,
+          pendingReferrals: apiData.stats.pendingReferrals,
+          completedReferrals: apiData.stats.completedReferrals
+        });
+        setReferralHistory(apiData.referrals || []);
+      } else {
+        // Fallback to profile data if API fails
+        setReferralData({
+          code: referralCode,
+          link: referralLink,
+          totalReferrals: profile?.referral?.totalReferrals || 0,
+          activeReferrals: profile?.referral?.activeReferrals || 0,
+          totalEarnings: profile?.referral?.totalEarnings || 0,
+          pendingReferrals: profile?.referral?.pendingReferrals || 0,
+          completedReferrals: profile?.referral?.completedReferrals || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching referral data:', error);
+      // Fallback to profile data
+      const currentDomain = window.location.origin;
+      const referralCode = profile?.referral?.code || 'N/A';
+      const referralLink = `${currentDomain}/ref/${referralCode}`;
+      
       setReferralData({
         code: referralCode,
         link: referralLink,
-        totalReferrals: profile.referral?.totalReferrals || 0,
-        activeReferrals: profile.referral?.activeReferrals || 0,
-        totalEarnings: profile.referral?.totalEarnings || 0,
-        pendingReferrals: profile.referral?.pendingReferrals || 0,
-        completedReferrals: profile.referral?.completedReferrals || 0
+        totalReferrals: profile?.referral?.totalReferrals || 0,
+        activeReferrals: profile?.referral?.activeReferrals || 0,
+        totalEarnings: profile?.referral?.totalEarnings || 0,
+        pendingReferrals: profile?.referral?.pendingReferrals || 0,
+        completedReferrals: profile?.referral?.completedReferrals || 0
       });
-
-      // Fetch additional stats from API if needed
-      try {
-        const response = await fetch(buildApiUrl('/referral/stats'), {
-          headers: {
-            'Authorization': `Bearer ${await user.getIdToken()}`
-          }
-        });
-
-        if (response.ok) {
-          const apiData = await response.json();
-          setReferralData(prev => ({
-            ...prev,
-            ...apiData,
-            link: referralLink // Keep our generated link
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching referral stats:', error);
-      }
-    } catch (error) {
-      console.error('Error setting up referral data:', error);
     } finally {
       setLoading(false);
     }
@@ -298,7 +313,8 @@ const ReferralPage = () => {
                     <thead>
                       <tr>
                         <th>User</th>
-                        <th>Date</th>
+                        <th>Joined</th>
+                        <th>Progress</th>
                         <th>Status</th>
                         <th>Earnings</th>
                       </tr>
@@ -306,14 +322,30 @@ const ReferralPage = () => {
                     <tbody>
                       {referralHistory.map((referral, index) => (
                         <tr key={index}>
-                          <td>{referral.userName}</td>
-                          <td>{new Date(referral.date).toLocaleDateString()}</td>
                           <td>
-                            <span className={`badge ${referral.status === 'completed' ? 'bg-success' : 'bg-warning'}`}>
-                              {referral.status}
+                            <div>
+                              <div className="fw-bold">{referral.userName}</div>
+                              <small className="text-muted">{referral.phone}</small>
+                            </div>
+                          </td>
+                          <td>{new Date(referral.joinedAt).toLocaleDateString()}</td>
+                          <td>
+                            <div>
+                              <div className="progress mb-1" style={{ height: '6px' }}>
+                                <div 
+                                  className="progress-bar bg-primary" 
+                                  style={{ width: `${referral.completionPercentage}%` }}
+                                ></div>
+                              </div>
+                              <small className="text-muted">{referral.completionPercentage}% complete</small>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`badge ${referral.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
+                              {referral.hasDeposited ? 'Completed' : 'Pending'}
                             </span>
                           </td>
-                          <td>₹{referral.earnings}</td>
+                          <td>₹{referral.bonusEarned}</td>
                         </tr>
                       ))}
                     </tbody>

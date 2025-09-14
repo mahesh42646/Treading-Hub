@@ -1846,4 +1846,466 @@ router.put('/support/ticket/:ticketId/status', async (req, res) => {
   }
 });
 
+// Validate referral code
+router.get('/referral/validate/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    
+    const profile = await Profile.findOne({ 'referral.code': code });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invalid or expired referral code'
+      });
+    }
+
+    const user = await User.findById(profile.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referrer not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      referrerName: `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`,
+      referrerId: user.uid,
+      referralCode: code
+    });
+  } catch (error) {
+    console.error('Error validating referral code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to validate referral code',
+      error: error.message
+    });
+  }
+});
+
+// Get referral stats
+router.get('/referral/stats/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      stats: {
+        totalReferrals: profile.referral.totalReferrals,
+        completedReferrals: profile.referral.completedReferrals,
+        pendingReferrals: profile.referral.pendingReferrals,
+        totalEarnings: profile.referral.totalEarnings,
+        referralCode: profile.referral.code
+      },
+      referrals: profile.referral.referrals.map(ref => ({
+        userId: ref.userId,
+        userName: ref.userName,
+        phone: ref.phone,
+        completionPercentage: ref.completionPercentage,
+        joinedAt: ref.joinedAt,
+        hasDeposited: ref.hasDeposited,
+        bonusEarned: ref.bonusEarned
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching referral stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referral stats',
+      error: error.message
+    });
+  }
+});
+
+// Get wallet balance
+router.get('/wallet/balance/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Get transaction history
+    const Transaction = require('./models/Transaction');
+    const transactions = await Transaction.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    res.json({
+      success: true,
+      walletBalance: profile.wallet.walletBalance,
+      referralBalance: profile.wallet.referralBalance,
+      totalDeposits: profile.wallet.totalDeposits,
+      totalWithdrawals: profile.wallet.totalWithdrawals,
+      transactions: transactions.map(t => ({
+        id: t._id,
+        type: t.type,
+        amount: t.amount,
+        description: t.description,
+        status: t.status,
+        date: t.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching wallet balance:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch wallet balance',
+      error: error.message
+    });
+  }
+});
+
+// Create Razorpay order for deposit
+router.post('/wallet/razorpay-order', async (req, res) => {
+  try {
+    const { amount, currency = 'INR' } = req.body;
+    
+    if (!razorpay) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment service not available'
+      });
+    }
+
+    const options = {
+      amount: amount, // amount in paise
+      currency: currency,
+      receipt: `deposit_${Date.now()}`
+    };
+
+    const order = await razorpay.orders.create(options);
+    
+    res.json({
+      success: true,
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency
+    });
+  } catch (error) {
+    console.error('Error creating Razorpay order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create payment order',
+      error: error.message
+    });
+  }
+});
+
+// Verify Razorpay payment
+router.post('/wallet/razorpay-verify', async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    
+    if (!razorpay) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment service not available'
+      });
+    }
+
+    // Verify payment signature
+    const crypto = require('crypto');
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+      // Get order details
+      const order = await razorpay.orders.fetch(razorpay_order_id);
+      const amount = order.amount / 100; // Convert from paise to rupees
+      
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        amount: amount
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid payment signature'
+      });
+    }
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify payment',
+      error: error.message
+    });
+  }
+});
+
+// Process deposit
+router.post('/wallet/deposit', async (req, res) => {
+  try {
+    const { uid, amount, paymentId } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Update wallet balance
+    profile.wallet.walletBalance += amount;
+    profile.wallet.totalDeposits += amount;
+    await profile.save();
+
+    // Create transaction record
+    const Transaction = require('./models/Transaction');
+    const transaction = new Transaction({
+      userId: user._id,
+      type: 'deposit',
+      amount: amount,
+      description: `Wallet deposit via payment ID: ${paymentId}`,
+      status: 'completed',
+      metadata: { paymentId }
+    });
+    await transaction.save();
+
+    // Check if this is first deposit and user was referred
+    if (profile.referral.referredBy && profile.wallet.totalDeposits === amount) {
+      // This is their first deposit, give referral bonus to referrer
+      const referrerProfile = await Profile.findOne({ 'referral.code': profile.referral.referredBy });
+      if (referrerProfile) {
+        const referralBonus = 200; // ₹200 referral bonus
+        referrerProfile.wallet.referralBalance += referralBonus;
+        referrerProfile.referral.totalEarnings += referralBonus;
+        
+        // Update referral stats
+        referrerProfile.referral.completedReferrals += 1;
+        referrerProfile.referral.pendingReferrals -= 1;
+        
+        // Update the specific referral record
+        const referralIndex = referrerProfile.referral.referrals.findIndex(
+          ref => ref.userId.toString() === user._id.toString()
+        );
+        if (referralIndex !== -1) {
+          referrerProfile.referral.referrals[referralIndex].hasDeposited = true;
+          referrerProfile.referral.referrals[referralIndex].bonusEarned = referralBonus;
+        }
+        
+        await referrerProfile.save();
+
+        // Create transaction for referrer
+        const referrerTransaction = new Transaction({
+          userId: referrerProfile.userId,
+          type: 'referral_bonus',
+          amount: referralBonus,
+          description: `Referral bonus from ${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`,
+          status: 'completed',
+          metadata: { referredUserId: user._id }
+        });
+        await referrerTransaction.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Deposit successful',
+      newBalance: profile.wallet.walletBalance
+    });
+  } catch (error) {
+    console.error('Error processing deposit:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process deposit',
+      error: error.message
+    });
+  }
+});
+
+// Process referral
+router.post('/referral/process', async (req, res) => {
+  try {
+    const { referredUserId, referredUserEmail, referralCode } = req.body;
+    
+    // Find the referrer's profile
+    const referrerProfile = await Profile.findOne({ 'referral.code': referralCode });
+    if (!referrerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referral code not found'
+      });
+    }
+
+    // Find the referred user
+    const referredUser = await User.findOne({ uid: referredUserId });
+    if (!referredUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referred user not found'
+      });
+    }
+
+    // Find the referred user's profile
+    const referredProfile = await Profile.findOne({ userId: referredUser._id });
+    if (!referredProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referred user profile not found'
+      });
+    }
+
+    // Update referred user's profile with referrer info
+    referredProfile.referral.referredBy = referralCode;
+    await referredProfile.save();
+
+    // Update referrer's profile with referral info
+    const referralData = {
+      userId: referredUser._id,
+      userName: `${referredProfile.personalInfo.firstName} ${referredProfile.personalInfo.lastName}`,
+      phone: referredProfile.personalInfo.phone,
+      joinedAt: new Date(),
+      completionPercentage: referredProfile.status.completionPercentage,
+      hasDeposited: referredProfile.wallet.totalDeposits > 0,
+      bonusEarned: 0
+    };
+
+    referrerProfile.referral.referrals.push(referralData);
+    referrerProfile.referral.totalReferrals += 1;
+    referrerProfile.referral.pendingReferrals += 1;
+    await referrerProfile.save();
+
+    res.json({
+      success: true,
+      message: 'Referral processed successfully',
+      referrerName: `${referrerProfile.personalInfo.firstName} ${referrerProfile.personalInfo.lastName}`
+    });
+  } catch (error) {
+    console.error('Error processing referral:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process referral',
+      error: error.message
+    });
+  }
+});
+
+// Process withdrawal
+router.post('/wallet/withdraw', async (req, res) => {
+  try {
+    const { uid, amount, type, accountDetails } = req.body; // type: 'wallet' or 'referral'
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Validate withdrawal amount
+    const availableBalance = type === 'wallet' ? profile.wallet.walletBalance : profile.wallet.referralBalance;
+    if (amount > availableBalance) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance'
+      });
+    }
+
+    if (amount < 500) {
+      return res.status(400).json({
+        success: false,
+        message: 'Minimum withdrawal amount is ₹500'
+      });
+    }
+
+    // For referral withdrawal, check if user has made at least one deposit
+    if (type === 'referral' && profile.wallet.totalDeposits === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must make at least one deposit before withdrawing referral bonus'
+      });
+    }
+
+    // Update wallet balance
+    if (type === 'wallet') {
+      profile.wallet.walletBalance -= amount;
+    } else {
+      profile.wallet.referralBalance -= amount;
+    }
+    profile.wallet.totalWithdrawals += amount;
+    await profile.save();
+
+    // Create transaction record
+    const Transaction = require('./models/Transaction');
+    const transaction = new Transaction({
+      userId: user._id,
+      type: 'withdrawal',
+      amount: amount,
+      description: `Withdrawal from ${type} balance`,
+      status: 'pending',
+      metadata: { 
+        withdrawalType: type,
+        accountDetails: accountDetails
+      }
+    });
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: 'Withdrawal request submitted successfully',
+      transactionId: transaction._id
+    });
+  } catch (error) {
+    console.error('Error processing withdrawal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process withdrawal',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

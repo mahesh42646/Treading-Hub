@@ -292,54 +292,6 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* Referral Information */}
-      <div className="row">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Referral Information</h5>
-            </div>
-            <div className="card-body">
-              <div className="row align-items-center">
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Your Referral Code</label>
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={profile.referral?.code || 'N/A'}
-                        readOnly
-                      />
-                      <button
-                        className="btn btn-outline-secondary"
-                        type="button"
-                        onClick={copyReferralCode}
-                      >
-                        <i className="bi bi-copy"></i> Copy
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Total Referrals</label>
-                    <div className="d-flex align-items-center">
-                      <span className="h4 mb-0 me-2">{profile.referral?.totalReferrals || 0}</span>
-                      <span className="text-muted">users referred</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <a href="/dashboard/referral" className="btn btn-primary">
-                  View Referral Program
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

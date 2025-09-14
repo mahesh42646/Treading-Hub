@@ -32,13 +32,22 @@ export default function DashboardWallet() {
   const fetchWalletData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(buildApiUrl('/wallet/balance'), {
-        credentials: 'include'
+      const response = await fetch(buildApiUrl(`/wallet/balance/${user.uid}`), {
+        headers: {
+          'Authorization': `Bearer ${await user.getIdToken()}`
+        }
       });
       
       if (response.ok) {
         const data = await response.json();
-        setWalletData(data);
+        setWalletData({
+          walletBalance: data.walletBalance,
+          referralBalance: data.referralBalance,
+          totalDeposits: data.totalDeposits,
+          totalWithdrawals: data.totalWithdrawals,
+          totalPnl: 0, // This would come from trading data
+          transactions: data.transactions
+        });
       }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
@@ -90,8 +99,8 @@ export default function DashboardWallet() {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${await user.getIdToken()}`
               },
-              credentials: 'include',
               body: JSON.stringify({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
@@ -100,10 +109,30 @@ export default function DashboardWallet() {
             });
 
             if (verifyResponse.ok) {
-              alert('Deposit successful!');
-              setDepositAmount('');
-              setShowDepositModal(false);
-              fetchWalletData();
+              const verifyData = await verifyResponse.json();
+              
+              // Process deposit
+              const depositResponse = await fetch(buildApiUrl('/wallet/deposit'), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${await user.getIdToken()}`
+                },
+                body: JSON.stringify({
+                  uid: user.uid,
+                  amount: verifyData.amount,
+                  paymentId: response.razorpay_payment_id
+                })
+              });
+
+              if (depositResponse.ok) {
+                alert('Deposit successful!');
+                setDepositAmount('');
+                setShowDepositModal(false);
+                fetchWalletData();
+              } else {
+                alert('Deposit processing failed');
+              }
             } else {
               alert('Payment verification failed');
             }
@@ -158,11 +187,18 @@ export default function DashboardWallet() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await user.getIdToken()}`
         },
-        credentials: 'include',
         body: JSON.stringify({
+          uid: user.uid,
           amount: parseFloat(withdrawAmount),
-          type: withdrawType
+          type: withdrawType,
+          accountDetails: {
+            // You can add account details collection here
+            bankName: 'Your Bank',
+            accountNumber: '****1234',
+            ifscCode: 'BANK0001234'
+          }
         })
       });
 

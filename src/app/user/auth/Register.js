@@ -178,46 +178,19 @@ const Register = () => {
       }
 
       console.log('💾 Creating basic user account in backend...');
-      // Create basic user account in backend (without profile)
+      // Create basic user account in backend (include referral code if present)
       const createResponse = await userApi.create({
         uid: user.uid,
         email: user.email,
-        emailVerified: false
+        emailVerified: false,
+        referredBy: referralCode || null
       });
 
       if (!createResponse.success) {
         throw new Error('Failed to create user account');
       }
 
-      // If user was referred, update referrer's profile
-      if (referralCode) {
-        console.log('🔗 Processing referral:', { code: referralCode, referrer: referrerName });
-        try {
-          const referralResponse = await fetch(buildApiUrl('/referral/process'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${await user.getIdToken()}`
-            },
-            body: JSON.stringify({
-              referredUserId: user.uid,
-              referredUserEmail: user.email,
-              referralCode: referralCode
-            })
-          });
-
-          const referralData = await referralResponse.json();
-          if (referralResponse.ok) {
-            console.log('✅ Referral processed successfully:', referralData);
-          } else {
-            console.error('❌ Failed to process referral:', referralData);
-          }
-        } catch (error) {
-          console.error('❌ Error processing referral:', error);
-        }
-      } else {
-        console.log('ℹ️ No referral code found for this registration');
-      }
+      console.log('✅ User created with referral code:', referralCode || 'None');
 
       console.log('✅ Registration completed successfully');
       

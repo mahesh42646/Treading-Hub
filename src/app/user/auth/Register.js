@@ -33,12 +33,13 @@ const Register = () => {
     
     if (urlReferralCode) {
       setReferralCode(urlReferralCode);
-      setReferrerName(urlReferrerName || '');
-      console.log('✅ Referral data from URL:', { code: urlReferralCode, name: urlReferrerName });
+      console.log('✅ Referral code from URL:', urlReferralCode);
+      
+      // Validate referral code and get referrer name
+      validateReferralCode(urlReferralCode);
       
       // Also store in localStorage as backup
       localStorage.setItem('referralCode', urlReferralCode);
-      localStorage.setItem('referrerName', urlReferrerName || '');
     } else {
       // Fallback to localStorage if no URL params
       const storedReferralCode = localStorage.getItem('referralCode');
@@ -53,6 +54,24 @@ const Register = () => {
       }
     }
   }, [searchParams]);
+
+  const validateReferralCode = async (code) => {
+    try {
+      const response = await fetch(buildApiUrl(`/referral/validate/${code}`));
+      if (response.ok) {
+        const data = await response.json();
+        setReferrerName(data.referrerName || '');
+        localStorage.setItem('referrerName', data.referrerName || '');
+        console.log('✅ Referral code validated:', data);
+      } else {
+        console.error('❌ Invalid referral code:', code);
+        setReferralCode(''); // Clear invalid code
+      }
+    } catch (error) {
+      console.error('❌ Error validating referral code:', error);
+      setReferralCode(''); // Clear on error
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

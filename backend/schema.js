@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'moderator'],
     default: 'user'
+  },
+  referredBy: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

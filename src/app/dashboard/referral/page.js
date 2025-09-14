@@ -30,10 +30,12 @@ const ReferralPage = () => {
     }
 
     try {
-      // Generate dynamic link based on current domain
+      // Generate direct registration link with referral code
       const currentDomain = window.location.origin;
       const referralCode = profile?.referral?.code || 'N/A';
-      const referralLink = `${currentDomain}/ref/${referralCode}`;
+      const referralLink = `${currentDomain}/register?ref=${referralCode}`;
+      
+      console.log('🔗 Generated referral link:', referralLink);
       
       // Fetch referral stats from API
       const response = await fetch(buildApiUrl(`/referral/stats/${user.uid}`), {
@@ -227,7 +229,7 @@ const ReferralPage = () => {
             </div>
             <div className="card-body">
               <div className="mb-4">
-                <label className="form-label">Share this link with your friends</label>
+                <label className="form-label">Direct Registration Link</label>
                 <div className="input-group">
                   <input
                     type="text"
@@ -243,6 +245,10 @@ const ReferralPage = () => {
                     <i className="bi bi-copy"></i> Copy
                   </button>
                 </div>
+                <small className="text-muted">
+                  <i className="bi bi-info-circle me-1"></i>
+                  This link takes users directly to registration page with your referral code
+                </small>
               </div>
 
               <div className="mb-4">
@@ -278,17 +284,18 @@ const ReferralPage = () => {
               <div className="alert alert-info">
                 <h6 className="alert-heading">How it works:</h6>
                 <ul className="mb-0">
-                  <li>Share your referral link with friends</li>
-                  <li>When they register using your link, they become your referral</li>
-                  <li>Once they complete their profile and make their first deposit, you earn ₹200</li>
-                  <li>Referral bonus is added to your referral balance in wallet</li>
+                  <li><strong>Share your direct registration link</strong> with friends</li>
+                  <li><strong>Link takes them straight to registration</strong> with your referral code attached</li>
+                  <li><strong>They create account</strong> - automatically linked to your referral</li>
+                  <li><strong>When they make first deposit</strong> - you earn 20% bonus instantly</li>
+                  <li><strong>Bonus added to referral balance</strong> - withdraw anytime (min ₹500)</li>
                 </ul>
               </div>
 
               <div className="alert alert-warning">
                 <h6 className="alert-heading">Referral Benefits:</h6>
                 <ul className="mb-0">
-                  <li>Earn ₹200 per successful referral</li>
+                  <li>Earn 20% of first deposit per referral</li>
                   <li>No limit on referrals</li>
                   <li>Instant bonus when referral deposits</li>
                   <li>Withdraw referral earnings to your wallet</li>

@@ -17,6 +17,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 // Import models
 const { User, Profile } = require('./schema');
 const Transaction = require('./models/Transaction');
+const Withdrawal = require('./models/Withdrawal');
 
 // Create Razorpay order for deposit
 router.post('/razorpay-order', async (req, res) => {
@@ -239,6 +240,187 @@ router.get('/balance/:uid', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch wallet balance',
+      error: error.message
+    });
+  }
+});
+
+// Create withdrawal request
+router.post('/withdraw', async (req, res) => {
+  try {
+    const { uid, amount, type, accountDetails } = req.body;
+    
+    // Validate minimum withdrawal amount
+    const MIN_WITHDRAWAL_AMOUNT = 500;
+    if (amount < MIN_WITHDRAWAL_AMOUNT) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum withdrawal amount is ₹${MIN_WITHDRAWAL_AMOUNT}`
+      });
+    }
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Initialize wallet if not exists
+    if (!profile.wallet) {
+      profile.wallet = {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
+      };
+    }
+
+    // Check sufficient balance
+    const maxAmount = type === 'wallet' ? profile.wallet.walletBalance : profile.wallet.referralBalance;
+    if (amount > maxAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient ${type} balance`
+      });
+    }
+
+    // Check if user has made at least one deposit for referral withdrawal
+    if (type === 'referral' && profile.wallet.totalDeposits === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must make at least one deposit before withdrawing referral bonus'
+      });
+    }
+
+    // Deduct amount from wallet (will be restored if rejected)
+    if (type === 'wallet') {
+      profile.wallet.walletBalance -= amount;
+    } else {
+      profile.wallet.referralBalance -= amount;
+    }
+    
+    await profile.save();
+
+    // Create withdrawal request
+    const withdrawal = new Withdrawal({
+      userId: user._id,
+      uid: user.uid,
+      type,
+      amount,
+      accountDetails: type === 'wallet' ? accountDetails : {}
+    });
+
+    await withdrawal.save();
+
+    // Create transaction record
+    const transaction = new Transaction({
+      userId: user._id,
+      type: 'withdrawal',
+      amount: amount,
+      description: `Withdrawal request from ${type} balance`,
+      status: 'pending',
+      metadata: { 
+        withdrawalId: withdrawal._id,
+        withdrawalType: type
+      }
+    });
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: 'Withdrawal request submitted successfully',
+      withdrawalId: withdrawal._id
+    });
+  } catch (error) {
+    console.error('Error creating withdrawal request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create withdrawal request',
+      error: error.message
+    });
+  }
+});
+
+// Get withdrawal history
+router.get('/withdrawals/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { page = 1, limit = 10, status } = req.query;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const query = { userId: user._id };
+    if (status) {
+      query.status = status;
+    }
+
+    const withdrawals = await Withdrawal.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('-accountDetails.accountNumber'); // Hide sensitive data
+
+    const total = await Withdrawal.countDocuments(query);
+
+    res.json({
+      success: true,
+      withdrawals,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching withdrawal history:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch withdrawal history',
+      error: error.message
+    });
+  }
+});
+
+// Get withdrawal details (for user)
+router.get('/withdrawal/:withdrawalId', async (req, res) => {
+  try {
+    const { withdrawalId } = req.params;
+    
+    const withdrawal = await Withdrawal.findById(withdrawalId)
+      .select('-accountDetails.accountNumber'); // Hide sensitive data
+
+    if (!withdrawal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdrawal not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      withdrawal
+    });
+  } catch (error) {
+    console.error('Error fetching withdrawal details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch withdrawal details',
       error: error.message
     });
   }

@@ -14,6 +14,7 @@ const Referral = require('./models/Referral');
 const Transaction = require('./models/Transaction');
 const Blog = require('./models/Blog');
 const News = require('./models/News');
+const Withdrawal = require('./models/Withdrawal');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -546,6 +547,224 @@ router.delete('/news/:id', verifyAdminAuth, async (req, res) => {
   try {
     await News.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'News deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==================== WITHDRAWAL MANAGEMENT ====================
+
+// Get all withdrawal requests
+router.get('/withdrawals', verifyAdminAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, type } = req.query;
+    
+    const query = {};
+    if (status) query.status = status;
+    if (type) query.type = type;
+
+    const withdrawals = await Withdrawal.find(query)
+      .populate('userId', 'uid email')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Withdrawal.countDocuments(query);
+
+    res.json({
+      success: true,
+      withdrawals,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get withdrawal details
+router.get('/withdrawals/:id', verifyAdminAuth, async (req, res) => {
+  try {
+    const withdrawal = await Withdrawal.findById(req.params.id)
+      .populate('userId', 'uid email')
+      .populate('processedBy', 'uid email');
+
+    if (!withdrawal) {
+      return res.status(404).json({ success: false, message: 'Withdrawal not found' });
+    }
+
+    res.json({ success: true, withdrawal });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Approve withdrawal request
+router.put('/withdrawals/:id/approve', verifyAdminAuth, async (req, res) => {
+  try {
+    const { adminNotes } = req.body;
+    
+    const withdrawal = await Withdrawal.findById(req.params.id);
+    if (!withdrawal) {
+      return res.status(404).json({ success: false, message: 'Withdrawal not found' });
+    }
+
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Withdrawal request has already been processed' 
+      });
+    }
+
+    // Update withdrawal status
+    withdrawal.status = 'approved';
+    withdrawal.processedBy = req.admin.id;
+    withdrawal.processedAt = new Date();
+    withdrawal.adminNotes = adminNotes || '';
+    await withdrawal.save();
+
+    // Update transaction status
+    await Transaction.findOneAndUpdate(
+      { 'metadata.withdrawalId': withdrawal._id },
+      { status: 'approved' }
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Withdrawal request approved successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Reject withdrawal request
+router.put('/withdrawals/:id/reject', verifyAdminAuth, async (req, res) => {
+  try {
+    const { rejectionReason } = req.body;
+    
+    if (!rejectionReason) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rejection reason is required' 
+      });
+    }
+
+    const withdrawal = await Withdrawal.findById(req.params.id);
+    if (!withdrawal) {
+      return res.status(404).json({ success: false, message: 'Withdrawal not found' });
+    }
+
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Withdrawal request has already been processed' 
+      });
+    }
+
+    // Restore amount to user's wallet
+    const profile = await Profile.findOne({ userId: withdrawal.userId });
+    if (profile) {
+      if (withdrawal.type === 'wallet') {
+        profile.wallet.walletBalance += withdrawal.amount;
+      } else {
+        profile.wallet.referralBalance += withdrawal.amount;
+      }
+      await profile.save();
+    }
+
+    // Update withdrawal status
+    withdrawal.status = 'rejected';
+    withdrawal.processedBy = req.admin.id;
+    withdrawal.processedAt = new Date();
+    withdrawal.rejectionReason = rejectionReason;
+    await withdrawal.save();
+
+    // Update transaction status
+    await Transaction.findOneAndUpdate(
+      { 'metadata.withdrawalId': withdrawal._id },
+      { status: 'rejected' }
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Withdrawal request rejected and amount restored to user wallet' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Mark withdrawal as completed (after manual transfer)
+router.put('/withdrawals/:id/complete', verifyAdminAuth, async (req, res) => {
+  try {
+    const withdrawal = await Withdrawal.findById(req.params.id);
+    if (!withdrawal) {
+      return res.status(404).json({ success: false, message: 'Withdrawal not found' });
+    }
+
+    if (withdrawal.status !== 'approved') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Withdrawal must be approved before marking as completed' 
+      });
+    }
+
+    // Update withdrawal status
+    withdrawal.status = 'completed';
+    await withdrawal.save();
+
+    // Update user's total withdrawals
+    const profile = await Profile.findOne({ userId: withdrawal.userId });
+    if (profile) {
+      profile.wallet.totalWithdrawals += withdrawal.amount;
+      await profile.save();
+    }
+
+    // Update transaction status
+    await Transaction.findOneAndUpdate(
+      { 'metadata.withdrawalId': withdrawal._id },
+      { status: 'completed' }
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Withdrawal marked as completed successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get withdrawal statistics
+router.get('/withdrawals/stats', verifyAdminAuth, async (req, res) => {
+  try {
+    const stats = await Withdrawal.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const totalWithdrawals = await Withdrawal.countDocuments();
+    const totalAmount = await Withdrawal.aggregate([
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        byStatus: stats,
+        totalWithdrawals,
+        totalAmount: totalAmount[0]?.total || 0
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

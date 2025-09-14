@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildApiUrl } from '../../../utils/config';
+import { api } from '../../../services/api';
 
 export default function DashboardWallet() {
   const { profile, user } = useAuth();
@@ -21,12 +22,29 @@ export default function DashboardWallet() {
   const [loading, setLoading] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  
+  // Bank details state
+  const [bankDetails, setBankDetails] = useState({
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    accountHolderName: '',
+    upiId: ''
+  });
+  const [savedBanks, setSavedBanks] = useState([]);
+  const [selectedBankId, setSelectedBankId] = useState('');
+  const [useNewBank, setUseNewBank] = useState(false);
+  const [saveBankDetails, setSaveBankDetails] = useState(false);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [withdrawalPage, setWithdrawalPage] = useState(1);
 
   const MIN_DEPOSIT_AMOUNT = 500;
   const MIN_WITHDRAWAL_AMOUNT = 500;
 
   useEffect(() => {
     fetchWalletData();
+    fetchSavedBanks();
+    fetchWithdrawals();
     
     // Load Razorpay script
     const script = document.createElement('script');
@@ -42,26 +60,55 @@ export default function DashboardWallet() {
     };
   }, []);
 
+  const fetchSavedBanks = async () => {
+    try {
+      // This would be an API call to get saved bank details
+      // For now, using localStorage as example
+      const saved = localStorage.getItem(`savedBanks_${user?.uid}`);
+      if (saved) {
+        setSavedBanks(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error fetching saved banks:', error);
+    }
+  };
+
+  const saveBankToStorage = async (bankData) => {
+    try {
+      const newBank = {
+        id: Date.now().toString(),
+        ...bankData,
+        createdAt: new Date().toISOString()
+      };
+      const updatedBanks = [...savedBanks, newBank];
+      setSavedBanks(updatedBanks);
+      localStorage.setItem(`savedBanks_${user?.uid}`, JSON.stringify(updatedBanks));
+    } catch (error) {
+      console.error('Error saving bank details:', error);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    try {
+      const data = await api.get(`/wallet/withdrawals/${user.uid}?page=${withdrawalPage}&limit=10`);
+      setWithdrawals(data.withdrawals);
+    } catch (error) {
+      console.error('Error fetching withdrawals:', error);
+    }
+  };
+
   const fetchWalletData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(buildApiUrl(`/wallet/balance/${user.uid}`), {
-        headers: {
-          'Authorization': `Bearer ${await user.getIdToken()}`
-        }
+      const data = await api.get(`/wallet/balance/${user.uid}`);
+      setWalletData({
+        walletBalance: data.walletBalance,
+        referralBalance: data.referralBalance,
+        totalDeposits: data.totalDeposits,
+        totalWithdrawals: data.totalWithdrawals,
+        totalPnl: 0, // This would come from trading data
+        transactions: data.transactions
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setWalletData({
-          walletBalance: data.walletBalance,
-          referralBalance: data.referralBalance,
-          totalDeposits: data.totalDeposits,
-          totalWithdrawals: data.totalWithdrawals,
-          totalPnl: 0, // This would come from trading data
-          transactions: data.transactions
-        });
-      }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
     } finally {
@@ -79,23 +126,10 @@ export default function DashboardWallet() {
       setLoading(true);
       
       // Create Razorpay order
-      const orderResponse = await fetch(buildApiUrl('/wallet/razorpay-order'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          amount: parseFloat(depositAmount) * 100, // Convert to paise
-          currency: 'INR'
-        })
+      const orderData = await api.post('/wallet/razorpay-order', {
+        amount: parseFloat(depositAmount) * 100, // Convert to paise
+        currency: 'INR'
       });
-
-      if (!orderResponse.ok) {
-        throw new Error('Failed to create payment order');
-      }
-
-      const orderData = await orderResponse.json();
 
       // Initialize Razorpay
       const options = {
@@ -108,47 +142,17 @@ export default function DashboardWallet() {
         handler: async function (response) {
           try {
             // Verify payment
-            const verifyResponse = await fetch(buildApiUrl('/wallet/razorpay-verify'), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                uid: user.uid
-              })
+            const verifyData = await api.post('/wallet/razorpay-verify', {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              uid: user.uid
             });
-
-            if (verifyResponse.ok) {
-              const verifyData = await verifyResponse.json();
-              
-              // Process deposit
-              const depositResponse = await fetch(buildApiUrl('/wallet/deposit'), {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${await user.getIdToken()}`
-                },
-                body: JSON.stringify({
-                  uid: user.uid,
-                  amount: verifyData.amount,
-                  paymentId: response.razorpay_payment_id
-                })
-              });
-
-              if (depositResponse.ok) {
-                alert('Deposit successful!');
-                setDepositAmount('');
-                setShowDepositModal(false);
-                fetchWalletData();
-              } else {
-                alert('Deposit processing failed');
-              }
-            } else {
-              alert('Payment verification failed');
-            }
+            
+            alert('Deposit successful!');
+            setDepositAmount('');
+            setShowDepositModal(false);
+            fetchWalletData();
           } catch (error) {
             console.error('Payment verification error:', error);
             alert('Payment verification failed');
@@ -193,40 +197,62 @@ export default function DashboardWallet() {
       return;
     }
 
+    // Validate bank details for wallet withdrawal
+    if (withdrawType === 'wallet') {
+      if (useNewBank) {
+        if (!bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.accountHolderName) {
+          alert('Please fill all required bank details');
+          return;
+        }
+      } else if (!selectedBankId) {
+        alert('Please select a bank account or add new bank details');
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       
-      const response = await fetch(buildApiUrl('/wallet/withdraw'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user.getIdToken()}`
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          amount: parseFloat(withdrawAmount),
-          type: withdrawType,
-          accountDetails: {
-            // You can add account details collection here
-            bankName: 'Your Bank',
-            accountNumber: '****1234',
-            ifscCode: 'BANK0001234'
+      let accountDetails = {};
+      
+      if (withdrawType === 'wallet') {
+        if (useNewBank) {
+          accountDetails = bankDetails;
+          // Save bank details if user opted to save
+          if (saveBankDetails) {
+            await saveBankToStorage(bankDetails);
           }
-        })
+        } else {
+          const selectedBank = savedBanks.find(bank => bank.id === selectedBankId);
+          accountDetails = selectedBank;
+        }
+      }
+      
+      await api.post('/wallet/withdraw', {
+        uid: user.uid,
+        amount: parseFloat(withdrawAmount),
+        type: withdrawType,
+        accountDetails
       });
 
-      if (response.ok) {
-        alert('Withdrawal request submitted successfully');
-        setWithdrawAmount('');
-        setShowWithdrawModal(false);
-        fetchWalletData();
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Withdrawal failed');
-      }
+      alert('Withdrawal request submitted successfully');
+      setWithdrawAmount('');
+      setShowWithdrawModal(false);
+      setBankDetails({
+        bankName: '',
+        accountNumber: '',
+        ifscCode: '',
+        accountHolderName: '',
+        upiId: ''
+      });
+      setSelectedBankId('');
+      setUseNewBank(false);
+      setSaveBankDetails(false);
+      fetchWalletData();
+      fetchWithdrawals();
     } catch (error) {
       console.error('Withdrawal error:', error);
-      alert('Withdrawal failed');
+      alert(error.message || 'Withdrawal failed');
     } finally {
       setLoading(false);
     }
@@ -257,6 +283,21 @@ export default function DashboardWallet() {
         return 'badge bg-danger';
       default:
         return 'badge bg-secondary';
+    }
+  };
+
+  const getWithdrawalStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-warning';
+      case 'approved':
+        return 'bg-info';
+      case 'completed':
+        return 'bg-success';
+      case 'rejected':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
     }
   };
 
@@ -401,6 +442,14 @@ export default function DashboardWallet() {
                     Referral Earnings
                   </button>
                 </li>
+                <li className="nav-item">
+                  <button 
+                    className={`nav-link ${activeTab === 'withdrawals' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('withdrawals')}
+                  >
+                    Withdrawal History
+                  </button>
+                </li>
               </ul>
             </div>
             <div className="card-body">
@@ -533,6 +582,72 @@ export default function DashboardWallet() {
                   </div>
                 </div>
               )}
+
+              {activeTab === 'withdrawals' && (
+                <div>
+                  <h5 className="mb-3">Withdrawal History</h5>
+                  {withdrawals.length === 0 ? (
+                    <div className="text-center py-5">
+                      <i className="bi bi-arrow-up-circle fs-1 text-muted"></i>
+                      <p className="text-muted mt-3">No withdrawal requests yet</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Processed</th>
+                            <th>Details</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {withdrawals.map((withdrawal) => (
+                            <tr key={withdrawal._id}>
+                              <td>
+                                <span className={`badge ${withdrawal.type === 'wallet' ? 'bg-primary' : 'bg-warning'}`}>
+                                  {withdrawal.type === 'wallet' ? 'Wallet' : 'Referral'}
+                                </span>
+                              </td>
+                              <td className="fw-bold">₹{withdrawal.amount.toFixed(2)}</td>
+                              <td>
+                                <span className={`badge ${getWithdrawalStatusBadge(withdrawal.status)}`}>
+                                  {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                                </span>
+                              </td>
+                              <td>{new Date(withdrawal.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                {withdrawal.processedAt 
+                                  ? new Date(withdrawal.processedAt).toLocaleDateString()
+                                  : '-'
+                                }
+                              </td>
+                              <td>
+                                {withdrawal.type === 'wallet' && withdrawal.accountDetails && (
+                                  <small className="text-muted">
+                                    {withdrawal.accountDetails.bankName} - ****{withdrawal.accountDetails.accountNumber?.slice(-4)}
+                                  </small>
+                                )}
+                                {withdrawal.status === 'rejected' && withdrawal.rejectionReason && (
+                                  <div className="mt-1">
+                                    <small className="text-danger">
+                                      <i className="bi bi-exclamation-triangle me-1"></i>
+                                      {withdrawal.rejectionReason}
+                                    </small>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -596,7 +711,7 @@ export default function DashboardWallet() {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
@@ -609,7 +724,43 @@ export default function DashboardWallet() {
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="mb-3">
+                {/* Balance Type Selection */}
+                <div className="mb-4">
+                  <label className="form-label">Select Balance Type</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="withdrawType"
+                        id="walletBalance"
+                        value="wallet"
+                        checked={withdrawType === 'wallet'}
+                        onChange={(e) => setWithdrawType(e.target.value)}
+                      />
+                      <label className="form-check-label" htmlFor="walletBalance">
+                        Wallet Balance (₹{walletData.walletBalance.toFixed(2)})
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="withdrawType"
+                        id="referralBalance"
+                        value="referral"
+                        checked={withdrawType === 'referral'}
+                        onChange={(e) => setWithdrawType(e.target.value)}
+                      />
+                      <label className="form-check-label" htmlFor="referralBalance">
+                        Referral Balance (₹{walletData.referralBalance.toFixed(2)})
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount Input */}
+                <div className="mb-4">
                   <label className="form-label">Amount (₹)</label>
                   <input
                     type="number"
@@ -624,6 +775,140 @@ export default function DashboardWallet() {
                     Available: ₹{withdrawType === 'wallet' ? walletData.walletBalance.toFixed(2) : walletData.referralBalance.toFixed(2)}
                   </small>
                 </div>
+
+                {/* Bank Details for Wallet Withdrawal */}
+                {withdrawType === 'wallet' && (
+                  <div className="mb-4">
+                    <label className="form-label">Bank Account Details</label>
+                    
+                    {/* Saved Banks Selection */}
+                    {savedBanks.length > 0 && (
+                      <div className="mb-3">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name="bankOption"
+                            id="useSavedBank"
+                            checked={!useNewBank}
+                            onChange={() => setUseNewBank(false)}
+                          />
+                          <label className="form-check-label" htmlFor="useSavedBank">
+                            Use Saved Bank Account
+                          </label>
+                        </div>
+                        {!useNewBank && (
+                          <select
+                            className="form-select mt-2"
+                            value={selectedBankId}
+                            onChange={(e) => setSelectedBankId(e.target.value)}
+                          >
+                            <option value="">Select a bank account</option>
+                            {savedBanks.map((bank) => (
+                              <option key={bank.id} value={bank.id}>
+                                {bank.bankName} - {bank.accountNumber.slice(-4)} ({bank.accountHolderName})
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    )}
+
+                    {/* New Bank Option */}
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="bankOption"
+                        id="useNewBank"
+                        checked={useNewBank}
+                        onChange={() => setUseNewBank(true)}
+                      />
+                      <label className="form-check-label" htmlFor="useNewBank">
+                        Add New Bank Account
+                      </label>
+                    </div>
+
+                    {/* New Bank Form */}
+                    {useNewBank && (
+                      <div className="mt-3 p-3 border rounded">
+                        <div className="row">
+                          <div className="col-md-6 mb-3">
+                            <label className="form-label">Bank Name *</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={bankDetails.bankName}
+                              onChange={(e) => setBankDetails({...bankDetails, bankName: e.target.value})}
+                              placeholder="Enter bank name"
+                            />
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <label className="form-label">Account Number *</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={bankDetails.accountNumber}
+                              onChange={(e) => setBankDetails({...bankDetails, accountNumber: e.target.value})}
+                              placeholder="Enter account number"
+                            />
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <label className="form-label">IFSC Code *</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={bankDetails.ifscCode}
+                              onChange={(e) => setBankDetails({...bankDetails, ifscCode: e.target.value.toUpperCase()})}
+                              placeholder="Enter IFSC code"
+                            />
+                          </div>
+                          <div className="col-md-6 mb-3">
+                            <label className="form-label">Account Holder Name *</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={bankDetails.accountHolderName}
+                              onChange={(e) => setBankDetails({...bankDetails, accountHolderName: e.target.value})}
+                              placeholder="Enter account holder name"
+                            />
+                          </div>
+                          <div className="col-md-12 mb-3">
+                            <label className="form-label">UPI ID (Optional)</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={bankDetails.upiId}
+                              onChange={(e) => setBankDetails({...bankDetails, upiId: e.target.value})}
+                              placeholder="Enter UPI ID"
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Save Bank Details Toggle */}
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="saveBankDetails"
+                            checked={saveBankDetails}
+                            onChange={(e) => setSaveBankDetails(e.target.checked)}
+                          />
+                          <label className="form-check-label" htmlFor="saveBankDetails">
+                            <i className="bi bi-shield-check me-1"></i>
+                            Save bank details securely for future withdrawals
+                          </label>
+                        </div>
+                        <small className="text-muted">
+                          <i className="bi bi-info-circle me-1"></i>
+                          Your bank details are encrypted and stored securely. You can delete them anytime from your profile.
+                        </small>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Referral Withdrawal Warning */}
                 {withdrawType === 'referral' && walletData.totalDeposits === 0 && (
                   <div className="alert alert-warning">
                     <small>

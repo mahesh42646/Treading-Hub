@@ -16,7 +16,8 @@ import {
   FaBlog,
   FaSignOutAlt,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 
 const AdminLayout = ({ children }) => {
@@ -89,6 +90,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Contacts', icon: FaEnvelope, path: '/admin/contacts' },
     { name: 'Referrals', icon: FaShareAlt, path: '/admin/referrals' },
     { name: 'Transactions', icon: FaCreditCard, path: '/admin/transactions' },
+    { name: 'Withdrawals', icon: FaMoneyBillWave, path: '/admin/withdrawals' },
     { name: 'Blogs', icon: FaBlog, path: '/admin/blogs' },
     { name: 'News', icon: FaNewspaper, path: '/admin/news' },
   ];

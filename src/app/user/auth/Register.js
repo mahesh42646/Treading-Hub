@@ -333,7 +333,7 @@ const Register = () => {
                     <div className="d-flex align-items-center">
                       <i className="bi bi-gift-fill me-2" style={{ fontSize: '1.2rem' }}></i>
                       <div>
-                        <div className="fw-bold">🎉 You've been referred!</div>
+                        <div className="fw-bold">🎉 You&apos;ve been referred!</div>
                         <small>
                           Invited by <strong>{referrerName || 'a Trading Hub member'}</strong>. 
                           Complete registration and get special benefits!

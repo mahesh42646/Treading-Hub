@@ -43,6 +43,9 @@ const adminRoutes = require('./adminRoutes');
 // User routes
 app.use('/api/users', userRoutes);
 
+// Wallet routes (from userRoutes but accessible at /api/wallet)
+app.use('/api/wallet', userRoutes);
+
 // Admin routes
 app.use('/api/admin', adminRoutes);
 

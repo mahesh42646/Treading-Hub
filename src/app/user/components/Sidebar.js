@@ -81,7 +81,7 @@ const Sidebar = () => {
           zIndex: 1050,
           transition: 'all 0.3s ease',
           transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-          '@media (min-width: 992px)': {
+          '@media (minWidth: 992px)': {
             transform: 'translateX(0)'
           }
         }}

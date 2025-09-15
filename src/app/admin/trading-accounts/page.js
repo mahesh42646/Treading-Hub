@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FaPlus, 
   FaEdit, 
@@ -43,9 +43,9 @@ const AdminTradingAccounts = () => {
   useEffect(() => {
     fetchAccounts();
     fetchUsers();
-  }, [currentPage, searchTerm, filterAssigned, filterBroker]);
+  }, [currentPage, searchTerm, filterAssigned, filterBroker, fetchAccounts]);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -69,7 +69,7 @@ const AdminTradingAccounts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, filterAssigned, filterBroker]);
 
   const fetchUsers = async () => {
     try {
@@ -628,7 +628,7 @@ const AdminTradingAccounts = () => {
                     </label>
                   </div>
                   <small className="text-muted">
-                    This will reset the user's subscription start date to now and extend the validity to full plan duration.
+                    This will reset the user&apos;s subscription start date to now and extend the validity to full plan duration.
                   </small>
                 </div>
               </div>

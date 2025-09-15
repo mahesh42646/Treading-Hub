@@ -15,7 +15,8 @@ import {
   FaHistory,
   FaUserFriends,
   FaCreditCard,
-  FaArrowLeft
+  FaArrowLeft,
+  FaPlus
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -1068,7 +1069,7 @@ const AdminUsers = () => {
                   </div>
                 </div>
                 <div className="alert alert-warning">
-                  This will mark the referral as complete and add the bonus amount to the referrer's referral balance.
+                  This will mark the referral as complete and add the bonus amount to the referrer&apos;s referral balance.
                 </div>
               </div>
               <div className="modal-footer">

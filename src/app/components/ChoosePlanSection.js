@@ -56,8 +56,8 @@ const ChoosePlanSection = () => {
       color: 'white'
     }}>
       <div className="container">
-        <div className="text-center mb-5 pt-lg-4">
-          <h2 className="  display-4 display-md-3 display-sm-5 fw-bold mb-3 text-white">Choose the Best Plan</h2>
+        <div className="text-center mb-4 mb-md-5 pt-lg-4">
+          <h2 className="display-4 display-md-3 display-sm-5 fw-bold mb-3 text-white" style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}>Choose the Best Plan</h2>
         </div>
 
       
@@ -65,7 +65,7 @@ const ChoosePlanSection = () => {
      
 
         {/* Plans Grid - Dark Glossy Theme */}
-        <div className="row g-4 justify-content-center">
+        <div className="row g-3 g-md-4 justify-content-center">
           {plans.slice(0, 3).map((plan, index) => {
             const gradients = [
               'linear-gradient(135deg, #ff6b6b, #ee5a24)',
@@ -74,7 +74,7 @@ const ChoosePlanSection = () => {
             ];
             
             return (
-              <div key={plan._id} className="col-lg-4 col-md-6">
+              <div key={plan._id} className="col-12 col-sm-6 col-lg-4">
                 <div className="card border-0 rounded-4 h-100 position-relative overflow-hidden" style={{
                   background: 'rgba(60, 58, 58, 0.03)',
                   border: '3px solid rgba(67, 34, 124, 0.74)',
@@ -94,12 +94,12 @@ const ChoosePlanSection = () => {
                   {/* Gradient Header */}
                   <div className="position-relative" style={{
                     background: gradients[index % gradients.length],
-                    minHeight: '120px',
+                    minHeight: 'clamp(100px, 15vw, 120px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'column',
-                    padding: '2rem 1rem 1rem'
+                    padding: 'clamp(1rem, 3vw, 2rem) clamp(0.5rem, 2vw, 1rem) clamp(0.5rem, 2vw, 1rem)'
                   }}>
                     {/* Decorative dots */}
                     <div className="position-absolute" style={{
@@ -118,33 +118,38 @@ const ChoosePlanSection = () => {
                       ))}
                     </div>
                     
-                    <h3 className="text-white fw-bold mb-2" style={{ fontSize: '1.5rem' }}>
+                    <h3 className="text-white fw-bold mb-2" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
                       {plan.name}
                     </h3>
                     <div className="text-center">
-                      <span className="display-6 fw-bold text-white">${plan.price}</span>
-                      <span className="text-white ms-2">PER {plan.duration} DAYS</span>
+                      <span className="fw-bold text-white" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>${plan.price}</span>
+                      <span className="text-white ms-1 ms-md-2" style={{ fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>PER {plan.duration} DAYS</span>
                     </div>
                   </div>
 
                   {/* Card Body */}
-                  <div className="card-body p-4" style={{ 
+                  <div className="card-body p-3 p-md-4" style={{ 
                     background: 'rgba(60, 58, 58, 0.03)',
                     border: '3px solid rgba(67, 34, 124, 0.74)',
                     backdropFilter: 'blur(20px)',
                     boxShadow: '5px 4px 20px 1px rgba(70, 74, 103, 0.44)'
                   }}>
-                    <div className="mb-4">
+                    <div className="mb-3 mb-md-4">
                       {plan.features && plan.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="d-flex align-items-center mb-2">
-                          <div className="me-3">
+                        <div key={featureIndex} className="d-flex align-items-center mb-1 mb-md-2">
+                          <div className="me-2 me-md-3" style={{ flexShrink: 0 }}>
                             {featureIndex < 20 ? (
-                              <FaCheck className="text-success" size={16} />
+                              <FaCheck className="text-success d-none d-md-inline" size={16} />
                             ) : (
-                              <FaTimes className="text-danger" size={16} />
+                              <FaTimes className="text-danger d-none d-md-inline" size={16} />
+                            )}
+                            {featureIndex < 20 ? (
+                              <FaCheck className="text-success d-inline d-md-none" size={14} />
+                            ) : (
+                              <FaTimes className="text-danger d-inline d-md-none" size={14} />
                             )}
                           </div>
-                          <span className="text-white-50" style={{ fontSize: '0.9rem' }}>
+                          <span className="text-white-50" style={{ fontSize: 'clamp(0.75rem, 2vw, 0.9rem)', lineHeight: '1.3' }}>
                             {feature}
                           </span>
                         </div>
@@ -154,10 +159,11 @@ const ChoosePlanSection = () => {
                     {/* CTA Button */}
                     <Link 
                       href="/plans" 
-                      className="btn w-100 py-3 fw-bold rounded-4 text-white border-0"
+                      className="btn w-100 py-2 py-md-3 fw-bold rounded-4 text-white border-0"
                       style={{
                         background: gradients[index % gradients.length],
-                        transition: 'all 0.3s ease'
+                        transition: 'all 0.3s ease',
+                        fontSize: 'clamp(0.8rem, 2.5vw, 1rem)'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'scale(1.05)';
@@ -176,16 +182,16 @@ const ChoosePlanSection = () => {
         </div>
 
         {error && (
-          <div className="text-center mt-4">
-            <div className="alert alert-warning" role="alert">
+          <div className="text-center mt-3 mt-md-4">
+            <div className="alert alert-warning" role="alert" style={{ fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
               {error}
             </div>
           </div>
         )}
 
         {plans.length === 0 && (
-          <div className="text-center mt-4">
-            <div className="alert alert-info" role="alert">
+          <div className="text-center mt-3 mt-md-4">
+            <div className="alert alert-info" role="alert" style={{ fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
               No plans available at the moment.
             </div>
           </div>

@@ -39,6 +39,15 @@ const AdminUsers = () => {
   });
   const [transactionEditMode, setTransactionEditMode] = useState(false);
   const [referralEditMode, setReferralEditMode] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [walletAction, setWalletAction] = useState({
+    type: 'add', // 'add' or 'deduct'
+    amount: 0,
+    wallet: 'wallet' // 'wallet' or 'referral'
+  });
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [referralBonus, setReferralBonus] = useState(0);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -185,6 +194,66 @@ const AdminUsers = () => {
     } catch (error) {
       console.error('Error updating wallet:', error);
       alert('Failed to update wallet balance');
+    }
+  };
+
+  const handleWalletAction = async () => {
+    if (!selectedUser || !walletAction.amount) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet-action/${selectedUser.uid}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          action: walletAction.type,
+          amount: parseFloat(walletAction.amount),
+          wallet: walletAction.wallet,
+          reason: `Admin ${walletAction.type} - ${walletAction.amount} to ${walletAction.wallet} balance`
+        })
+      });
+
+      if (response.ok) {
+        alert(`Wallet ${walletAction.type} successful`);
+        setShowWalletModal(false);
+        setWalletAction({ type: 'add', amount: 0, wallet: 'wallet' });
+        fetchUserDetails(selectedUser.uid);
+      }
+    } catch (error) {
+      console.error('Error performing wallet action:', error);
+      alert('Failed to perform wallet action');
+    }
+  };
+
+  const handleReferralComplete = async () => {
+    if (!selectedReferral || !referralBonus) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/mark-referral-complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          referrerUid: selectedUser.uid,
+          referredUid: selectedReferral.uid,
+          bonusAmount: parseFloat(referralBonus)
+        })
+      });
+
+      if (response.ok) {
+        alert('Referral marked as complete and bonus added');
+        setShowReferralModal(false);
+        setSelectedReferral(null);
+        setReferralBonus(0);
+        fetchUserDetails(selectedUser.uid);
+      }
+    } catch (error) {
+      console.error('Error marking referral complete:', error);
+      alert('Failed to mark referral as complete');
     }
   };
 
@@ -561,13 +630,35 @@ const AdminUsers = () => {
                     <FaWallet className="me-2" />
                     Wallet Management
                   </h5>
-                  <button 
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={() => setWalletEditMode(!walletEditMode)}
-                  >
-                    <FaEdit className="me-1" />
-                    {walletEditMode ? 'Cancel' : 'Edit'}
-                  </button>
+                  <div className="btn-group btn-group-sm">
+                    <button 
+                      className="btn btn-outline-success"
+                      onClick={() => {
+                        setWalletAction({ type: 'add', amount: 0, wallet: 'wallet' });
+                        setShowWalletModal(true);
+                      }}
+                    >
+                      <FaPlus className="me-1" />
+                      Add
+                    </button>
+                    <button 
+                      className="btn btn-outline-danger"
+                      onClick={() => {
+                        setWalletAction({ type: 'deduct', amount: 0, wallet: 'wallet' });
+                        setShowWalletModal(true);
+                      }}
+                    >
+                      <FaTimes className="me-1" />
+                      Deduct
+                    </button>
+                    <button 
+                      className="btn btn-outline-primary"
+                      onClick={() => setWalletEditMode(!walletEditMode)}
+                    >
+                      <FaEdit className="me-1" />
+                      {walletEditMode ? 'Cancel' : 'Edit'}
+                    </button>
+                  </div>
                 </div>
 
                 {walletEditMode ? (
@@ -706,9 +797,24 @@ const AdminUsers = () => {
                             <td>{ref.email}</td>
                             <td>{new Date(ref.joinedAt).toLocaleDateString()}</td>
                             <td>
-                              <span className={`badge ${ref.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
-                                {ref.hasDeposited ? 'Active' : 'Pending'}
-                              </span>
+                              <div className="d-flex align-items-center gap-2">
+                                <span className={`badge ${ref.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
+                                  {ref.hasDeposited ? 'Active' : 'Pending'}
+                                </span>
+                                {!ref.hasDeposited && (
+                                  <button 
+                                    className="btn btn-outline-success btn-sm"
+                                    onClick={() => {
+                                      setSelectedReferral(ref);
+                                      setReferralBonus(0);
+                                      setShowReferralModal(true);
+                                    }}
+                                  >
+                                    <FaCheck className="me-1" />
+                                    Mark Complete
+                                  </button>
+                                )}
+                              </div>
                             </td>
                             <td>₹{ref.totalDeposits}</td>
                             <td>₹{ref.referralBonus}</td>
@@ -847,6 +953,139 @@ const AdminUsers = () => {
                   disabled={!selectedPlan}
                 >
                   Assign Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wallet Action Modal */}
+      {showWalletModal && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {walletAction.type === 'add' ? 'Add' : 'Deduct'} {walletAction.wallet} Balance
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowWalletModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Amount</label>
+                  <div className="input-group">
+                    <span className="input-group-text">₹</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={walletAction.amount}
+                      onChange={(e) => setWalletAction({
+                        ...walletAction,
+                        amount: parseFloat(e.target.value) || 0
+                      })}
+                      placeholder="Enter amount"
+                    />
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Wallet Type</label>
+                  <select 
+                    className="form-select"
+                    value={walletAction.wallet}
+                    onChange={(e) => setWalletAction({
+                      ...walletAction,
+                      wallet: e.target.value
+                    })}
+                  >
+                    <option value="wallet">Wallet Balance</option>
+                    <option value="referral">Referral Balance</option>
+                  </select>
+                </div>
+                <div className="alert alert-info">
+                  <strong>Current Balance:</strong><br/>
+                  Wallet: ₹{userAnalytics?.wallet?.walletBalance || 0}<br/>
+                  Referral: ₹{userAnalytics?.wallet?.referralBalance || 0}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowWalletModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className={`btn ${walletAction.type === 'add' ? 'btn-success' : 'btn-danger'}`}
+                  onClick={handleWalletAction}
+                  disabled={!walletAction.amount}
+                >
+                  {walletAction.type === 'add' ? 'Add' : 'Deduct'} ₹{walletAction.amount}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark Referral Complete Modal */}
+      {showReferralModal && selectedReferral && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Mark Referral as Complete</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowReferralModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <strong>Referral Details:</strong><br/>
+                  Name: {selectedReferral.name}<br/>
+                  Email: {selectedReferral.email}<br/>
+                  Joined: {new Date(selectedReferral.joinedAt).toLocaleDateString()}
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Referral Bonus Amount</label>
+                  <div className="input-group">
+                    <span className="input-group-text">₹</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={referralBonus}
+                      onChange={(e) => setReferralBonus(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter bonus amount"
+                    />
+                  </div>
+                </div>
+                <div className="alert alert-warning">
+                  This will mark the referral as complete and add the bonus amount to the referrer's referral balance.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowReferralModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-success"
+                  onClick={handleReferralComplete}
+                  disabled={!referralBonus}
+                >
+                  Mark Complete & Add Bonus
                 </button>
               </div>
             </div>

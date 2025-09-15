@@ -1155,7 +1155,7 @@ router.post('/trading-accounts', verifyAdminAuth, async (req, res) => {
 router.post('/trading-accounts/:accountId/assign', verifyAdminAuth, async (req, res) => {
   try {
     const { accountId } = req.params;
-    const { uid, subscriptionId } = req.body;
+    const { uid, subscriptionId, extendPlanValidity } = req.body;
 
     const user = await User.findOne({ uid });
     if (!user) {
@@ -1185,9 +1185,23 @@ router.post('/trading-accounts/:accountId/assign', verifyAdminAuth, async (req, 
 
     // Update subscription if provided
     if (subscriptionId) {
-      await Subscription.findByIdAndUpdate(subscriptionId, {
-        tradingAccountAssigned: true
-      });
+      const subscription = await Subscription.findById(subscriptionId);
+      if (subscription) {
+        subscription.tradingAccountAssigned = true;
+        
+        // If extendPlanValidity is true, extend the plan validity to 100% from now
+        if (extendPlanValidity) {
+          const now = new Date();
+          const planDuration = subscription.duration; // in days
+          const newExpiryDate = new Date(now.getTime() + (planDuration * 24 * 60 * 60 * 1000));
+          
+          subscription.startDate = now;
+          subscription.expiryDate = newExpiryDate;
+          subscription.status = 'active';
+        }
+        
+        await subscription.save();
+      }
     }
 
     res.json({
@@ -1384,6 +1398,195 @@ router.post('/recalculate-referral-counts', verifyAdminAuth, async (req, res) =>
     res.status(500).json({
       success: false,
       message: 'Failed to recalculate referral counts',
+      error: error.message
+    });
+  }
+});
+
+// User wallet action (add/deduct)
+router.post('/user-wallet-action/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { action, amount, wallet, reason } = req.body;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Initialize wallet if not exists
+    if (!profile.wallet) {
+      profile.wallet = {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
+      };
+    }
+
+    // Calculate new balance
+    const currentBalance = wallet === 'wallet' ? profile.wallet.walletBalance : profile.wallet.referralBalance;
+    const newBalance = action === 'add' 
+      ? currentBalance + parseFloat(amount)
+      : currentBalance - parseFloat(amount);
+
+    // Update balance (allow negative)
+    if (wallet === 'wallet') {
+      profile.wallet.walletBalance = newBalance;
+    } else {
+      profile.wallet.referralBalance = newBalance;
+    }
+
+    // Create transaction record
+    const transaction = new Transaction({
+      userId: user._id,
+      type: action === 'add' ? 'admin_credit' : 'admin_debit',
+      amount: parseFloat(amount),
+      description: reason || `Admin ${action} - ${wallet} balance`,
+      status: 'completed',
+      metadata: {
+        adminAction: true,
+        adminId: req.admin._id,
+        walletType: wallet,
+        reason: reason
+      },
+      processedAt: new Date()
+    });
+
+    await transaction.save();
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: `Wallet ${action} successful`,
+      wallet: profile.wallet
+    });
+  } catch (error) {
+    console.error('Error performing wallet action:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform wallet action',
+      error: error.message
+    });
+  }
+});
+
+// Mark referral as complete
+router.post('/mark-referral-complete', verifyAdminAuth, async (req, res) => {
+  try {
+    const { referrerUid, referredUid, bonusAmount } = req.body;
+
+    // Find referrer user
+    const referrerUser = await User.findOne({ uid: referrerUid });
+    if (!referrerUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referrer user not found'
+      });
+    }
+
+    // Find referred user
+    const referredUser = await User.findOne({ uid: referredUid });
+    if (!referredUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referred user not found'
+      });
+    }
+
+    // Find referrer profile
+    const referrerProfile = await Profile.findOne({ userId: referrerUser._id });
+    if (!referrerProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referrer profile not found'
+      });
+    }
+
+    // Find referred profile
+    const referredProfile = await Profile.findOne({ userId: referredUser._id });
+    if (!referredProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referred profile not found'
+      });
+    }
+
+    // Check if referral exists
+    if (referredProfile.referral.referredBy !== referrerProfile.referral.code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid referral relationship'
+      });
+    }
+
+    // Update referral counts
+    if (!referrerProfile.referral) {
+      referrerProfile.referral = {
+        totalReferrals: 0,
+        completedReferrals: 0,
+        pendingReferrals: 0
+      };
+    }
+    
+    referrerProfile.referral.completedReferrals += 1;
+    referrerProfile.referral.pendingReferrals = Math.max(0, referrerProfile.referral.pendingReferrals - 1);
+
+    // Add bonus to referrer's referral balance
+    if (!referrerProfile.wallet) {
+      referrerProfile.wallet = {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
+      };
+    }
+    referrerProfile.wallet.referralBalance += parseFloat(bonusAmount);
+
+    // Create referral bonus transaction
+    const referralTransaction = new Transaction({
+      userId: referrerUser._id,
+      type: 'referral_bonus',
+      amount: parseFloat(bonusAmount),
+      description: `Admin marked referral complete - ${referredProfile.personalInfo?.firstName || 'User'}`,
+      status: 'completed',
+      metadata: {
+        adminAction: true,
+        adminId: req.admin._id,
+        referredUserId: referredUser._id,
+        referredUserUid: referredUid,
+        referredUserName: `${referredProfile.personalInfo?.firstName || ''} ${referredProfile.personalInfo?.lastName || ''}`.trim()
+      },
+      processedAt: new Date()
+    });
+
+    await referralTransaction.save();
+    await referrerProfile.save();
+
+    res.json({
+      success: true,
+      message: 'Referral marked as complete and bonus added',
+      referral: {
+        referrer: referrerProfile.referral,
+        bonusAdded: parseFloat(bonusAmount)
+      }
+    });
+  } catch (error) {
+    console.error('Error marking referral complete:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark referral as complete',
       error: error.message
     });
   }

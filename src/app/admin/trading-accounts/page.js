@@ -123,7 +123,7 @@ const AdminTradingAccounts = () => {
     }
   };
 
-  const handleAssignAccount = async (uid) => {
+  const handleAssignAccount = async (uid, extendPlanValidity = false) => {
     if (!selectedAccount || !uid) return;
     
     try {
@@ -133,7 +133,10 @@ const AdminTradingAccounts = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ uid })
+        body: JSON.stringify({ 
+          uid,
+          extendPlanValidity 
+        })
       });
 
       if (response.ok) {
@@ -603,11 +606,7 @@ const AdminTradingAccounts = () => {
                   <label className="form-label">Select User</label>
                   <select 
                     className="form-select"
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleAssignAccount(e.target.value);
-                      }
-                    }}
+                    id="userSelect"
                   >
                     <option value="">Choose a user</option>
                     {users.map(user => (
@@ -617,6 +616,21 @@ const AdminTradingAccounts = () => {
                     ))}
                   </select>
                 </div>
+                <div className="mb-3">
+                  <div className="form-check">
+                    <input 
+                      className="form-check-input" 
+                      type="checkbox" 
+                      id="extendPlanValidity"
+                    />
+                    <label className="form-check-label" htmlFor="extendPlanValidity">
+                      Extend plan validity to 100% from now
+                    </label>
+                  </div>
+                  <small className="text-muted">
+                    This will reset the user's subscription start date to now and extend the validity to full plan duration.
+                  </small>
+                </div>
               </div>
               <div className="modal-footer">
                 <button 
@@ -625,6 +639,19 @@ const AdminTradingAccounts = () => {
                   onClick={() => setShowAssignModal(false)}
                 >
                   Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    const userSelect = document.getElementById('userSelect');
+                    const extendValidity = document.getElementById('extendPlanValidity').checked;
+                    if (userSelect.value) {
+                      handleAssignAccount(userSelect.value, extendValidity);
+                    }
+                  }}
+                >
+                  Assign Account
                 </button>
               </div>
             </div>

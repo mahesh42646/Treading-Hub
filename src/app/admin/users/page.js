@@ -16,7 +16,8 @@ import {
   FaUserFriends,
   FaCreditCard,
   FaArrowLeft,
-  FaPlus
+  FaPlus,
+  FaRefresh
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -81,7 +82,24 @@ const AdminUsers = () => {
   useEffect(() => {
     fetchUsers();
     fetchPlans();
+    // Refresh referral counts on page load
+    refreshReferralCounts();
   }, [fetchUsers]);
+
+  const refreshReferralCounts = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/recalculate-referral-counts`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        console.log('Referral counts refreshed');
+      }
+    } catch (error) {
+      console.error('Error refreshing referral counts:', error);
+    }
+  };
 
   const fetchPlans = async () => {
     try {
@@ -518,11 +536,21 @@ const AdminUsers = () => {
                 </table>
               </div>
 
-              {/* User Count */}
-              <div className="mt-3 text-center">
+              {/* User Count and Actions */}
+              <div className="mt-3 d-flex justify-content-between align-items-center">
                 <span className="text-muted">
                   Showing {users.length} users
                 </span>
+                <button 
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => {
+                    refreshReferralCounts();
+                    fetchUsers();
+                  }}
+                >
+                  <FaRefresh className="me-1" />
+                  Refresh Referral Counts
+                </button>
               </div>
             </div>
           </div>

@@ -192,39 +192,29 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       profileMap[profile.userId.toString()] = profile;
     });
 
-    // Get referral counts for each user
-    const referralCounts = await Profile.aggregate([
-      {
-        $match: {
-          'referral.referredBy': { $exists: true, $ne: null }
-        }
-      },
-      {
-        $group: {
-          _id: '$referral.referredBy',
-          totalCount: { $sum: 1 },
-          completedCount: {
-            $sum: {
-              $cond: [
-                { $gt: ['$wallet.totalDeposits', 0] },
-                1,
-                0
-              ]
-            }
-          }
-        }
-      }
-    ]);
-
-    // Create a map of referral code to counts
+    // Get referral counts for each user using the same approach as user dashboard
     const referralCountMap = {};
-    referralCounts.forEach(item => {
-      referralCountMap[item._id] = {
-        total: item.totalCount,
-        completed: item.completedCount,
-        pending: item.totalCount - item.completedCount
-      };
-    });
+    
+    // For each user, calculate their referral counts
+    for (const user of users) {
+      const userProfile = profileMap[user._id.toString()];
+      if (userProfile && userProfile.referral && userProfile.referral.code) {
+        // Find all profiles that were referred by this user's code
+        const referredProfiles = await Profile.find({ 
+          'referral.referredBy': userProfile.referral.code 
+        });
+        
+        const totalReferrals = referredProfiles.length;
+        const completedReferrals = referredProfiles.filter(p => p.wallet?.totalDeposits > 0).length;
+        const pendingReferrals = totalReferrals - completedReferrals;
+        
+        referralCountMap[userProfile.referral.code] = {
+          total: totalReferrals,
+          completed: completedReferrals,
+          pending: pendingReferrals
+        };
+      }
+    }
 
     // Attach profiles and referral counts to users
     const usersWithProfiles = users.map(user => {

@@ -8,7 +8,14 @@ import {
   FaTimes, 
   FaUserCheck,
   FaUserTimes,
-  FaSpinner
+  FaSpinner,
+  FaEdit,
+  FaWallet,
+  FaGift,
+  FaHistory,
+  FaUserFriends,
+  FaCreditCard,
+  FaArrowLeft
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -18,13 +25,20 @@ const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [kycActionLoading, setKycActionLoading] = useState(null);
   const [userAnalytics, setUserAnalytics] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const [plans, setPlans] = useState([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [activeTab, setActiveTab] = useState('users');
+  const [walletEditMode, setWalletEditMode] = useState(false);
+  const [walletData, setWalletData] = useState({
+    walletBalance: 0,
+    referralBalance: 0
+  });
+  const [transactionEditMode, setTransactionEditMode] = useState(false);
+  const [referralEditMode, setReferralEditMode] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -83,6 +97,9 @@ const AdminUsers = () => {
 
       if (response.ok) {
         fetchUsers(); // Refresh the list
+        if (selectedUser && selectedUser.uid === uid) {
+          fetchUserDetails(uid); // Refresh selected user details
+        }
       }
     } catch (error) {
       console.error(`Error ${action}ing KYC:`, error);
@@ -91,7 +108,7 @@ const AdminUsers = () => {
     }
   };
 
-  const viewUserDetails = async (uid) => {
+  const fetchUserDetails = async (uid) => {
     setLoadingAnalytics(true);
     try {
       // Fetch user details
@@ -99,31 +116,41 @@ const AdminUsers = () => {
         credentials: 'include'
       });
       
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        setSelectedUser(userData.user);
-        
-        // Fetch user analytics (wallet data, referrals, transactions)
-        const [walletResponse, referralResponse, transactionResponse] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/balance/${uid}`, {
-            credentials: 'include'
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/referral-history/${uid}`, {
-            credentials: 'include'
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-transactions/${uid}`, {
-            credentials: 'include'
-          })
-        ]);
+      // Fetch wallet data
+      const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/balance/${uid}`, {
+        credentials: 'include'
+      });
+      
+      // Fetch referral data
+      const referralResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/referral-history/${uid}`, {
+        credentials: 'include'
+      });
+      
+      // Fetch transactions
+      const transactionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-transactions/${uid}`, {
+        credentials: 'include'
+      });
 
-        const analytics = {
-          wallet: walletResponse.ok ? await walletResponse.json() : null,
-          referrals: referralResponse.ok ? await referralResponse.json() : null,
-          transactions: transactionResponse.ok ? await transactionResponse.json() : null
-        };
-        
-        setUserAnalytics(analytics);
-        setShowUserModal(true);
+      const [userData, walletData, referralData, transactionData] = await Promise.all([
+        userResponse.json(),
+        walletResponse.json(),
+        referralResponse.json(),
+        transactionResponse.json()
+      ]);
+
+      if (userData.success) {
+        setSelectedUser(userData.user);
+        setUserAnalytics({
+          ...userData.user,
+          wallet: walletData,
+          referrals: referralData,
+          transactions: transactionData
+        });
+        setWalletData({
+          walletBalance: walletData.walletBalance || 0,
+          referralBalance: walletData.referralBalance || 0
+        });
+        setActiveTab('details');
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -132,7 +159,62 @@ const AdminUsers = () => {
     }
   };
 
-  const assignPlan = async (uid, planId) => {
+  const handleWalletUpdate = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet/${selectedUser.uid}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          walletBalance: walletData.walletBalance,
+          referralBalance: walletData.referralBalance,
+          action: 'admin_update',
+          reason: 'Admin wallet adjustment'
+        })
+      });
+
+      if (response.ok) {
+        alert('Wallet balance updated successfully');
+        setWalletEditMode(false);
+        fetchUserDetails(selectedUser.uid);
+      }
+    } catch (error) {
+      console.error('Error updating wallet:', error);
+      alert('Failed to update wallet balance');
+    }
+  };
+
+  const handleTransactionStatusUpdate = async (transactionId, newStatus) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-transaction-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          transactionId,
+          status: newStatus
+        })
+      });
+
+      if (response.ok) {
+        alert('Transaction status updated successfully');
+        fetchUserDetails(selectedUser.uid);
+      }
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      alert('Failed to update transaction status');
+    }
+  };
+
+  const assignPlan = async () => {
+    if (!selectedUser || !selectedPlan) return;
+    
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/assign-plan`, {
         method: 'POST',
@@ -140,35 +222,45 @@ const AdminUsers = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ uid, planId })
+        body: JSON.stringify({
+          uid: selectedUser.uid,
+          planId: selectedPlan
+        })
       });
 
       if (response.ok) {
-        alert('Plan assigned successfully!');
+        alert('Plan assigned successfully');
         setShowSubscriptionModal(false);
-        viewUserDetails(uid); // Refresh user data
-      } else {
-        alert('Failed to assign plan');
+        fetchUserDetails(selectedUser.uid);
       }
     } catch (error) {
       console.error('Error assigning plan:', error);
-      alert('Error assigning plan');
+      alert('Failed to assign plan');
     }
   };
 
   const getKycStatusBadge = (status) => {
-    switch (status) {
-      case 'not_applied':
-        return <span className="badge bg-secondary">Not Applied</span>;
-      case 'applied':
-        return <span className="badge bg-info">Under Review</span>;
-      case 'approved':
-        return <span className="badge bg-success">Approved</span>;
-      case 'rejected':
-        return <span className="badge bg-danger">Rejected</span>;
-      default:
-        return <span className="badge bg-secondary">Unknown</span>;
-    }
+    const statusConfig = {
+      'pending': { class: 'bg-warning', text: 'Pending' },
+      'applied': { class: 'bg-info', text: 'Applied' },
+      'approved': { class: 'bg-success', text: 'Approved' },
+      'rejected': { class: 'bg-danger', text: 'Rejected' }
+    };
+    
+    const config = statusConfig[status] || { class: 'bg-secondary', text: 'Unknown' };
+    return <span className={`badge ${config.class}`}>{config.text}</span>;
+  };
+
+  const getTransactionStatusBadge = (status) => {
+    const statusConfig = {
+      'pending': { class: 'bg-warning', text: 'Pending' },
+      'completed': { class: 'bg-success', text: 'Completed' },
+      'failed': { class: 'bg-danger', text: 'Failed' },
+      'cancelled': { class: 'bg-secondary', text: 'Cancelled' }
+    };
+    
+    const config = statusConfig[status] || { class: 'bg-secondary', text: 'Unknown' };
+    return <span className={`badge ${config.class}`}>{config.text}</span>;
   };
 
   if (loading) {
@@ -182,391 +274,528 @@ const AdminUsers = () => {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1">User Management</h1>
-          <p className="text-muted mb-0">Manage users and their KYC status</p>
-        </div>
-        <div className="d-flex gap-2">
-          <span className="badge bg-primary fs-6">
-            Total: {users.length}
-          </span>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-body">
-          <div className="input-group">
-            <span className="input-group-text">
-              <FaSearch />
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search users by email or name"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="container-fluid py-4">
+      {/* Header */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="fw-bold mb-1">
+                {activeTab === 'details' ? (
+                  <button 
+                    className="btn btn-link p-0 me-3"
+                    onClick={() => setActiveTab('users')}
+                  >
+                    <FaArrowLeft />
+                  </button>
+                ) : null}
+                User Management
+              </h2>
+              <p className="text-muted mb-0">
+                {activeTab === 'details' 
+                  ? `Managing: ${selectedUser?.email || 'User'}` 
+                  : 'Manage users, KYC approvals, and wallet balances'
+                }
+              </p>
+            </div>
+            {activeTab === 'details' && (
+              <div className="d-flex gap-2">
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={() => setShowSubscriptionModal(true)}
+                >
+                  <FaCreditCard className="me-2" />
+                  Assign Plan
+                </button>
+                <button 
+                  className="btn btn-outline-warning"
+                  onClick={() => setWalletEditMode(!walletEditMode)}
+                >
+                  <FaWallet className="me-2" />
+                  {walletEditMode ? 'Cancel Edit' : 'Edit Wallet'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="card border-0 shadow-sm">
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>User</th>
-                  <th>Profile Status</th>
-                  <th>KYC Status</th>
-                  <th>Joined</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user._id}>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                          <span className="text-primary fw-bold">{user.email?.charAt(0).toUpperCase()}</span>
-                        </div>
-                        <div>
-                          <strong>{user.email}</strong>
-                          <br />
-                          <small className="text-muted">UID: {user.uid}</small>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      {user.profile ? (
-                        <span className="badge bg-success">Complete</span>
-                      ) : (
-                        <span className="badge bg-warning">Incomplete</span>
-                      )}
-                    </td>
-                    <td>
-                      {user.profile?.kyc?.status ? (
-                        getKycStatusBadge(user.profile.kyc.status)
-                      ) : (
-                        <span className="badge bg-secondary">Not Started</span>
-                      )}
-                    </td>
-                    <td>
-                      <small className="text-muted">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </small>
-                    </td>
-                    <td>
-                      <div className="btn-group btn-group-sm">
-                        <button 
-                          className="btn btn-outline-primary"
-                          onClick={() => viewUserDetails(user.uid)}
-                        >
-                          <FaEye />
-                        </button>
-                        {user.profile?.kyc?.status === 'applied' && (
-                          <>
-                            <button 
-                              className="btn btn-outline-success"
-                              onClick={() => handleKycAction(user.uid, 'approve')}
-                              disabled={kycActionLoading === user.uid}
-                            >
-                              {kycActionLoading === user.uid ? (
-                                <FaSpinner className="fa-spin" />
-                              ) : (
-                                <FaCheck />
-                              )}
-                            </button>
-                            <button 
-                              className="btn btn-outline-danger"
-                              onClick={() => handleKycAction(user.uid, 'reject')}
-                              disabled={kycActionLoading === user.uid}
-                            >
-                              {kycActionLoading === user.uid ? (
-                                <FaSpinner className="fa-spin" />
-                              ) : (
-                                <FaTimes />
-                              )}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <small className="text-muted">
-                Page {currentPage} of {totalPages}
-              </small>
-              <div className="btn-group">
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
+      {/* Users List View */}
+      {activeTab === 'users' && (
+        <>
+          {/* Search */}
+          <div className="card border-0 shadow-sm mb-4">
+            <div className="card-body">
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FaSearch />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search users by email or name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Comprehensive User Analytics Modal */}
-      {showUserModal && selectedUser && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-xl">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  <FaUserCheck className="me-2" />
-                  Complete User Analytics - {selectedUser.email}
-                </h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => setShowUserModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                {loadingAnalytics ? (
-                  <div className="text-center py-5">
-                    <FaSpinner className="fa-spin fs-1 text-primary mb-3" />
-                    <p>Loading complete analytics...</p>
-                  </div>
-                ) : (
-                  <>
-                    {/* User Basic Info & Actions */}
-                    <div className="row mb-4">
-                      <div className="col-md-8">
-                        <div className="card border-0 bg-light">
-                          <div className="card-body">
-                            <h6 className="fw-bold mb-3">Basic Information</h6>
-                            <div className="row">
-                              <div className="col-sm-6">
-                                <strong>Email:</strong> {selectedUser.email}<br/>
-                                <strong>UID:</strong> {selectedUser.uid}<br/>
-                                <strong>Joined:</strong> {new Date(selectedUser.createdAt).toLocaleDateString()}<br/>
-                              </div>
-                              <div className="col-sm-6">
-                                <strong>KYC Status:</strong> {getKycStatusBadge(selectedUser.profile?.profileCompletion?.kycStatus)}<br/>
-                                <strong>Profile:</strong> {selectedUser.profile ? 'Complete' : 'Incomplete'}<br/>
-                                <strong>Status:</strong> <span className="badge bg-success">Active</span>
-                              </div>
+          {/* Users Table */}
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Profile Status</th>
+                      <th>KYC Status</th>
+                      <th>Wallet Balance</th>
+                      <th>Referrals</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user._id}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
+                              <span className="text-primary fw-bold">{user.email?.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div>
+                              <strong>{user.email}</strong>
+                              <br />
+                              <small className="text-muted">UID: {user.uid}</small>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="d-grid gap-2">
-                          {selectedUser.profile?.profileCompletion?.kycStatus === 'applied' && (
-                            <>
-                              <button 
-                                className="btn btn-success btn-sm"
-                                onClick={() => handleKycAction(selectedUser.uid, 'approve')}
-                                disabled={kycActionLoading === selectedUser.uid}
-                              >
-                                <FaCheck className="me-1" />
-                                Approve KYC
-                              </button>
-                              <button 
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleKycAction(selectedUser.uid, 'reject')}
-                                disabled={kycActionLoading === selectedUser.uid}
-                              >
-                                <FaTimes className="me-1" />
-                                Reject KYC
-                              </button>
-                            </>
+                        </td>
+                        <td>
+                          {user.profile ? (
+                            <span className="badge bg-success">Complete</span>
+                          ) : (
+                            <span className="badge bg-warning">Incomplete</span>
                           )}
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => {
-                              setShowSubscriptionModal(true);
-                              setShowUserModal(false);
-                            }}
-                          >
-                            <FaUserCheck className="me-1" />
-                            Assign Plan
-                          </button>
+                        </td>
+                        <td>
+                          {user.profile?.kyc?.status ? (
+                            getKycStatusBadge(user.profile.kyc.status)
+                          ) : (
+                            <span className="badge bg-secondary">Not Started</span>
+                          )}
+                        </td>
+                        <td>
+                          <div>
+                            <small className="text-muted">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
+                            <small className="text-muted">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge bg-info">
+                            {user.profile?.referral?.totalReferred || 0} referred
+                          </span>
+                        </td>
+                        <td>
+                          <small className="text-muted">
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </small>
+                        </td>
+                        <td>
+                          <div className="btn-group btn-group-sm">
+                            <button 
+                              className="btn btn-outline-primary"
+                              onClick={() => fetchUserDetails(user.uid)}
+                            >
+                              <FaEye />
+                            </button>
+                            {user.profile?.kyc?.status === 'applied' && (
+                              <>
+                                <button 
+                                  className="btn btn-outline-success"
+                                  onClick={() => handleKycAction(user.uid, 'approve')}
+                                  disabled={kycActionLoading === user.uid}
+                                >
+                                  {kycActionLoading === user.uid ? (
+                                    <FaSpinner className="fa-spin" />
+                                  ) : (
+                                    <FaCheck />
+                                  )}
+                                </button>
+                                <button 
+                                  className="btn btn-outline-danger"
+                                  onClick={() => handleKycAction(user.uid, 'reject')}
+                                  disabled={kycActionLoading === user.uid}
+                                >
+                                  {kycActionLoading === user.uid ? (
+                                    <FaSpinner className="fa-spin" />
+                                  ) : (
+                                    <FaTimes />
+                                  )}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <nav className="mt-3">
+                <ul className="pagination justify-content-center">
+                  <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link" 
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </button>
+                  </li>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <li key={page} className={`page-item ${currentPage === page ? 'active' : ''}`}>
+                      <button 
+                        className="page-link" 
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  ))}
+                  <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link" 
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* User Details View */}
+      {activeTab === 'details' && selectedUser && (
+        <div className="row">
+          {/* User Info Card */}
+          <div className="col-lg-4 mb-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body">
+                <h5 className="card-title">User Information</h5>
+                <div className="mb-3">
+                  <strong>Email:</strong><br/>
+                  <span className="text-muted">{selectedUser.email}</span>
+                </div>
+                <div className="mb-3">
+                  <strong>UID:</strong><br/>
+                  <span className="text-muted">{selectedUser.uid}</span>
+                </div>
+                <div className="mb-3">
+                  <strong>Joined:</strong><br/>
+                  <span className="text-muted">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="mb-3">
+                  <strong>Profile Status:</strong><br/>
+                  {selectedUser.profile ? (
+                    <span className="badge bg-success">Complete</span>
+                  ) : (
+                    <span className="badge bg-warning">Incomplete</span>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <strong>KYC Status:</strong><br/>
+                  {selectedUser.profile?.kyc?.status ? (
+                    getKycStatusBadge(selectedUser.profile.kyc.status)
+                  ) : (
+                    <span className="badge bg-secondary">Not Started</span>
+                  )}
+                </div>
+                
+                {/* KYC Actions */}
+                {selectedUser.profile?.kyc?.status === 'applied' && (
+                  <div className="d-grid gap-2">
+                    <button 
+                      className="btn btn-success btn-sm"
+                      onClick={() => handleKycAction(selectedUser.uid, 'approve')}
+                      disabled={kycActionLoading === selectedUser.uid}
+                    >
+                      {kycActionLoading === selectedUser.uid ? (
+                        <FaSpinner className="fa-spin me-2" />
+                      ) : (
+                        <FaCheck className="me-2" />
+                      )}
+                      Approve KYC
+                    </button>
+                    <button 
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleKycAction(selectedUser.uid, 'reject')}
+                      disabled={kycActionLoading === selectedUser.uid}
+                    >
+                      {kycActionLoading === selectedUser.uid ? (
+                        <FaSpinner className="fa-spin me-2" />
+                      ) : (
+                        <FaTimes className="me-2" />
+                      )}
+                      Reject KYC
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Management */}
+          <div className="col-lg-8 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="card-title mb-0">
+                    <FaWallet className="me-2" />
+                    Wallet Management
+                  </h5>
+                  <button 
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => setWalletEditMode(!walletEditMode)}
+                  >
+                    <FaEdit className="me-1" />
+                    {walletEditMode ? 'Cancel' : 'Edit'}
+                  </button>
+                </div>
+
+                {walletEditMode ? (
+                  <div className="row">
+                    <div className="col-md-6">
+                      <label className="form-label">Wallet Balance</label>
+                      <div className="input-group">
+                        <span className="input-group-text">₹</span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={walletData.walletBalance}
+                          onChange={(e) => setWalletData({
+                            ...walletData,
+                            walletBalance: parseFloat(e.target.value) || 0
+                          })}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Referral Balance</label>
+                      <div className="input-group">
+                        <span className="input-group-text">₹</span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={walletData.referralBalance}
+                          onChange={(e) => setWalletData({
+                            ...walletData,
+                            referralBalance: parseFloat(e.target.value) || 0
+                          })}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-12 mt-3">
+                      <button 
+                        className="btn btn-success me-2"
+                        onClick={handleWalletUpdate}
+                      >
+                        <FaCheck className="me-1" />
+                        Update Wallet
+                      </button>
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => setWalletEditMode(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="card bg-primary bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h4 className="text-primary">₹{userAnalytics?.wallet?.walletBalance || 0}</h4>
+                          <small className="text-muted">Wallet Balance</small>
                         </div>
                       </div>
                     </div>
-
-                    {/* Financial Analytics */}
-                    {userAnalytics?.wallet && (
-                      <div className="row mb-4">
-                        <div className="col-12">
-                          <h6 className="fw-bold mb-3">Financial Overview</h6>
-                          <div className="row">
-                            <div className="col-lg-3 col-md-6 mb-3">
-                              <div className="card border-0 bg-primary bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-primary">₹{userAnalytics.wallet.walletBalance?.toFixed(2) || '0.00'}</h5>
-                                  <small className="text-muted">Wallet Balance</small>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-3 col-md-6 mb-3">
-                              <div className="card border-0 bg-warning bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-warning">₹{userAnalytics.wallet.referralBalance?.toFixed(2) || '0.00'}</h5>
-                                  <small className="text-muted">Referral Balance</small>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-3 col-md-6 mb-3">
-                              <div className="card border-0 bg-success bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-success">₹{userAnalytics.wallet.totalDeposits?.toFixed(2) || '0.00'}</h5>
-                                  <small className="text-muted">Total Deposits</small>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-3 col-md-6 mb-3">
-                              <div className="card border-0 bg-danger bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-danger">₹{userAnalytics.wallet.totalWithdrawals?.toFixed(2) || '0.00'}</h5>
-                                  <small className="text-muted">Total Withdrawals</small>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                    <div className="col-md-6">
+                      <div className="card bg-warning bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h4 className="text-warning">₹{userAnalytics?.wallet?.referralBalance || 0}</h4>
+                          <small className="text-muted">Referral Balance</small>
                         </div>
                       </div>
-                    )}
-
-                    {/* Referral Analytics */}
-                    {userAnalytics?.referrals && (
-                      <div className="row mb-4">
-                        <div className="col-12">
-                          <h6 className="fw-bold mb-3">Referral Performance</h6>
-                          <div className="row">
-                            <div className="col-lg-4 col-md-6 mb-3">
-                              <div className="card border-0 bg-info bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-info">{userAnalytics.referrals.totalReferred || 0}</h5>
-                                  <small className="text-muted">Total Referred</small>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-4 col-md-6 mb-3">
-                              <div className="card border-0 bg-success bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-success">{userAnalytics.referrals.activeReferred || 0}</h5>
-                                  <small className="text-muted">Active Referrals</small>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-4 col-md-6 mb-3">
-                              <div className="card border-0 bg-warning bg-opacity-10">
-                                <div className="card-body text-center">
-                                  <h5 className="fw-bold text-warning">₹{userAnalytics.referrals.totalReferralEarnings?.toFixed(2) || '0.00'}</h5>
-                                  <small className="text-muted">Referral Earnings</small>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Recent Transactions */}
-                    {userAnalytics?.transactions && (
-                      <div className="row mb-4">
-                        <div className="col-12">
-                          <h6 className="fw-bold mb-3">Recent Transactions</h6>
-                          <div className="table-responsive">
-                            <table className="table table-sm">
-                              <thead>
-                                <tr>
-                                  <th>Type</th>
-                                  <th>Amount</th>
-                                  <th>Status</th>
-                                  <th>Date</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {userAnalytics.transactions.transactions?.slice(0, 5).map((tx, idx) => (
-                                  <tr key={idx}>
-                                    <td>
-                                      <span className="text-capitalize">{tx.type.replace('_', ' ')}</span>
-                                    </td>
-                                    <td>
-                                      <span className={tx.type === 'deposit' ? 'text-success' : 'text-danger'}>
-                                        {tx.type === 'deposit' ? '+' : '-'}₹{tx.amount.toFixed(2)}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <span className={`badge bg-${tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'danger'}`}>
-                                        {tx.status}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <small>{new Date(tx.createdAt).toLocaleDateString()}</small>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Current Subscription */}
-                    {selectedUser.profile?.subscription && (
-                      <div className="row mb-4">
-                        <div className="col-12">
-                          <h6 className="fw-bold mb-3">Current Subscription</h6>
-                          <div className="card border-0 bg-light">
-                            <div className="card-body">
-                              <div className="row">
-                                <div className="col-md-6">
-                                  <strong>Plan:</strong> {selectedUser.profile.subscription.planName}<br/>
-                                  <strong>Status:</strong> <span className={`badge bg-${selectedUser.profile.subscription.isActive ? 'success' : 'danger'}`}>
-                                    {selectedUser.profile.subscription.isActive ? 'Active' : 'Expired'}
-                                  </span>
-                                </div>
-                                <div className="col-md-6">
-                                  <strong>Start Date:</strong> {new Date(selectedUser.profile.subscription.startDate).toLocaleDateString()}<br/>
-                                  <strong>Expiry Date:</strong> {new Date(selectedUser.profile.subscription.expiryDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowUserModal(false)}
-                >
-                  Close
-                </button>
+            </div>
+          </div>
+
+          {/* Referral Management */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title mb-3">
+                  <FaUserFriends className="me-2" />
+                  Referral Management
+                </h5>
+                
+                <div className="row mb-4">
+                  <div className="col-md-3">
+                    <div className="card bg-info bg-opacity-10">
+                      <div className="card-body text-center">
+                        <h5 className="text-info">{userAnalytics?.referrals?.totalReferred || 0}</h5>
+                        <small className="text-muted">Total Referred</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card bg-success bg-opacity-10">
+                      <div className="card-body text-center">
+                        <h5 className="text-success">{userAnalytics?.referrals?.activeReferred || 0}</h5>
+                        <small className="text-muted">Active Referrals</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card bg-warning bg-opacity-10">
+                      <div className="card-body text-center">
+                        <h5 className="text-warning">{(userAnalytics?.referrals?.totalReferred || 0) - (userAnalytics?.referrals?.activeReferred || 0)}</h5>
+                        <small className="text-muted">Pending Referrals</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="card bg-primary bg-opacity-10">
+                      <div className="card-body text-center">
+                        <h5 className="text-primary">₹{userAnalytics?.referrals?.totalReferralEarnings || 0}</h5>
+                        <small className="text-muted">Total Earnings</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {userAnalytics?.referrals?.referredUsers && userAnalytics.referrals.referredUsers.length > 0 && (
+                  <div className="table-responsive">
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Joined</th>
+                          <th>Status</th>
+                          <th>Deposits</th>
+                          <th>Bonus Earned</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userAnalytics.referrals.referredUsers.map((ref, idx) => (
+                          <tr key={idx}>
+                            <td>{ref.name || 'N/A'}</td>
+                            <td>{ref.email}</td>
+                            <td>{new Date(ref.joinedAt).toLocaleDateString()}</td>
+                            <td>
+                              <span className={`badge ${ref.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
+                                {ref.hasDeposited ? 'Active' : 'Pending'}
+                              </span>
+                            </td>
+                            <td>₹{ref.totalDeposits}</td>
+                            <td>₹{ref.referralBonus}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Transaction Management */}
+          <div className="col-12">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title mb-3">
+                  <FaHistory className="me-2" />
+                  Transaction Management
+                </h5>
+                
+                {userAnalytics?.transactions?.transactions && userAnalytics.transactions.transactions.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                          <th>Date</th>
+                          <th>Description</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userAnalytics.transactions.transactions.map((tx, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <span className={`badge ${
+                                tx.type === 'deposit' ? 'bg-success' :
+                                tx.type === 'withdrawal' ? 'bg-danger' :
+                                tx.type === 'referral_bonus' ? 'bg-info' :
+                                'bg-secondary'
+                              }`}>
+                                {tx.type.replace('_', ' ').toUpperCase()}
+                              </span>
+                            </td>
+                            <td>₹{tx.amount}</td>
+                            <td>
+                              <div className="d-flex align-items-center gap-2">
+                                {getTransactionStatusBadge(tx.status)}
+                                {tx.status !== 'completed' && (
+                                  <select 
+                                    className="form-select form-select-sm"
+                                    style={{ width: 'auto' }}
+                                    onChange={(e) => handleTransactionStatusUpdate(tx._id, e.target.value)}
+                                  >
+                                    <option value="">Change Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                  </select>
+                                )}
+                              </div>
+                            </td>
+                            <td>{new Date(tx.createdAt).toLocaleDateString()}</td>
+                            <td>{tx.description}</td>
+                            <td>
+                              <button 
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => setTransactionEditMode(!transactionEditMode)}
+                              >
+                                <FaEdit />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted">No transactions found</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -574,12 +803,12 @@ const AdminUsers = () => {
       )}
 
       {/* Subscription Assignment Modal */}
-      {showSubscriptionModal && selectedUser && (
+      {showSubscriptionModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Assign Plan to {selectedUser.email}</h5>
+                <h5 className="modal-title">Assign Plan to {selectedUser?.email}</h5>
                 <button 
                   type="button" 
                   className="btn-close"
@@ -594,18 +823,13 @@ const AdminUsers = () => {
                     value={selectedPlan}
                     onChange={(e) => setSelectedPlan(e.target.value)}
                   >
-                    <option value="">Choose a plan...</option>
-                    {plans.filter(plan => plan.isActive).map(plan => (
+                    <option value="">Choose a plan</option>
+                    {plans.map(plan => (
                       <option key={plan._id} value={plan._id}>
                         {plan.name} - ₹{plan.price} ({plan.duration} days)
                       </option>
                     ))}
                   </select>
-                </div>
-                <div className="alert alert-info">
-                  <small>
-                    <strong>Note:</strong> This will assign the selected plan to the user and activate their subscription immediately.
-                  </small>
                 </div>
               </div>
               <div className="modal-footer">
@@ -619,7 +843,7 @@ const AdminUsers = () => {
                 <button 
                   type="button" 
                   className="btn btn-primary"
-                  onClick={() => assignPlan(selectedUser.uid, selectedPlan)}
+                  onClick={assignPlan}
                   disabled={!selectedPlan}
                 >
                   Assign Plan

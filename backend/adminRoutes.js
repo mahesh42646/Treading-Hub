@@ -188,10 +188,38 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       profileMap[profile.userId.toString()] = profile;
     });
 
-    // Attach profiles to users
+    // Get referral counts for each user
+    const referralCounts = await Profile.aggregate([
+      {
+        $match: {
+          'referral.referredBy': { $exists: true, $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: '$referral.referredBy',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Create a map of referral code to count
+    const referralCountMap = {};
+    referralCounts.forEach(item => {
+      referralCountMap[item._id] = item.count;
+    });
+
+    // Attach profiles and referral counts to users
     const usersWithProfiles = users.map(user => {
       const userObj = user.toObject();
-      userObj.profile = profileMap[user._id.toString()] || null;
+      const profile = profileMap[user._id.toString()] || null;
+      userObj.profile = profile;
+      
+      // Add referral count if user has a referral code
+      if (profile && profile.referral && profile.referral.code) {
+        userObj.profile.referral.totalReferred = referralCountMap[profile.referral.code] || 0;
+      }
+      
       return userObj;
     });
 
@@ -1245,6 +1273,39 @@ router.delete('/trading-accounts/:accountId', verifyAdminAuth, async (req, res) 
     res.status(500).json({
       success: false,
       message: 'Failed to delete trading account',
+      error: error.message
+    });
+  }
+});
+
+// Update transaction status
+router.put('/update-transaction-status', verifyAdminAuth, async (req, res) => {
+  try {
+    const { transactionId, status } = req.body;
+
+    const transaction = await Transaction.findByIdAndUpdate(
+      transactionId,
+      { status },
+      { new: true }
+    );
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Transaction status updated successfully',
+      transaction
+    });
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update transaction status',
       error: error.message
     });
   }

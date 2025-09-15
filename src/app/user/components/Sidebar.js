@@ -31,11 +31,11 @@ const Sidebar = () => {
       icon: 'bi bi-wallet2',
       href: '/dashboard/wallet',
     },
-    // {
-    //   title: 'Trading Account',
-    //   icon: 'bi bi-graph-up',
-    //   href: '/dashboard/trading-account',
-    // },
+    {
+      title: 'Trading Account',
+      icon: 'bi bi-graph-up',
+      href: '/dashboard/trading-account',
+    },
     {
       title: 'Referral Program',
       icon: 'bi bi-share',

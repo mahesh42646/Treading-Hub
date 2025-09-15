@@ -15,6 +15,8 @@ const Transaction = require('./models/Transaction');
 const Blog = require('./models/Blog');
 const News = require('./models/News');
 const Withdrawal = require('./models/Withdrawal');
+const Subscription = require('./models/Subscription');
+const TradingAccount = require('./models/TradingAccount');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -888,6 +890,441 @@ router.get('/withdrawals/stats', verifyAdminAuth, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get user transactions for admin
+router.get('/user-transactions/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const transactions = await Transaction.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const withdrawals = await Withdrawal.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({
+      success: true,
+      transactions,
+      withdrawals
+    });
+  } catch (error) {
+    console.error('Error fetching user transactions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user transactions',
+      error: error.message
+    });
+  }
+});
+
+// Assign plan to user
+router.post('/assign-plan', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, planId } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Calculate plan expiry
+    const now = new Date();
+    const expiryDate = new Date(now.getTime() + (plan.duration * 24 * 60 * 60 * 1000));
+
+    // Update profile with plan subscription
+    profile.subscription = {
+      planId: plan._id,
+      planName: plan.name,
+      startDate: now,
+      expiryDate: expiryDate,
+      isActive: true,
+      assignedBy: 'admin'
+    };
+
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: 'Plan assigned successfully',
+      subscription: profile.subscription
+    });
+  } catch (error) {
+    console.error('Error assigning plan:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign plan',
+      error: error.message
+    });
+  }
+});
+
+// Trading Account Management
+
+// Get all trading accounts
+router.get('/trading-accounts', verifyAdminAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, assigned = '', broker = '' } = req.query;
+    const skip = (page - 1) * limit;
+    
+    let query = {};
+    
+    if (assigned === 'true') {
+      query.isAssigned = true;
+    } else if (assigned === 'false') {
+      query.isAssigned = false;
+    }
+    
+    if (broker) {
+      query.brokerName = { $regex: broker, $options: 'i' };
+    }
+
+    const accounts = await TradingAccount.find(query)
+      .populate('assignedTo.userId', 'email')
+      .populate('subscriptionId')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip(skip);
+
+    const total = await TradingAccount.countDocuments(query);
+
+    res.json({
+      success: true,
+      accounts,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching trading accounts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch trading accounts',
+      error: error.message
+    });
+  }
+});
+
+// Create trading account
+router.post('/trading-accounts', verifyAdminAuth, async (req, res) => {
+  try {
+    const {
+      accountName,
+      brokerName,
+      serverId,
+      loginId,
+      password,
+      serverAddress,
+      platform,
+      accountType,
+      balance,
+      leverage,
+      currency,
+      notes
+    } = req.body;
+
+    const tradingAccount = new TradingAccount({
+      accountName,
+      brokerName,
+      serverId,
+      loginId,
+      password,
+      serverAddress,
+      platform,
+      accountType,
+      balance: balance || 0,
+      leverage: leverage || '1:100',
+      currency: currency || 'USD',
+      notes,
+      createdBy: req.admin._id // Assuming admin ID is available in req.admin
+    });
+
+    await tradingAccount.save();
+
+    res.json({
+      success: true,
+      message: 'Trading account created successfully',
+      account: tradingAccount
+    });
+  } catch (error) {
+    console.error('Error creating trading account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create trading account',
+      error: error.message
+    });
+  }
+});
+
+// Assign trading account to user
+router.post('/trading-accounts/:accountId/assign', verifyAdminAuth, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    const { uid, subscriptionId } = req.body;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const account = await TradingAccount.findById(accountId);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trading account not found'
+      });
+    }
+
+    if (account.isAssigned) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trading account is already assigned'
+      });
+    }
+
+    // Assign account
+    await account.assignToUser(user._id, user.email, subscriptionId);
+
+    // Update subscription if provided
+    if (subscriptionId) {
+      await Subscription.findByIdAndUpdate(subscriptionId, {
+        tradingAccountAssigned: true
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Trading account assigned successfully',
+      account
+    });
+  } catch (error) {
+    console.error('Error assigning trading account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign trading account',
+      error: error.message
+    });
+  }
+});
+
+// Unassign trading account
+router.post('/trading-accounts/:accountId/unassign', verifyAdminAuth, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+
+    const account = await TradingAccount.findById(accountId);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trading account not found'
+      });
+    }
+
+    // Update subscription if assigned
+    if (account.subscriptionId) {
+      await Subscription.findByIdAndUpdate(account.subscriptionId, {
+        tradingAccountAssigned: false
+      });
+    }
+
+    // Unassign account
+    await account.unassign();
+
+    res.json({
+      success: true,
+      message: 'Trading account unassigned successfully',
+      account
+    });
+  } catch (error) {
+    console.error('Error unassigning trading account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to unassign trading account',
+      error: error.message
+    });
+  }
+});
+
+// Update trading account
+router.put('/trading-accounts/:accountId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    const updateData = req.body;
+
+    const account = await TradingAccount.findByIdAndUpdate(
+      accountId,
+      updateData,
+      { new: true }
+    );
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trading account not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Trading account updated successfully',
+      account
+    });
+  } catch (error) {
+    console.error('Error updating trading account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update trading account',
+      error: error.message
+    });
+  }
+});
+
+// Delete trading account
+router.delete('/trading-accounts/:accountId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+
+    const account = await TradingAccount.findById(accountId);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trading account not found'
+      });
+    }
+
+    if (account.isAssigned) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete assigned trading account. Unassign first.'
+      });
+    }
+
+    await TradingAccount.findByIdAndDelete(accountId);
+
+    res.json({
+      success: true,
+      message: 'Trading account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting trading account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete trading account',
+      error: error.message
+    });
+  }
+});
+
+// Admin wallet management
+
+// Update user wallet balance
+router.put('/user-wallet/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { walletBalance, referralBalance, action, amount, reason } = req.body;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Initialize wallet if not exists
+    if (!profile.wallet) {
+      profile.wallet = {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
+      };
+    }
+
+    // Update balances
+    if (walletBalance !== undefined) {
+      profile.wallet.walletBalance = parseFloat(walletBalance);
+    }
+    if (referralBalance !== undefined) {
+      profile.wallet.referralBalance = parseFloat(referralBalance);
+    }
+
+    // If action is specified, create transaction record
+    if (action && amount) {
+      const transaction = new Transaction({
+        userId: user._id,
+        type: action === 'add' ? 'admin_credit' : 'admin_debit',
+        amount: Math.abs(parseFloat(amount)),
+        description: reason || `Admin ${action} - Manual wallet adjustment`,
+        status: 'completed',
+        metadata: {
+          adminAction: true,
+          adminId: req.admin._id,
+          reason: reason
+        },
+        processedAt: new Date()
+      });
+
+      await transaction.save();
+    }
+
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: 'Wallet balance updated successfully',
+      wallet: profile.wallet
+    });
+  } catch (error) {
+    console.error('Error updating wallet balance:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update wallet balance',
+      error: error.message
+    });
   }
 });
 

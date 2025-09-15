@@ -40,12 +40,16 @@ const Contact = require('./models/Contact');
 const userRoutes = require('./routes');
 const adminRoutes = require('./adminRoutes');
 const walletRoutes = require('./walletRoutes');
+const subscriptionRoutes = require('./subscriptionRoutes');
 
 // User routes
 app.use('/api/users', userRoutes);
 
 // Wallet routes
 app.use('/api/wallet', walletRoutes);
+
+// Subscription routes
+app.use('/api', subscriptionRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);

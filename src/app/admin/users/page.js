@@ -20,6 +20,11 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [kycActionLoading, setKycActionLoading] = useState(null);
+  const [userAnalytics, setUserAnalytics] = useState(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [plans, setPlans] = useState([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -47,7 +52,22 @@ const AdminUsers = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchPlans();
   }, [fetchUsers]);
+
+  const fetchPlans = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPlans(data.plans || []);
+      }
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    }
+  };
 
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
@@ -72,18 +92,67 @@ const AdminUsers = () => {
   };
 
   const viewUserDetails = async (uid) => {
+    setLoadingAnalytics(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}`, {
+      // Fetch user details
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}`, {
         credentials: 'include'
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedUser(data.user);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setSelectedUser(userData.user);
+        
+        // Fetch user analytics (wallet data, referrals, transactions)
+        const [walletResponse, referralResponse, transactionResponse] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/balance/${uid}`, {
+            credentials: 'include'
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/referral-history/${uid}`, {
+            credentials: 'include'
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-transactions/${uid}`, {
+            credentials: 'include'
+          })
+        ]);
+
+        const analytics = {
+          wallet: walletResponse.ok ? await walletResponse.json() : null,
+          referrals: referralResponse.ok ? await referralResponse.json() : null,
+          transactions: transactionResponse.ok ? await transactionResponse.json() : null
+        };
+        
+        setUserAnalytics(analytics);
         setShowUserModal(true);
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  const assignPlan = async (uid, planId) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/assign-plan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ uid, planId })
+      });
+
+      if (response.ok) {
+        alert('Plan assigned successfully!');
+        setShowSubscriptionModal(false);
+        viewUserDetails(uid); // Refresh user data
+      } else {
+        alert('Failed to assign plan');
+      }
+    } catch (error) {
+      console.error('Error assigning plan:', error);
+      alert('Error assigning plan');
     }
   };
 
@@ -261,13 +330,16 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      {/* User Details Modal */}
+      {/* Comprehensive User Analytics Modal */}
       {showUserModal && selectedUser && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
+          <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">User Details</h5>
+                <h5 className="modal-title">
+                  <FaUserCheck className="me-2" />
+                  Complete User Analytics - {selectedUser.email}
+                </h5>
                 <button 
                   type="button" 
                   className="btn-close"
@@ -275,43 +347,216 @@ const AdminUsers = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="row">
-                  <div className="col-md-6">
-                    <h6 className="fw-bold">Basic Information</h6>
-                    <p><strong>Email:</strong> {selectedUser.email}</p>
-                    <p><strong>UID:</strong> {selectedUser.uid}</p>
-                    <p><strong>Email Verified:</strong> {selectedUser.emailVerified ? 'Yes' : 'No'}</p>
-                    <p><strong>Joined:</strong> {new Date(selectedUser.createdAt).toLocaleString()}</p>
+                {loadingAnalytics ? (
+                  <div className="text-center py-5">
+                    <FaSpinner className="fa-spin fs-1 text-primary mb-3" />
+                    <p>Loading complete analytics...</p>
                   </div>
-                  
-                  {selectedUser.profile && (
-                    <div className="col-md-6">
-                      <h6 className="fw-bold">Profile Information</h6>
-                      <p><strong>Name:</strong> {selectedUser.profile.personalInfo?.firstName} {selectedUser.profile.personalInfo?.lastName}</p>
-                      <p><strong>Phone:</strong> {selectedUser.profile.personalInfo?.phone || 'N/A'}</p>
-                      <p><strong>Date of Birth:</strong> {selectedUser.profile.personalInfo?.dateOfBirth ? new Date(selectedUser.profile.personalInfo.dateOfBirth).toLocaleDateString() : 'N/A'}</p>
-                      <p><strong>Location:</strong> {selectedUser.profile.personalInfo?.city}, {selectedUser.profile.personalInfo?.country}</p>
-                      <p><strong>Referral Code:</strong> {selectedUser.profile.referral?.code || 'N/A'}</p>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedUser.profile && (
-                  <div className="mt-3">
-                    <h6 className="fw-bold">KYC Information</h6>
-                    <div className="row">
-                      <div className="col-md-6">
-                        <p><strong>PAN Number:</strong> {selectedUser.profile.kycDetails?.panNumber || 'N/A'}</p>
-                        <p><strong>Aadhar Number:</strong> {selectedUser.profile.kycDetails?.aadharNumber || 'N/A'}</p>
-                        <p><strong>KYC Status:</strong> {getKycStatusBadge(selectedUser.profile.profileCompletion?.kycStatus)}</p>
+                ) : (
+                  <>
+                    {/* User Basic Info & Actions */}
+                    <div className="row mb-4">
+                      <div className="col-md-8">
+                        <div className="card border-0 bg-light">
+                          <div className="card-body">
+                            <h6 className="fw-bold mb-3">Basic Information</h6>
+                            <div className="row">
+                              <div className="col-sm-6">
+                                <strong>Email:</strong> {selectedUser.email}<br/>
+                                <strong>UID:</strong> {selectedUser.uid}<br/>
+                                <strong>Joined:</strong> {new Date(selectedUser.createdAt).toLocaleDateString()}<br/>
+                              </div>
+                              <div className="col-sm-6">
+                                <strong>KYC Status:</strong> {getKycStatusBadge(selectedUser.profile?.profileCompletion?.kycStatus)}<br/>
+                                <strong>Profile:</strong> {selectedUser.profile ? 'Complete' : 'Incomplete'}<br/>
+                                <strong>Status:</strong> <span className="badge bg-success">Active</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="col-md-6">
-                        {selectedUser.profile.kycDetails?.rejectionReason && (
-                          <p><strong>Rejection Reason:</strong> {selectedUser.profile.kycDetails.rejectionReason}</p>
-                        )}
+                      <div className="col-md-4">
+                        <div className="d-grid gap-2">
+                          {selectedUser.profile?.profileCompletion?.kycStatus === 'applied' && (
+                            <>
+                              <button 
+                                className="btn btn-success btn-sm"
+                                onClick={() => handleKycAction(selectedUser.uid, 'approve')}
+                                disabled={kycActionLoading === selectedUser.uid}
+                              >
+                                <FaCheck className="me-1" />
+                                Approve KYC
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleKycAction(selectedUser.uid, 'reject')}
+                                disabled={kycActionLoading === selectedUser.uid}
+                              >
+                                <FaTimes className="me-1" />
+                                Reject KYC
+                              </button>
+                            </>
+                          )}
+                          <button 
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                              setShowSubscriptionModal(true);
+                              setShowUserModal(false);
+                            }}
+                          >
+                            <FaUserCheck className="me-1" />
+                            Assign Plan
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+
+                    {/* Financial Analytics */}
+                    {userAnalytics?.wallet && (
+                      <div className="row mb-4">
+                        <div className="col-12">
+                          <h6 className="fw-bold mb-3">Financial Overview</h6>
+                          <div className="row">
+                            <div className="col-lg-3 col-md-6 mb-3">
+                              <div className="card border-0 bg-primary bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-primary">₹{userAnalytics.wallet.walletBalance?.toFixed(2) || '0.00'}</h5>
+                                  <small className="text-muted">Wallet Balance</small>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-3 col-md-6 mb-3">
+                              <div className="card border-0 bg-warning bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-warning">₹{userAnalytics.wallet.referralBalance?.toFixed(2) || '0.00'}</h5>
+                                  <small className="text-muted">Referral Balance</small>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-3 col-md-6 mb-3">
+                              <div className="card border-0 bg-success bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-success">₹{userAnalytics.wallet.totalDeposits?.toFixed(2) || '0.00'}</h5>
+                                  <small className="text-muted">Total Deposits</small>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-3 col-md-6 mb-3">
+                              <div className="card border-0 bg-danger bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-danger">₹{userAnalytics.wallet.totalWithdrawals?.toFixed(2) || '0.00'}</h5>
+                                  <small className="text-muted">Total Withdrawals</small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Referral Analytics */}
+                    {userAnalytics?.referrals && (
+                      <div className="row mb-4">
+                        <div className="col-12">
+                          <h6 className="fw-bold mb-3">Referral Performance</h6>
+                          <div className="row">
+                            <div className="col-lg-4 col-md-6 mb-3">
+                              <div className="card border-0 bg-info bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-info">{userAnalytics.referrals.totalReferred || 0}</h5>
+                                  <small className="text-muted">Total Referred</small>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-6 mb-3">
+                              <div className="card border-0 bg-success bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-success">{userAnalytics.referrals.activeReferred || 0}</h5>
+                                  <small className="text-muted">Active Referrals</small>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-6 mb-3">
+                              <div className="card border-0 bg-warning bg-opacity-10">
+                                <div className="card-body text-center">
+                                  <h5 className="fw-bold text-warning">₹{userAnalytics.referrals.totalReferralEarnings?.toFixed(2) || '0.00'}</h5>
+                                  <small className="text-muted">Referral Earnings</small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recent Transactions */}
+                    {userAnalytics?.transactions && (
+                      <div className="row mb-4">
+                        <div className="col-12">
+                          <h6 className="fw-bold mb-3">Recent Transactions</h6>
+                          <div className="table-responsive">
+                            <table className="table table-sm">
+                              <thead>
+                                <tr>
+                                  <th>Type</th>
+                                  <th>Amount</th>
+                                  <th>Status</th>
+                                  <th>Date</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {userAnalytics.transactions.transactions?.slice(0, 5).map((tx, idx) => (
+                                  <tr key={idx}>
+                                    <td>
+                                      <span className="text-capitalize">{tx.type.replace('_', ' ')}</span>
+                                    </td>
+                                    <td>
+                                      <span className={tx.type === 'deposit' ? 'text-success' : 'text-danger'}>
+                                        {tx.type === 'deposit' ? '+' : '-'}₹{tx.amount.toFixed(2)}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className={`badge bg-${tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'danger'}`}>
+                                        {tx.status}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <small>{new Date(tx.createdAt).toLocaleDateString()}</small>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Current Subscription */}
+                    {selectedUser.profile?.subscription && (
+                      <div className="row mb-4">
+                        <div className="col-12">
+                          <h6 className="fw-bold mb-3">Current Subscription</h6>
+                          <div className="card border-0 bg-light">
+                            <div className="card-body">
+                              <div className="row">
+                                <div className="col-md-6">
+                                  <strong>Plan:</strong> {selectedUser.profile.subscription.planName}<br/>
+                                  <strong>Status:</strong> <span className={`badge bg-${selectedUser.profile.subscription.isActive ? 'success' : 'danger'}`}>
+                                    {selectedUser.profile.subscription.isActive ? 'Active' : 'Expired'}
+                                  </span>
+                                </div>
+                                <div className="col-md-6">
+                                  <strong>Start Date:</strong> {new Date(selectedUser.profile.subscription.startDate).toLocaleDateString()}<br/>
+                                  <strong>Expiry Date:</strong> {new Date(selectedUser.profile.subscription.expiryDate).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="modal-footer">
@@ -321,6 +566,63 @@ const AdminUsers = () => {
                   onClick={() => setShowUserModal(false)}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Assignment Modal */}
+      {showSubscriptionModal && selectedUser && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Assign Plan to {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowSubscriptionModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Select Plan</label>
+                  <select 
+                    className="form-select"
+                    value={selectedPlan}
+                    onChange={(e) => setSelectedPlan(e.target.value)}
+                  >
+                    <option value="">Choose a plan...</option>
+                    {plans.filter(plan => plan.isActive).map(plan => (
+                      <option key={plan._id} value={plan._id}>
+                        {plan.name} - ₹{plan.price} ({plan.duration} days)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="alert alert-info">
+                  <small>
+                    <strong>Note:</strong> This will assign the selected plan to the user and activate their subscription immediately.
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowSubscriptionModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={() => assignPlan(selectedUser.uid, selectedPlan)}
+                  disabled={!selectedPlan}
+                >
+                  Assign Plan
                 </button>
               </div>
             </div>

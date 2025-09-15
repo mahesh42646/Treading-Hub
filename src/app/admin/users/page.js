@@ -52,9 +52,7 @@ const AdminUsers = () => {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        limit: 1000 // Get all users
-      });
+      const params = new URLSearchParams();
       
       // Only add search if there's a search term
       if (searchTerm && searchTerm.trim()) {
@@ -65,11 +63,8 @@ const AdminUsers = () => {
         credentials: 'include'
       });
       
-      console.log('Users API Response Status:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Users API Data:', data);
         setUsers(data.users || []);
         setTotalPages(1); // No pagination needed
       } else {

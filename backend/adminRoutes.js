@@ -162,8 +162,6 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
     const { page = 1, limit = 10, search = '', status = '' } = req.query;
     const skip = (page - 1) * limit;
 
-    console.log('Admin users endpoint called with:', { page, limit, search, status });
-
     let query = {};
     if (search) {
       query.$or = [
@@ -175,14 +173,14 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       query.status = status;
     }
 
-    console.log('Query:', query);
-
-    const users = await User.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    console.log('Found users:', users.length);
+    let usersQuery = User.find(query).sort({ createdAt: -1 });
+    
+    // Only apply pagination if limit is provided and less than 1000
+    if (limit && parseInt(limit) < 1000) {
+      usersQuery = usersQuery.skip(skip).limit(parseInt(limit));
+    }
+    
+    const users = await usersQuery;
 
     // Get profiles for these users
     const userIds = users.map(user => user._id);
@@ -234,6 +232,23 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       const profile = profileMap[user._id.toString()] || null;
       userObj.profile = profile;
       
+      // Initialize referral object safely
+      if (!userObj.profile) {
+        userObj.profile = {
+          referral: {
+            totalReferred: 0,
+            completedReferrals: 0,
+            pendingReferrals: 0
+          }
+        };
+      } else if (!userObj.profile.referral) {
+        userObj.profile.referral = {
+          totalReferred: 0,
+          completedReferrals: 0,
+          pendingReferrals: 0
+        };
+      }
+      
       // Add referral counts if user has a referral code
       if (profile && profile.referral && profile.referral.code) {
         const counts = referralCountMap[profile.referral.code] || { total: 0, completed: 0, pending: 0 };
@@ -241,7 +256,6 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
         userObj.profile.referral.completedReferrals = counts.completed;
         userObj.profile.referral.pendingReferrals = counts.pending;
       } else {
-        userObj.profile.referral = userObj.profile.referral || {};
         userObj.profile.referral.totalReferred = 0;
         userObj.profile.referral.completedReferrals = 0;
         userObj.profile.referral.pendingReferrals = 0;
@@ -256,16 +270,19 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       success: true,
       users: usersWithProfiles,
       pagination: {
-        current: parseInt(page),
-        total: Math.ceil(total / limit),
-        totalUsers: total
+        current: 1,
+        total: 1,
+        totalUsers: usersWithProfiles.length
       }
     };
 
-    console.log('Sending response with', usersWithProfiles.length, 'users');
     res.json(response);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error in users endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message
+    });
   }
 });
 

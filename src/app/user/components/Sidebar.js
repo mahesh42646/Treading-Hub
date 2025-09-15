@@ -80,10 +80,7 @@ const Sidebar = () => {
           background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
           zIndex: 1050,
           transition: 'all 0.3s ease',
-          transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-          '@media (minWidth: 992px)': {
-            transform: 'translateX(0)'
-          }
+          transform: window.innerWidth < 992 ? (isMobileOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)'
         }}
       >
         {/* Top Section */}
@@ -105,10 +102,15 @@ const Sidebar = () => {
             </button>
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="btn btn-link text-light p-0 d-lg-none"
-              style={{ minWidth: '30px' }}
+              className="btn btn-link text-light p-0 d-lg-none position-absolute"
+              style={{ 
+                minWidth: '30px',
+                top: '15px',
+                right: '15px',
+                zIndex: 1060
+              }}
             >
-              <i className="bi bi-x-lg"></i>
+              <i className="bi bi-x-lg"></i>  
             </button>
           </div>
           
@@ -207,13 +209,27 @@ const Sidebar = () => {
       </div>
 
       {/* Mobile Toggle Button */}
-      <button
-        className="btn btn-primary position-fixed top-0 start-0 m-3 d-lg-none"
-        style={{ zIndex: 1060 }}
-        onClick={() => setIsMobileOpen(true)}
-      >
-        <i className="bi bi-list"></i>
-      </button>
+      {!isMobileOpen && (
+        <button
+          className="btn btn-primary position-fixed d-lg-none"
+          style={{ 
+            zIndex: 1060,
+            top: '15px',
+            left: '15px',
+            width: '45px',
+            height: '45px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+          }}
+          onClick={() => setIsMobileOpen(true)}
+        >
+          <i className="bi bi-list fs-5"></i>
+        </button>
+        
+      )}
 
       {/* Main Content Spacer */}
       <div 

@@ -190,6 +190,83 @@ const AdminPlans = () => {
         </button>
       </div>
 
+      {/* Statistics Cards */}
+      <div className="row mb-4">
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-primary bg-opacity-10 rounded-circle p-3">
+                    <FaEye className="text-primary" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Total Plans</h6>
+                  <h4 className="mb-0 fw-bold">{plans.length}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-success bg-opacity-10 rounded-circle p-3">
+                    <FaCheck className="text-success" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Active Plans</h6>
+                  <h4 className="mb-0 fw-bold">{plans.filter(p => p.isActive).length}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
+                    <FaTimes className="text-warning" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Inactive Plans</h6>
+                  <h4 className="mb-0 fw-bold">{plans.filter(p => !p.isActive).length}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-info bg-opacity-10 rounded-circle p-3">
+                    <FaEdit className="text-info" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Avg. Price</h6>
+                  <h4 className="mb-0 fw-bold">
+                    ₹{plans.length > 0 ? (plans.reduce((sum, p) => sum + p.price, 0) / plans.length).toFixed(0) : 0}
+                  </h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="row">
         {plans.map((plan) => (
           <div key={plan._id} className="col-lg-6 col-xl-4 mb-4">
@@ -205,8 +282,8 @@ const AdminPlans = () => {
                 <p className="text-muted small mb-3">{plan.description}</p>
                 
                 <div className="mb-3">
-                  <h6 className="fw-bold text-primary">${plan.price}</h6>
-                  <small className="text-muted">per {plan.duration} days</small>
+                      <h6 className="fw-bold text-primary">₹{plan.price}</h6>
+                      <small className="text-muted">per {plan.duration} days</small>
                 </div>
                 
                 <div className="mb-3">
@@ -303,7 +380,7 @@ const AdminPlans = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Price ($)</label>
+                        <label className="form-label">Price (₹)</label>
                         <input
                           type="number"
                           step="0.01"

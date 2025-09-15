@@ -9,6 +9,10 @@ const AdminDashboard = () => {
     totalProfiles: 0,
     pendingKyc: 0,
     totalRevenue: 0,
+    totalWithdrawals: 0,
+    totalReferralBonuses: 0,
+    newUsersLast7Days: 0,
+    depositsLast7Days: 0,
     recentUsers: [],
     recentTransactions: [],
     recentContacts: []
@@ -64,7 +68,7 @@ const AdminDashboard = () => {
 
       {/* Stats Cards */}
       <div className="row mb-4">
-        <div className="col-xl-3 col-md-6 mb-3">
+        <div className="col-xl-3 col-lg-6 mb-3">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex align-items-center">
@@ -75,32 +79,34 @@ const AdminDashboard = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Total Users</h6>
-                  <h4 className="mb-0 fw-bold">{dashboardData.totalUsers}</h4>
+                  <h4 className="mb-0 fw-bold">{dashboardData.totalUsers.toLocaleString()}</h4>
+                  <small className="text-success">+{dashboardData.newUsersLast7Days} this week</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-xl-3 col-md-6 mb-3">
+        <div className="col-xl-3 col-lg-6 mb-3">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
                   <div className="bg-success bg-opacity-10 rounded-circle p-3">
-                    <FaUserCheck className="text-success" size={24} />
+                    <FaDollarSign className="text-success" size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Profiles</h6>
-                  <h4 className="mb-0 fw-bold">{dashboardData.totalProfiles}</h4>
+                  <h6 className="card-title text-muted mb-1">Total Revenue</h6>
+                  <h4 className="mb-0 fw-bold">₹{dashboardData.totalRevenue.toLocaleString()}</h4>
+                  <small className="text-success">+₹{dashboardData.depositsLast7Days.toLocaleString()} this week</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-xl-3 col-md-6 mb-3">
+        <div className="col-xl-3 col-lg-6 mb-3">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex align-items-center">
@@ -112,24 +118,83 @@ const AdminDashboard = () => {
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Pending KYC</h6>
                   <h4 className="mb-0 fw-bold">{dashboardData.pendingKyc}</h4>
+                  <small className="text-muted">Awaiting verification</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-xl-3 col-md-6 mb-3">
+        <div className="col-xl-3 col-lg-6 mb-3">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
                   <div className="bg-info bg-opacity-10 rounded-circle p-3">
-                    <FaDollarSign className="text-info" size={24} />
+                    <FaUserCheck className="text-info" size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Revenue</h6>
-                  <h4 className="mb-0 fw-bold">${dashboardData.totalRevenue}</h4>
+                  <h6 className="card-title text-muted mb-1">Complete Profiles</h6>
+                  <h4 className="mb-0 fw-bold">{dashboardData.totalProfiles}</h4>
+                  <small className="text-muted">{((dashboardData.totalProfiles/dashboardData.totalUsers)*100).toFixed(1)}% completion rate</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Analytics */}
+      <div className="row mb-4">
+        <div className="col-lg-4 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-danger bg-opacity-10 rounded-circle p-3">
+                    <FaChartLine className="text-danger" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Total Withdrawals</h6>
+                  <h5 className="mb-0 fw-bold">₹{dashboardData.totalWithdrawals.toLocaleString()}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-4 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
+                    <FaUsers className="text-warning" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Referral Bonuses</h6>
+                  <h5 className="mb-0 fw-bold">₹{dashboardData.totalReferralBonuses.toLocaleString()}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-4 mb-3">
+          <div className="card border-0 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="bg-success bg-opacity-10 rounded-circle p-3">
+                    <FaDollarSign className="text-success" size={20} />
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="card-title text-muted mb-1">Net Revenue</h6>
+                  <h5 className="mb-0 fw-bold">₹{(dashboardData.totalRevenue - dashboardData.totalWithdrawals).toLocaleString()}</h5>
                 </div>
               </div>
             </div>
@@ -155,7 +220,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex-grow-1">
                           <h6 className="mb-1">{user.email}</h6>
-                          <small className="text-muted">{user.createdAt}</small>
+                          <small className="text-muted">Joined {user.createdAt}</small>
                         </div>
                       </div>
                     </div>
@@ -183,8 +248,10 @@ const AdminDashboard = () => {
                           <FaChartLine className="text-success" size={16} />
                         </div>
                         <div className="flex-grow-1">
-                          <h6 className="mb-1">${transaction.amount}</h6>
-                          <small className="text-muted">{transaction.type} - {transaction.date}</small>
+                          <h6 className="mb-1">₹{transaction.amount}</h6>
+                          <small className="text-muted">{transaction.type} by {transaction.userEmail}</small>
+                          <br/>
+                          <small className="text-muted">{transaction.date}</small>
                         </div>
                       </div>
                     </div>

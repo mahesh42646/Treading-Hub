@@ -15,8 +15,14 @@ const AdminBlogs = () => {
     author: '',
     category: 'general',
     tags: '',
+    featuredImage: '',
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: '',
+    slug: '',
     isPublished: true
   });
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     fetchBlogs();
@@ -37,6 +43,32 @@ const AdminBlogs = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-');
+  };
+
+  const handleTitleChange = (title) => {
+    setFormData({
+      ...formData,
+      title,
+      slug: formData.slug || generateSlug(title),
+      metaTitle: formData.metaTitle || title
+    });
+  };
+
+  const handleImageChange = (url) => {
+    setFormData({
+      ...formData,
+      featuredImage: url
+    });
+    setImagePreview(url);
   };
 
   const handleSubmit = async (e) => {
@@ -68,8 +100,14 @@ const AdminBlogs = () => {
           author: '',
           category: 'general',
           tags: '',
+          featuredImage: '',
+          metaTitle: '',
+          metaDescription: '',
+          metaKeywords: '',
+          slug: '',
           isPublished: true
         });
+        setImagePreview('');
         fetchBlogs();
       }
     } catch (error) {
@@ -86,8 +124,14 @@ const AdminBlogs = () => {
       author: blog.author,
       category: blog.category,
       tags: blog.tags?.join(', ') || '',
+      featuredImage: blog.featuredImage || '',
+      metaTitle: blog.metaTitle || '',
+      metaDescription: blog.metaDescription || '',
+      metaKeywords: blog.metaKeywords || '',
+      slug: blog.slug || '',
       isPublished: blog.isPublished
     });
+    setImagePreview(blog.featuredImage || '');
     setShowModal(true);
   };
 
@@ -136,8 +180,14 @@ const AdminBlogs = () => {
               author: '',
               category: 'general',
               tags: '',
+              featuredImage: '',
+              metaTitle: '',
+              metaDescription: '',
+              metaKeywords: '',
+              slug: '',
               isPublished: true
             });
+            setImagePreview('');
             setShowModal(true);
           }}
         >

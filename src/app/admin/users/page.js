@@ -84,9 +84,9 @@ const AdminUsers = () => {
     fetchPlans();
     // Refresh referral counts on page load
     refreshReferralCounts();
-  }, [fetchUsers]);
+  }, [fetchUsers, fetchPlans, refreshReferralCounts]);
 
-  const refreshReferralCounts = async () => {
+  const refreshReferralCounts = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/recalculate-referral-counts`, {
         method: 'POST',
@@ -99,9 +99,9 @@ const AdminUsers = () => {
     } catch (error) {
       console.error('Error refreshing referral counts:', error);
     }
-  };
+  }, []);
 
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
         credentials: 'include'
@@ -113,7 +113,7 @@ const AdminUsers = () => {
     } catch (error) {
       console.error('Error fetching plans:', error);
     }
-  };
+  }, []);
 
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);

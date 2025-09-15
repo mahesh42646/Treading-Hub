@@ -59,7 +59,7 @@ const AdminUsers = () => {
         search: searchTerm
       });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?${params}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?${params}`, {
         credentials: 'include'
       });
       
@@ -82,7 +82,7 @@ const AdminUsers = () => {
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/plans`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -97,7 +97,7 @@ const AdminUsers = () => {
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/kyc-${action}/${uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/kyc-${action}/${uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,22 +123,22 @@ const AdminUsers = () => {
     setLoadingAnalytics(true);
     try {
       // Fetch user details
-      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}`, {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch wallet data
-      const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/balance/${uid}`, {
+      const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/balance/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch referral data
-      const referralResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/referral-history/${uid}`, {
+      const referralResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/referral-history/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch transactions
-      const transactionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-transactions/${uid}`, {
+      const transactionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-transactions/${uid}`, {
         credentials: 'include'
       });
 
@@ -174,7 +174,7 @@ const AdminUsers = () => {
     if (!selectedUser) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet/${selectedUser.uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-wallet/${selectedUser.uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ const AdminUsers = () => {
     if (!selectedUser || !walletAction.amount) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet-action/${selectedUser.uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-wallet-action/${selectedUser.uid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ const AdminUsers = () => {
     if (!selectedReferral || !referralBonus) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/mark-referral-complete`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/mark-referral-complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ const AdminUsers = () => {
 
   const handleTransactionStatusUpdate = async (transactionId, newStatus) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-transaction-status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-transaction-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -287,7 +287,7 @@ const AdminUsers = () => {
     if (!selectedUser || !selectedPlan) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/assign-plan`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/assign-plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -198,15 +198,28 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       {
         $group: {
           _id: '$referral.referredBy',
-          count: { $sum: 1 }
+          totalCount: { $sum: 1 },
+          completedCount: {
+            $sum: {
+              $cond: [
+                { $gt: ['$wallet.totalDeposits', 0] },
+                1,
+                0
+              ]
+            }
+          }
         }
       }
     ]);
 
-    // Create a map of referral code to count
+    // Create a map of referral code to counts
     const referralCountMap = {};
     referralCounts.forEach(item => {
-      referralCountMap[item._id] = item.count;
+      referralCountMap[item._id] = {
+        total: item.totalCount,
+        completed: item.completedCount,
+        pending: item.totalCount - item.completedCount
+      };
     });
 
     // Attach profiles and referral counts to users
@@ -215,9 +228,17 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       const profile = profileMap[user._id.toString()] || null;
       userObj.profile = profile;
       
-      // Add referral count if user has a referral code
+      // Add referral counts if user has a referral code
       if (profile && profile.referral && profile.referral.code) {
-        userObj.profile.referral.totalReferred = referralCountMap[profile.referral.code] || 0;
+        const counts = referralCountMap[profile.referral.code] || { total: 0, completed: 0, pending: 0 };
+        userObj.profile.referral.totalReferred = counts.total;
+        userObj.profile.referral.completedReferrals = counts.completed;
+        userObj.profile.referral.pendingReferrals = counts.pending;
+      } else {
+        userObj.profile.referral = userObj.profile.referral || {};
+        userObj.profile.referral.totalReferred = 0;
+        userObj.profile.referral.completedReferrals = 0;
+        userObj.profile.referral.pendingReferrals = 0;
       }
       
       return userObj;
@@ -298,13 +319,20 @@ router.put('/kyc-approve/:uid', verifyAdminAuth, async (req, res) => {
     const profile = await Profile.findOneAndUpdate(
       { 'userId': user._id },
       { 
+        'kyc.status': 'approved',
         'profileCompletion.kycStatus': 'approved',
         'profileCompletion.percentage': 100
       },
       { new: true }
     );
+    
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
+    }
+    
     res.json({ success: true, profile });
   } catch (error) {
+    console.error('KYC approval error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -322,13 +350,20 @@ router.put('/kyc-reject/:uid', verifyAdminAuth, async (req, res) => {
     const profile = await Profile.findOneAndUpdate(
       { 'userId': user._id },
       { 
+        'kyc.status': 'rejected',
         'profileCompletion.kycStatus': 'rejected',
         'profileCompletion.kycDetails.rejectionReason': reason
       },
       { new: true }
     );
+    
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
+    }
+    
     res.json({ success: true, profile });
   } catch (error) {
+    console.error('KYC rejection error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -1306,6 +1341,49 @@ router.put('/update-transaction-status', verifyAdminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update transaction status',
+      error: error.message
+    });
+  }
+});
+
+// Recalculate all referral counts
+router.post('/recalculate-referral-counts', verifyAdminAuth, async (req, res) => {
+  try {
+    // Get all profiles with referral codes
+    const profilesWithCodes = await Profile.find({
+      'referral.code': { $exists: true, $ne: null }
+    });
+
+    for (const profile of profilesWithCodes) {
+      // Count total referrals
+      const totalReferrals = await Profile.countDocuments({
+        'referral.referredBy': profile.referral.code
+      });
+
+      // Count completed referrals (those who have made deposits)
+      const completedReferrals = await Profile.countDocuments({
+        'referral.referredBy': profile.referral.code,
+        'wallet.totalDeposits': { $gt: 0 }
+      });
+
+      // Update the profile
+      profile.referral.totalReferrals = totalReferrals;
+      profile.referral.completedReferrals = completedReferrals;
+      profile.referral.pendingReferrals = totalReferrals - completedReferrals;
+      
+      await profile.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Referral counts recalculated successfully',
+      updatedProfiles: profilesWithCodes.length
+    });
+  } catch (error) {
+    console.error('Error recalculating referral counts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to recalculate referral counts',
       error: error.message
     });
   }

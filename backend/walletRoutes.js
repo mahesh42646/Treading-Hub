@@ -187,6 +187,17 @@ router.post('/razorpay-verify', async (req, res) => {
         const referralBonus = depositAmount * 0.2; // 20% of first deposit
         referrerProfile.wallet.referralBalance += referralBonus;
         
+        // Update referral counts
+        if (!referrerProfile.referral) {
+          referrerProfile.referral = {
+            totalReferrals: 0,
+            completedReferrals: 0,
+            pendingReferrals: 0
+          };
+        }
+        referrerProfile.referral.completedReferrals += 1;
+        referrerProfile.referral.pendingReferrals = Math.max(0, referrerProfile.referral.pendingReferrals - 1);
+        
         // Create referral bonus transaction for referrer
         const referralTransaction = new Transaction({
           userId: referrerProfile.userId,
@@ -203,7 +214,6 @@ router.post('/razorpay-verify', async (req, res) => {
           processedAt: new Date()
         });
         await referralTransaction.save();
-        
         await referrerProfile.save();
       }
     }

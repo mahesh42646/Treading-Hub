@@ -40,6 +40,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRecalculateReferrals = async () => {
+    if (!confirm('This will recalculate all referral counts. Continue?')) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/recalculate-referral-counts`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Referral counts recalculated successfully! Updated ${data.updatedProfiles} profiles.`);
+        fetchDashboardData(); // Refresh dashboard data
+      } else {
+        alert('Failed to recalculate referral counts');
+      }
+    } catch (error) {
+      console.error('Error recalculating referral counts:', error);
+      alert('Error recalculating referral counts');
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
@@ -195,6 +217,48 @@ const AdminDashboard = () => {
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Net Revenue</h6>
                   <h5 className="mb-0 fw-bold">₹{(dashboardData.totalRevenue - dashboardData.totalWithdrawals).toLocaleString()}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-transparent border-0">
+              <h5 className="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div className="card-body">
+              <div className="row g-3">
+                <div className="col-md-3">
+                  <a href="/admin/users" className="btn btn-outline-primary w-100">
+                    <FaUsers className="me-2" />
+                    Manage Users
+                  </a>
+                </div>
+                <div className="col-md-3">
+                  <a href="/admin/plans" className="btn btn-outline-success w-100">
+                    <FaPlus className="me-2" />
+                    Manage Plans
+                  </a>
+                </div>
+                <div className="col-md-3">
+                  <a href="/admin/trading-accounts" className="btn btn-outline-info w-100">
+                    <FaEdit className="me-2" />
+                    Trading Accounts
+                  </a>
+                </div>
+                <div className="col-md-3">
+                  <button 
+                    className="btn btn-outline-warning w-100"
+                    onClick={handleRecalculateReferrals}
+                  >
+                    <FaChartLine className="me-2" />
+                    Fix Referral Counts
+                  </button>
                 </div>
               </div>
             </div>

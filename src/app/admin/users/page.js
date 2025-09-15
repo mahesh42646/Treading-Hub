@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FaSearch, 
   FaEye, 
@@ -23,7 +23,6 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [kycActionLoading, setKycActionLoading] = useState(null);
@@ -50,39 +49,48 @@ const AdminUsers = () => {
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralBonus, setReferralBonus] = useState(0);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        page: currentPage,
-        limit: 10,
-        search: searchTerm
+        limit: 1000 // Get all users
       });
+      
+      // Only add search if there's a search term
+      if (searchTerm && searchTerm.trim()) {
+        params.append('search', searchTerm.trim());
+      }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?${params}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?${params}`, {
         credentials: 'include'
       });
       
+      console.log('Users API Response Status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Users API Data:', data);
         setUsers(data.users || []);
-        setTotalPages(data.pagination?.total || 1);
+        setTotalPages(1); // No pagination needed
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch users:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchUsers();
     fetchPlans();
-  }, [currentPage, searchTerm]);
+  }, [fetchUsers]);
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/plans`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -97,7 +105,7 @@ const AdminUsers = () => {
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/kyc-${action}/${uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/kyc-${action}/${uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,22 +131,22 @@ const AdminUsers = () => {
     setLoadingAnalytics(true);
     try {
       // Fetch user details
-      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${uid}`, {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch wallet data
-      const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/balance/${uid}`, {
+      const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/balance/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch referral data
-      const referralResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/referral-history/${uid}`, {
+      const referralResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/referral-history/${uid}`, {
         credentials: 'include'
       });
       
       // Fetch transactions
-      const transactionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-transactions/${uid}`, {
+      const transactionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-transactions/${uid}`, {
         credentials: 'include'
       });
 
@@ -174,7 +182,7 @@ const AdminUsers = () => {
     if (!selectedUser) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-wallet/${selectedUser.uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet/${selectedUser.uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +211,7 @@ const AdminUsers = () => {
     if (!selectedUser || !walletAction.amount) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user-wallet-action/${selectedUser.uid}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet-action/${selectedUser.uid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +241,7 @@ const AdminUsers = () => {
     if (!selectedReferral || !referralBonus) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/mark-referral-complete`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/mark-referral-complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +269,7 @@ const AdminUsers = () => {
 
   const handleTransactionStatusUpdate = async (transactionId, newStatus) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-transaction-status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-transaction-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -287,7 +295,7 @@ const AdminUsers = () => {
     if (!selectedUser || !selectedPlan) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/assign-plan`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/assign-plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -515,39 +523,12 @@ const AdminUsers = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
-              <nav className="mt-3">
-                <ul className="pagination justify-content-center">
-                  <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                    <button 
-                      className="page-link" 
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                  </li>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <li key={page} className={`page-item ${currentPage === page ? 'active' : ''}`}>
-                      <button 
-                        className="page-link" 
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    </li>
-                  ))}
-                  <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                    <button 
-                      className="page-link" 
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+              {/* User Count */}
+              <div className="mt-3 text-center">
+                <span className="text-muted">
+                  Showing {users.length} users
+                </span>
+              </div>
             </div>
           </div>
         </>

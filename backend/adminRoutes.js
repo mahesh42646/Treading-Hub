@@ -162,6 +162,8 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
     const { page = 1, limit = 10, search = '', status = '' } = req.query;
     const skip = (page - 1) * limit;
 
+    console.log('Admin users endpoint called with:', { page, limit, search, status });
+
     let query = {};
     if (search) {
       query.$or = [
@@ -173,10 +175,14 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       query.status = status;
     }
 
+    console.log('Query:', query);
+
     const users = await User.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
+
+    console.log('Found users:', users.length);
 
     // Get profiles for these users
     const userIds = users.map(user => user._id);
@@ -246,7 +252,7 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
 
     const total = await User.countDocuments(query);
 
-    res.json({
+    const response = {
       success: true,
       users: usersWithProfiles,
       pagination: {
@@ -254,7 +260,10 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
         total: Math.ceil(total / limit),
         totalUsers: total
       }
-    });
+    };
+
+    console.log('Sending response with', usersWithProfiles.length, 'users');
+    res.json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -61,35 +61,95 @@ router.post('/logout', (req, res) => {
 // Dashboard Analytics
 router.get('/dashboard', verifyAdminAuth, async (req, res) => {
   try {
+    // Basic counts
     const totalUsers = await User.countDocuments();
     const totalProfiles = await Profile.countDocuments();
     const pendingKyc = await Profile.countDocuments({ 'profileCompletion.kycStatus': 'under_review' });
-    const totalTransactions = await Transaction.countDocuments();
+    
+    // Revenue calculations
     const totalRevenue = await Transaction.aggregate([
       { $match: { status: 'completed', type: 'deposit' } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
-    const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5);
-    const recentTransactions = await Transaction.find().populate('userId', 'email').sort({ createdAt: -1 }).limit(5);
-    const recentContacts = await Contact.find().sort({ createdAt: -1 }).limit(5);
+    // Additional analytics
+    const totalWithdrawals = await Transaction.aggregate([
+      { $match: { status: 'completed', type: 'withdrawal' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
+    const totalReferralBonuses = await Transaction.aggregate([
+      { $match: { status: 'completed', type: 'referral_bonus' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
+    // Recent data with better formatting
+    const recentUsers = await User.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('email uid createdAt');
+
+    const recentTransactions = await Transaction.find()
+      .populate('userId', 'email')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('amount type status createdAt userId');
+
+    const recentContacts = await Contact.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('name email subject message createdAt');
+
+    // Growth data (last 7 days)
+    const last7Days = new Date();
+    last7Days.setDate(last7Days.getDate() - 7);
+
+    const newUsersLast7Days = await User.countDocuments({
+      createdAt: { $gte: last7Days }
+    });
+
+    const depositsLast7Days = await Transaction.aggregate([
+      { 
+        $match: { 
+          status: 'completed', 
+          type: 'deposit',
+          createdAt: { $gte: last7Days }
+        } 
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
 
     res.json({
       success: true,
-      analytics: {
-        totalUsers,
-        totalProfiles,
-        pendingKyc,
-        totalTransactions,
-        totalRevenue: totalRevenue[0]?.total || 0
-      },
-      recent: {
-        users: recentUsers,
-        transactions: recentTransactions,
-        contacts: recentContacts
-      }
+      totalUsers,
+      totalProfiles,
+      pendingKyc,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      totalWithdrawals: totalWithdrawals[0]?.total || 0,
+      totalReferralBonuses: totalReferralBonuses[0]?.total || 0,
+      newUsersLast7Days,
+      depositsLast7Days: depositsLast7Days[0]?.total || 0,
+      recentUsers: recentUsers.map(user => ({
+        email: user.email,
+        uid: user.uid,
+        createdAt: user.createdAt.toLocaleDateString()
+      })),
+      recentTransactions: recentTransactions.map(tx => ({
+        amount: tx.amount,
+        type: tx.type,
+        status: tx.status,
+        userEmail: tx.userId?.email || 'Unknown',
+        date: tx.createdAt.toLocaleDateString()
+      })),
+      recentContacts: recentContacts.map(contact => ({
+        name: contact.name,
+        email: contact.email,
+        subject: contact.subject,
+        date: contact.createdAt.toLocaleDateString()
+      }))
     });
   } catch (error) {
+    console.error('Dashboard error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -409,12 +469,73 @@ router.put('/contacts/:id', verifyAdminAuth, async (req, res) => {
 // Referral Management
 router.get('/referrals', verifyAdminAuth, async (req, res) => {
   try {
-    const referrals = await Referral.find()
-      .populate('referrerId', 'email')
-      .populate('referredId', 'email')
-      .sort({ createdAt: -1 });
-    res.json({ success: true, referrals });
+    // Get users who have been referred (have referredBy field)
+    const referredProfiles = await Profile.find({ 
+      'referral.referredBy': { $exists: true, $ne: null } 
+    })
+    .populate('userId', 'email uid')
+    .select('personalInfo referral wallet userId createdAt')
+    .sort({ createdAt: -1 });
+
+    // Get referral transactions to get commission data
+    const referralTransactions = await Transaction.find({ 
+      type: 'referral_bonus' 
+    })
+    .populate('userId', 'email')
+    .select('userId amount metadata createdAt');
+
+    // Build referral data
+    const referrals = await Promise.all(referredProfiles.map(async (profile) => {
+      // Find the referrer profile
+      const referrerProfile = await Profile.findOne({ 
+        'referral.code': profile.referral.referredBy 
+      }).populate('userId', 'email uid');
+
+      // Find referral bonus transaction for this referral
+      const bonusTransaction = referralTransactions.find(tx => 
+        tx.metadata?.referredUserUid === profile.userId.uid
+      );
+
+      return {
+        _id: profile._id,
+        referrer: {
+          email: referrerProfile?.userId?.email || 'Unknown',
+          uid: referrerProfile?.userId?.uid || 'Unknown',
+          name: `${referrerProfile?.personalInfo?.firstName || ''} ${referrerProfile?.personalInfo?.lastName || ''}`.trim()
+        },
+        referred: {
+          email: profile.userId.email,
+          uid: profile.userId.uid,
+          name: `${profile.personalInfo?.firstName || ''} ${profile.personalInfo?.lastName || ''}`.trim()
+        },
+        referralCode: profile.referral.referredBy,
+        commission: bonusTransaction?.amount || 0,
+        commissionPaid: bonusTransaction ? true : false,
+        hasDeposited: profile.wallet?.totalDeposits > 0,
+        totalDeposits: profile.wallet?.totalDeposits || 0,
+        status: profile.wallet?.totalDeposits > 0 ? 'completed' : 'pending',
+        createdAt: profile.createdAt
+      };
+    }));
+
+    // Get overall referral statistics
+    const totalReferrals = referrals.length;
+    const completedReferrals = referrals.filter(r => r.status === 'completed').length;
+    const totalCommissionPaid = referrals.reduce((sum, r) => sum + r.commission, 0);
+    const pendingReferrals = referrals.filter(r => r.status === 'pending').length;
+
+    res.json({ 
+      success: true, 
+      referrals,
+      statistics: {
+        totalReferrals,
+        completedReferrals,
+        pendingReferrals,
+        totalCommissionPaid
+      }
+    });
   } catch (error) {
+    console.error('Referrals fetch error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

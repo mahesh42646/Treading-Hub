@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaSearch, 
   FaEye, 
@@ -50,8 +50,9 @@ const AdminUsers = () => {
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralBonus, setReferralBonus] = useState(0);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = async () => {
     try {
+      setLoading(true);
       const params = new URLSearchParams({
         page: currentPage,
         limit: 10,
@@ -72,12 +73,12 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm]);
+  };
 
   useEffect(() => {
     fetchUsers();
     fetchPlans();
-  }, [fetchUsers]);
+  }, [currentPage, searchTerm]);
 
   const fetchPlans = async () => {
     try {

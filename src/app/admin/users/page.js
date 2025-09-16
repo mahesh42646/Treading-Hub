@@ -532,9 +532,24 @@ const AdminUsers = () => {
                           )}
                         </td>
                         <td>
-                          <span className="badge bg-info">
-                            {user.profile?.referral?.totalReferred || 0} referred
-                          </span>
+                          <div>
+                            <span className="badge bg-primary me-1">
+                              Total: {user.profile?.referral?.totalReferrals || 0}
+                            </span>
+                            <span className="badge bg-success me-1">
+                              Complete: {user.profile?.referral?.completedReferrals || 0}
+                            </span>
+                            <span className="badge bg-warning">
+                              Pending: {user.profile?.referral?.pendingReferrals || 0}
+                            </span>
+                            {user.profile?.referral?.totalEarnings > 0 && (
+                              <div className="mt-1">
+                                <small className="text-success">
+                                  Earned: ₹{user.profile.referral.totalEarnings}
+                                </small>
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <small className="text-muted">

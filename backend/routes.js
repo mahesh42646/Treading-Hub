@@ -283,7 +283,7 @@ router.post('/create', async (req, res) => {
           referrerProfile.referral.pendingReferrals += 1;
           await referrerProfile.save();
           console.log('📈 Updated referrer pending count:', {
-            referrer: referrerProfile.personalInfo.firstName,
+            referrer: referrerProfile.personalInfo?.firstName,
             totalReferrals: referrerProfile.referral.totalReferrals,
             pendingReferrals: referrerProfile.referral.pendingReferrals
           });
@@ -413,55 +413,8 @@ router.post('/create-with-profile', async (req, res) => {
 
     // If user was referred, add them to referrer's list
     if (referredBy) {
-      console.log('📝 Adding user to referrer\'s list:', { referredBy, userName: `${firstName} ${lastName}` });
-      
-      const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
-      if (referrerProfile) {
-        // Initialize referral object if it doesn't exist
-        if (!referrerProfile.referral) {
-          referrerProfile.referral = {
-            totalReferrals: 0,
-            completedReferrals: 0,
-            pendingReferrals: 0,
-            totalEarnings: 0,
-            referrals: []
-          };
-        }
-
-        // Add referral record to referrer's list
-        const referralData = {
-          userId: user._id,
-          userName: `${firstName} ${lastName}`,
-          phone: phone,
-          joinedAt: new Date(),
-          completionPercentage: completionPercentage,
-          hasDeposited: false,
-          bonusEarned: 0
-        };
-
-        // Check if referral already exists
-        const existingReferralIndex = referrerProfile.referral.referrals.findIndex(
-          ref => ref.userId && ref.userId.toString() === user._id.toString()
-        );
-
-        if (existingReferralIndex === -1) {
-          // Add new referral
-          referrerProfile.referral.referrals.push(referralData);
-          referrerProfile.referral.totalReferrals += 1;
-          referrerProfile.referral.pendingReferrals += 1;
-          console.log('✅ Added new referral to referrer\'s list');
-        } else {
-          // Update existing referral
-          referrerProfile.referral.referrals[existingReferralIndex] = {
-            ...referrerProfile.referral.referrals[existingReferralIndex],
-            ...referralData
-          };
-          console.log('✅ Updated existing referral in referrer\'s list');
-        }
-
-        await referrerProfile.save();
-        console.log('✅ Updated referrer profile with new referral counts');
-      }
+      const { addReferralRecord } = require('./utils/referralUtils');
+      await addReferralRecord(user, profile, referredBy);
     }
 
     res.status(201).json({
@@ -2175,6 +2128,15 @@ router.post('/wallet/deposit', async (req, res) => {
       });
     }
 
+    // Import referral utilities
+    const { processReferralBonus, ensureProfileReferral } = require('./utils/referralUtils');
+    
+    // Ensure profile has referral info from user
+    await ensureProfileReferral(user, profile);
+
+    // Check if this is first deposit
+    const isFirstDeposit = profile.wallet.totalDeposits === 0;
+
     // Update wallet balance
     profile.wallet.walletBalance += amount;
     profile.wallet.totalDeposits += amount;
@@ -2192,80 +2154,12 @@ router.post('/wallet/deposit', async (req, res) => {
     });
     await transaction.save();
 
-    // Check if this is first deposit and user was referred (ONLY first deposit gets bonus)
-    const referralCode = user.referredBy;
-    const isFirstDeposit = profile.wallet.totalDeposits === amount; // This means totalDeposits was 0 before this deposit
-    
-    if (referralCode && isFirstDeposit) {
-      console.log('💰 Processing referral bonus for FIRST deposit only...');
-      
-      // This is their first deposit, give 20% referral bonus to referrer
-      const referrerProfile = await Profile.findOne({ 'referral.code': referralCode });
-      if (referrerProfile) {
-        console.log('🎯 Found referrer profile:', referrerProfile.personalInfo.firstName);
-        
-        const referralBonus = Math.round(amount * 0.20); // 20% of deposit amount
-        referrerProfile.wallet.referralBalance += referralBonus;
-        referrerProfile.referral.totalEarnings += referralBonus;
-        
-        // Update referral stats (move from pending to completed)
-        referrerProfile.referral.completedReferrals += 1;
-        referrerProfile.referral.pendingReferrals = Math.max(0, referrerProfile.referral.pendingReferrals - 1);
-        
-        // Add or update referral record in referrer's list
-        let referralIndex = referrerProfile.referral.referrals.findIndex(
-          ref => ref.userId && ref.userId.toString() === user._id.toString()
-        );
-        
-        const referralData = {
-          userId: user._id,
-          userName: `${profile.personalInfo.firstName || 'User'} ${profile.personalInfo.lastName || ''}`.trim(),
-          phone: profile.personalInfo.phone || 'Not provided',
-          joinedAt: profile.createdAt || new Date(),
-          completionPercentage: profile.status.completionPercentage,
-          hasDeposited: true,
-          bonusEarned: referralBonus
-        };
-        
-        if (referralIndex === -1) {
-          // Add new referral record
-          referrerProfile.referral.referrals.push(referralData);
-          console.log('✅ Added new referral record to referrer\'s list');
-        } else {
-          // Update existing referral record
-          referrerProfile.referral.referrals[referralIndex] = {
-            ...referrerProfile.referral.referrals[referralIndex],
-            ...referralData
-          };
-          console.log('✅ Updated existing referral record');
-        }
-        
-        await referrerProfile.save();
-
-        // Create transaction for referrer
-        const referrerTransaction = new Transaction({
-          userId: referrerProfile.userId,
-          type: 'referral_bonus',
-          amount: referralBonus,
-          description: `Referral bonus (20%) from ${profile.personalInfo.firstName || 'User'} ${profile.personalInfo.lastName || ''} - First Deposit: ₹${amount}`,
-          status: 'completed',
-          metadata: { referredUserId: user._id, referralCode: referralCode, depositAmount: amount }
-        });
-        await referrerTransaction.save();
-        
-        console.log('🎉 Referral bonus processed successfully:', {
-          referrer: referrerProfile.personalInfo.firstName,
-          depositAmount: amount,
-          bonusAmount: referralBonus,
-          newBalance: referrerProfile.wallet.referralBalance
-        });
-      } else {
-        console.error('❌ Referrer profile not found for code:', referralCode);
+    // Process referral bonus if this is first deposit
+    if (isFirstDeposit) {
+      const referralResult = await processReferralBonus(user, profile, amount, 'deposit');
+      if (referralResult.success) {
+        console.log('🎉 Referral bonus processed:', referralResult.bonus);
       }
-    } else if (referralCode && !isFirstDeposit) {
-      console.log('ℹ️ User was referred but this is NOT their first deposit - no bonus');
-    } else if (!referralCode) {
-      console.log('ℹ️ User was not referred');
     }
 
     res.json({
@@ -2416,6 +2310,59 @@ router.post('/wallet/withdraw', async (req, res) => {
       message: 'Failed to process withdrawal',
       error: error.message
     });
+  }
+});
+
+// Get user's referral data
+router.get('/profile/referral', async (req, res) => {
+  try {
+    const uid = req.headers['x-user-uid'];
+    if (!uid) {
+      return res.status(401).json({ error: 'No user ID provided' });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Ensure referral object exists
+    if (!profile.referral) {
+      profile.referral = {
+        code: null,
+        totalReferrals: 0,
+        completedReferrals: 0,
+        pendingReferrals: 0,
+        totalEarnings: 0,
+        referrals: []
+      };
+      await profile.save();
+    }
+
+    // Get wallet balance for referral earnings
+    const referralBalance = profile.wallet?.referralBalance || 0;
+
+    const responseData = {
+      referralCode: profile.referral.code,
+      stats: {
+        totalReferrals: profile.referral.totalReferrals || 0,
+        completedReferrals: profile.referral.completedReferrals || 0,
+        pendingReferrals: profile.referral.pendingReferrals || 0,
+        totalEarnings: referralBalance
+      },
+      referrals: profile.referral.referrals || []
+    };
+
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('Error fetching referral data:', error);
+    res.status(500).json({ error: 'Failed to fetch referral data' });
   }
 });
 

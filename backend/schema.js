@@ -135,6 +135,22 @@ const profileSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    hasCompletedFirstPayment: {
+      type: Boolean,
+      default: false
+    },
+    firstPaymentAmount: {
+      type: Number,
+      default: 0
+    },
+    firstPaymentDate: {
+      type: Date,
+      default: null
+    },
+    bonusCredited: {
+      type: Boolean,
+      default: false
+    },
     totalReferrals: {
       type: Number,
       default: 0
@@ -170,9 +186,21 @@ const profileSchema = new mongoose.Schema({
         type: Boolean,
         default: false
       },
+      firstPaymentAmount: {
+        type: Number,
+        default: 0
+      },
+      firstPaymentDate: {
+        type: Date,
+        default: null
+      },
       bonusEarned: {
         type: Number,
         default: 0
+      },
+      bonusCreditedAt: {
+        type: Date,
+        default: null
       }
     }]
   },

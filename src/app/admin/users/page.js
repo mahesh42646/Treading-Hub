@@ -94,13 +94,6 @@ const AdminUsers = () => {
     }
   }, [searchTerm]);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchPlans();
-    // Refresh referral counts on page load
-    refreshReferralCounts();
-  }, [fetchUsers, fetchPlans, refreshReferralCounts]);
-
   const fetchPlans = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
@@ -114,6 +107,13 @@ const AdminUsers = () => {
       console.error('Error fetching plans:', error);
     }
   }, []);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchPlans();
+    // Refresh referral counts on page load
+    refreshReferralCounts();
+  }, [fetchUsers, fetchPlans, refreshReferralCounts]);
 
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);

@@ -50,6 +50,21 @@ const AdminUsers = () => {
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralBonus, setReferralBonus] = useState(0);
 
+  const refreshReferralCounts = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/recalculate-referral-counts`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        console.log('Referral counts refreshed');
+      }
+    } catch (error) {
+      console.error('Error refreshing referral counts:', error);
+    }
+  }, []);
+
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -85,21 +100,6 @@ const AdminUsers = () => {
     // Refresh referral counts on page load
     refreshReferralCounts();
   }, [fetchUsers, fetchPlans, refreshReferralCounts]);
-
-  const refreshReferralCounts = useCallback(async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/recalculate-referral-counts`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        console.log('Referral counts refreshed');
-      }
-    } catch (error) {
-      console.error('Error refreshing referral counts:', error);
-    }
-  }, []);
 
   const fetchPlans = useCallback(async () => {
     try {

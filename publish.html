@@ -1,18 +1,27 @@
-# on local
+# LOCAL DEPLOYMENT WORKFLOW
+# ========================
+
+# 1. On Local Machine (Mac):
 git add .
 git commit -m "live commit"
-git branch -M main
-git push -u origin main
+git push origin main
 
-# on server
+# 2. On Server (SSH):
+ssh root@195.35.21.101
+cd /var/www/Ubuntu/Treading-Hub
 
+# 3. Deploy on Server (choose one):
+
+# Option A: Quick Deploy (recommended)
+chmod +x deploy-server.sh
+./deploy-server.sh
+
+# Option B: Manual Deploy
+git stash
 git pull
 npm run build
 pm2 restart all
-systemctl reload nginx
+sudo systemctl reload nginx
 
-
-ssh root@195.35.21.101
-
-
-./setup-deploy.sh
+# Option C: Webhook Deploy (if webhook is running)
+curl -X POST http://localhost:3009/deploy

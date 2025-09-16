@@ -268,6 +268,17 @@ router.post('/create', async (req, res) => {
       try {
         const referrerProfile = await Profile.findOne({ 'referral.code': validReferralCode });
         if (referrerProfile) {
+          // Initialize referral object if it doesn't exist
+          if (!referrerProfile.referral) {
+            referrerProfile.referral = {
+              totalReferrals: 0,
+              completedReferrals: 0,
+              pendingReferrals: 0,
+              totalEarnings: 0,
+              referrals: []
+            };
+          }
+          
           referrerProfile.referral.totalReferrals += 1;
           referrerProfile.referral.pendingReferrals += 1;
           await referrerProfile.save();
@@ -406,6 +417,17 @@ router.post('/create-with-profile', async (req, res) => {
       
       const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
       if (referrerProfile) {
+        // Initialize referral object if it doesn't exist
+        if (!referrerProfile.referral) {
+          referrerProfile.referral = {
+            totalReferrals: 0,
+            completedReferrals: 0,
+            pendingReferrals: 0,
+            totalEarnings: 0,
+            referrals: []
+          };
+        }
+
         // Add referral record to referrer's list
         const referralData = {
           userId: user._id,
@@ -425,6 +447,8 @@ router.post('/create-with-profile', async (req, res) => {
         if (existingReferralIndex === -1) {
           // Add new referral
           referrerProfile.referral.referrals.push(referralData);
+          referrerProfile.referral.totalReferrals += 1;
+          referrerProfile.referral.pendingReferrals += 1;
           console.log('✅ Added new referral to referrer\'s list');
         } else {
           // Update existing referral
@@ -436,6 +460,7 @@ router.post('/create-with-profile', async (req, res) => {
         }
 
         await referrerProfile.save();
+        console.log('✅ Updated referrer profile with new referral counts');
       }
     }
 

@@ -478,6 +478,7 @@ const AdminUsers = () => {
                       <th>Profile Status</th>
                       <th>KYC Status</th>
                       <th>Wallet Balance</th>
+                      <th>Active Plan</th>
                       <th>Referrals</th>
                       <th>Joined</th>
                       <th>Actions</th>
@@ -517,6 +518,18 @@ const AdminUsers = () => {
                             <small className="text-muted">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
                             <small className="text-muted">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
                           </div>
+                        </td>
+                        <td>
+                          {user.profile?.subscription ? (
+                            <div>
+                              <span className="badge bg-success">{user.profile.subscription.planName}</span><br/>
+                              <small className="text-muted">
+                                {new Date(user.profile.subscription.expiryDate).toLocaleDateString()}
+                              </small>
+                            </div>
+                          ) : (
+                            <span className="badge bg-secondary">No Plan</span>
+                          )}
                         </td>
                         <td>
                           <span className="badge bg-info">

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const { verifyAdminAuth, adminLogin } = require('./adminAuth');
 const multer = require('multer');
@@ -1147,7 +1148,7 @@ router.post('/trading-accounts', verifyAdminAuth, async (req, res) => {
       leverage: leverage || '1:100',
       currency: currency || 'USD',
       notes,
-      createdBy: req.admin._id // Assuming admin ID is available in req.admin
+      createdBy: req.admin?._id || new mongoose.Types.ObjectId() // Fallback if admin ID not available
     });
 
     await tradingAccount.save();
@@ -1396,10 +1397,27 @@ router.post('/recalculate-referral-counts', verifyAdminAuth, async (req, res) =>
         'wallet.totalDeposits': { $gt: 0 }
       });
 
+      // Get all referred users for detailed tracking
+      const referredUsers = await Profile.find({ 'referral.referredBy': profile.referral.code })
+        .populate('userId', 'email')
+        .select('userId personalInfo wallet.totalDeposits createdAt status');
+
+      // Update referrals array with current data
+      const referrals = referredUsers.map(ref => ({
+        userId: ref.userId._id,
+        userName: `${ref.personalInfo?.firstName || 'User'} ${ref.personalInfo?.lastName || ''}`.trim(),
+        phone: ref.personalInfo?.phone || 'Not provided',
+        joinedAt: ref.createdAt || new Date(),
+        completionPercentage: ref.status?.completionPercentage || 0,
+        hasDeposited: (ref.wallet?.totalDeposits || 0) > 0,
+        bonusEarned: 0 // This would need to be calculated from transaction history
+      }));
+
       // Update the profile
       profile.referral.totalReferrals = totalReferrals;
       profile.referral.completedReferrals = completedReferrals;
       profile.referral.pendingReferrals = totalReferrals - completedReferrals;
+      profile.referral.referrals = referrals;
       
       await profile.save();
     }

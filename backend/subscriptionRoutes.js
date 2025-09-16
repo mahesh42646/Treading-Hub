@@ -181,6 +181,85 @@ router.post('/subscription/purchase', async (req, res) => {
 
     await profile.save();
 
+    // Referral bonus: 20% of first payment (if referred and first-ever paid action)
+    try {
+      const userDoc = await User.findById(user._id).select('referredBy');
+      const referralCode = userDoc?.referredBy;
+      if (referralCode) {
+        // Determine if this is the first paid event (no prior subscriptions and no prior deposits)
+        const priorSubscriptions = await Subscription.countDocuments({ userId: user._id, _id: { $ne: subscription._id } });
+        const isFirstDeposit = (profile.wallet?.totalDeposits || 0) === 0;
+        const isFirstPaidEvent = priorSubscriptions === 0 && isFirstDeposit;
+
+        if (isFirstPaidEvent) {
+          const referrerProfile = await Profile.findOne({ 'referral.code': referralCode });
+          if (referrerProfile) {
+            const referralBonus = Math.round((paymentMethod?.totalAmount || plan.price) * 0.20);
+            if (!referrerProfile.wallet) {
+              referrerProfile.wallet = {
+                walletBalance: 0,
+                referralBalance: 0,
+                totalDeposits: 0,
+                totalWithdrawals: 0
+              };
+            }
+            if (!referrerProfile.referral) {
+              referrerProfile.referral = {
+                totalReferrals: 0,
+                completedReferrals: 0,
+                pendingReferrals: 0,
+                totalEarnings: 0,
+                referrals: []
+              };
+            }
+
+            // Credit bonus and update counts
+            referrerProfile.wallet.referralBalance += referralBonus;
+            referrerProfile.referral.totalEarnings += referralBonus;
+            referrerProfile.referral.completedReferrals += 1;
+            referrerProfile.referral.pendingReferrals = Math.max(0, (referrerProfile.referral.pendingReferrals || 0) - 1);
+
+            // Update or add referral record
+            const referralIndex = (referrerProfile.referral.referrals || []).findIndex(
+              ref => ref.userId && ref.userId.toString() === user._id.toString()
+            );
+            const referralData = {
+              userId: user._id,
+              userName: `${profile.personalInfo.firstName || 'User'} ${profile.personalInfo.lastName || ''}`.trim(),
+              phone: profile.personalInfo.phone || 'Not provided',
+              joinedAt: profile.createdAt || new Date(),
+              completionPercentage: profile.status.completionPercentage,
+              hasDeposited: true,
+              bonusEarned: referralBonus
+            };
+            if (referralIndex === -1) {
+              referrerProfile.referral.referrals.push(referralData);
+            } else {
+              referrerProfile.referral.referrals[referralIndex] = {
+                ...referrerProfile.referral.referrals[referralIndex],
+                ...referralData
+              };
+            }
+
+            await referrerProfile.save();
+
+            // Create transaction for referrer
+            const referrerBonusTx = new Transaction({
+              userId: referrerProfile.userId,
+              type: 'referral_bonus',
+              amount: referralBonus,
+              description: `Referral bonus: 20% of ${paymentMethod?.totalAmount || plan.price} for first payment of referred user ${user.email}`,
+              status: 'completed',
+              metadata: { referredUserId: user._id, subscriptionId: subscription._id }
+            });
+            await referrerBonusTx.save();
+          }
+        }
+      }
+    } catch (rbErr) {
+      console.error('Referral bonus on subscription purchase failed:', rbErr);
+    }
+
     // Create transaction record
     const transaction = new Transaction({
       userId: user._id,

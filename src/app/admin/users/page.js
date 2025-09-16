@@ -642,7 +642,7 @@ const AdminUsers = () => {
                       onClick={() => {
                         setWalletAction({ type: 'add', amount: 0, wallet: 'wallet' });
                         setShowWalletModal(true);
-                      }}
+                      }}Wallet Balance
                     >
                       <FaPlus className="me-1" />
                       Add
@@ -718,7 +718,7 @@ const AdminUsers = () => {
                 ) : (
                   <div className="row">
                     <div className="col-md-6">
-                      <div className="card bg-primary bg-opacity-10">
+                      <div className="card  bg-opacity-10">
                         <div className="card-body text-center">
                           <h4 className="text-primary">₹{userAnalytics?.wallet?.walletBalance || 0}</h4>
                           <small className="text-muted">Wallet Balance</small>
@@ -774,7 +774,7 @@ const AdminUsers = () => {
                     </div>
                   </div>
                   <div className="col-md-3">
-                    <div className="card bg-primary bg-opacity-10">
+                    <div className="card  bg-opacity-10">
                       <div className="card-body text-center">
                         <h5 className="text-primary">₹{userAnalytics?.referrals?.totalReferralEarnings || 0}</h5>
                         <small className="text-muted">Total Earnings</small>

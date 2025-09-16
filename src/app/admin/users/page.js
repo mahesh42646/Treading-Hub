@@ -25,6 +25,8 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [selectedUser, setSelectedUser] = useState(null);
   const [kycActionLoading, setKycActionLoading] = useState(null);
   const [userAnalytics, setUserAnalytics] = useState(null);
@@ -69,6 +71,8 @@ const AdminUsers = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.append('page', String(currentPage));
+      params.append('limit', String(pageSize));
       
       // Only add search if there's a search term
       if (searchTerm && searchTerm.trim()) {
@@ -82,7 +86,9 @@ const AdminUsers = () => {
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
-        setTotalPages(1); // No pagination needed
+        // Try to infer total pages from common response shapes
+        const pages = data.pagination?.pages || data.totalPages || 1;
+        setTotalPages(pages);
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch users:', response.status, errorText);
@@ -92,7 +98,7 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, [searchTerm, currentPage, pageSize]);
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -114,6 +120,11 @@ const AdminUsers = () => {
     // Refresh referral counts on page load
     refreshReferralCounts();
   }, [fetchUsers, fetchPlans, refreshReferralCounts]);
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleKycAction = async (uid, action) => {
     setKycActionLoading(uid);
@@ -415,20 +426,43 @@ const AdminUsers = () => {
       {/* Users List View */}
       {activeTab === 'users' && (
         <>
-          {/* Search */}
+          {/* Search and Page Size */}
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body">
-              <div className="input-group">
-                <span className="input-group-text">
-                  <FaSearch />
-                </span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Search users by email or name"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="row g-3 align-items-center">
+                <div className="col-md-8">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <FaSearch />
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search users by email or name"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="d-flex align-items-center justify-content-md-end gap-2">
+                    <label className="form-label mb-0">Rows:</label>
+                    <select
+                      className="form-select"
+                      style={{ maxWidth: '120px' }}
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(parseInt(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -536,21 +570,41 @@ const AdminUsers = () => {
                 </table>
               </div>
 
-              {/* User Count and Actions */}
+              {/* User Count, Pagination and Actions */}
               <div className="mt-3 d-flex justify-content-between align-items-center">
                 <span className="text-muted">
-                  Showing {users.length} users
+                  Showing {users.length} users (page {currentPage} of {totalPages})
                 </span>
-                <button 
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => {
-                    refreshReferralCounts();
-                    fetchUsers();
-                  }}
-                >
-                  <FaSync className="me-1" />
-                  Refresh Referral Counts
-                </button>
+                <div className="d-flex align-items-center gap-2">
+                  <nav aria-label="Users pagination">
+                    <ul className="pagination mb-0">
+                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Prev</button>
+                      </li>
+                      {Array.from({ length: totalPages }).slice(0, 7).map((_, idx) => {
+                        const pageNum = idx + 1;
+                        return (
+                          <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                            <button className="page-link" onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>
+                          </li>
+                        );
+                      })}
+                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+                      </li>
+                    </ul>
+                  </nav>
+                  <button 
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => {
+                      refreshReferralCounts();
+                      fetchUsers();
+                    }}
+                  >
+                    <FaSync className="me-1" />
+                    Refresh Referral Counts
+                  </button>
+                </div>
               </div>
             </div>
           </div>

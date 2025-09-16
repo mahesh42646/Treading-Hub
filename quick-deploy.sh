@@ -1,11 +1,12 @@
 #!/bin/bash
 
-echo "🚀 Quick deployment script for Trading Hub..."
+echo "🚀 Quick Deployment Script for Trading Hub"
+echo "=========================================="
 
 # Change to project directory
 cd /var/www/Ubuntu/Treading-Hub
 
-echo "📥 Pulling latest changes..."
+echo "📥 Pulling latest changes from GitHub..."
 git pull
 
 if [ $? -eq 0 ]; then
@@ -24,6 +25,7 @@ if [ $? -eq 0 ]; then
         sudo systemctl reload nginx
         
         echo "✅ Deployment completed successfully!"
+        echo "🎉 Your changes are now live!"
     else
         echo "❌ Build failed"
         exit 1

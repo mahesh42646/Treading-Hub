@@ -43,7 +43,7 @@ const AdminTradingAccounts = () => {
   useEffect(() => {
     fetchAccounts();
     fetchUsers();
-  }, [currentPage, searchTerm, filterAssigned, filterBroker, fetchAccounts]);
+  }, [currentPage, searchTerm, filterAssigned, filterBroker, fetchAccounts, fetchUsers]);
 
   const fetchAccounts = useCallback(async () => {
     try {
@@ -71,7 +71,7 @@ const AdminTradingAccounts = () => {
     }
   }, [currentPage, searchTerm, filterAssigned, filterBroker]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?limit=100`, {
         credentials: 'include'
@@ -84,7 +84,7 @@ const AdminTradingAccounts = () => {
     } catch (error) {
       console.error('Error fetching users:', error);
     }
-  };
+  }, []);
 
   const handleCreateAccount = async (e) => {
     e.preventDefault();

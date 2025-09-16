@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaUsers, FaUserCheck, FaClock, FaDollarSign, FaChartLine, FaPlus, FaEye, FaEdit, FaEnvelope } from 'react-icons/fa';
 
 const AdminDashboard = () => {
@@ -21,9 +21,9 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
         credentials: 'include'
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleRecalculateReferrals = async () => {
     if (!confirm('This will recalculate all referral counts. Continue?')) return;

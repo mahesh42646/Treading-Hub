@@ -13,10 +13,6 @@ const AdminReferrals = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchReferrals();
-  }, []);
-
   const fetchReferrals = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/referrals`, {
@@ -34,6 +30,10 @@ const AdminReferrals = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
 
   const getStatusBadge = (status) => {
     switch (status) {

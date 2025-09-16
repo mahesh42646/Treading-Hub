@@ -24,10 +24,6 @@ const AdminBlogs = () => {
   });
   const [imagePreview, setImagePreview] = useState('');
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [fetchBlogs]);
-
   const fetchBlogs = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs`, {
@@ -44,6 +40,10 @@ const AdminBlogs = () => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchBlogs();
+  }, [fetchBlogs]);
 
   const generateSlug = (title) => {
     return title

@@ -15,24 +15,21 @@ app.use(express.json());
 app.post('/deploy', async (req, res) => {
   console.log('🚀 Deployment triggered!');
   
-  try {
-    // Execute deployment commands
-    exec('cd /var/www/Ubuntu/Treading-Hub && git pull && npm run build && pm2 restart all && sudo systemctl reload nginx', 
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error('❌ Deployment failed:', error);
-          res.status(500).json({ success: false, error: error.message });
-        } else {
-          console.log('✅ Deployment successful!');
-          console.log(stdout);
-          res.status(200).json({ success: true, message: 'Deployed successfully' });
-        }
+  // Send immediate response
+  res.status(200).json({ success: true, message: 'Deployment started' });
+  
+  // Execute deployment commands in background
+  exec('cd /var/www/Ubuntu/Treading-Hub && git pull && npm run build && pm2 restart all && sudo systemctl reload nginx', 
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error('❌ Deployment failed:', error);
+        console.error('Stderr:', stderr);
+      } else {
+        console.log('✅ Deployment successful!');
+        console.log(stdout);
       }
-    );
-  } catch (error) {
-    console.error('❌ Error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+    }
+  );
 });
 
 // Health check

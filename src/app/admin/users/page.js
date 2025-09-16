@@ -17,7 +17,7 @@ import {
   FaCreditCard,
   FaArrowLeft,
   FaPlus,
-  FaRefresh
+  FaSync
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -548,7 +548,7 @@ const AdminUsers = () => {
                     fetchUsers();
                   }}
                 >
-                  <FaRefresh className="me-1" />
+                  <FaSync className="me-1" />
                   Refresh Referral Counts
                 </button>
               </div>

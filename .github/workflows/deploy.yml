@@ -17,4 +17,8 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /var/www/Ubuntu/Treading-Hub
-          curl -X POST http://localhost:3009/deploy
+          curl -X POST http://localhost:3009/deploy || echo "Webhook failed, trying manual deployment"
+          git pull
+          npm run build
+          pm2 restart all
+          sudo systemctl reload nginx

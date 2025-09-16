@@ -1380,52 +1380,72 @@ router.put('/update-transaction-status', verifyAdminAuth, async (req, res) => {
 // Recalculate all referral counts
 router.post('/recalculate-referral-counts', verifyAdminAuth, async (req, res) => {
   try {
-    // Get all profiles with referral codes
-    const profilesWithCodes = await Profile.find({
-      'referral.code': { $exists: true, $ne: null }
-    });
+    // Find all profiles that have a referral code
+    const profilesWithCodes = await Profile.find({ 'referral.code': { $exists: true, $ne: null } });
 
-    for (const profile of profilesWithCodes) {
-      // Count total referrals
-      const totalReferrals = await Profile.countDocuments({
-        'referral.referredBy': profile.referral.code
-      });
+    let updatedProfiles = 0;
 
-      // Count completed referrals (those who have made deposits)
-      const completedReferrals = await Profile.countDocuments({
-        'referral.referredBy': profile.referral.code,
-        'wallet.totalDeposits': { $gt: 0 }
-      });
+    for (const referrerProfile of profilesWithCodes) {
+      const code = referrerProfile.referral.code;
+      if (!code) continue;
 
-      // Get all referred users for detailed tracking
-      const referredUsers = await Profile.find({ 'referral.referredBy': profile.referral.code })
+      // Collect referred profiles from BOTH sources:
+      // 1) Profiles that already recorded referredBy on the profile
+      const viaProfile = await Profile.find({ 'referral.referredBy': code })
         .populate('userId', 'email')
-        .select('userId personalInfo wallet.totalDeposits createdAt status');
+        .select('userId personalInfo wallet.totalDeposits createdAt status referral');
 
-      // Update referrals array with current data
-      const referrals = referredUsers.map(ref => ({
+      // 2) Users that have referredBy on the user doc, backfill their profile if missing
+      const usersViaUser = await User.find({ referredBy: code }).select('_id email');
+      const viaUserProfiles = await Profile.find({ userId: { $in: usersViaUser.map(u => u._id) } })
+        .populate('userId', 'email')
+        .select('userId personalInfo wallet.totalDeposits createdAt status referral');
+
+      // Backfill: if a profile is missing referral.referredBy, set it to the code
+      for (const p of viaUserProfiles) {
+        if (!p.referral) p.referral = {};
+        if (!p.referral.referredBy) {
+          p.referral.referredBy = code;
+          await p.save();
+        }
+      }
+
+      // Merge unique referred profiles by userId
+      const mapByUser = new Map();
+      [...viaProfile, ...viaUserProfiles].forEach(p => {
+        const key = p.userId?._id?.toString();
+        if (key) mapByUser.set(key, p);
+      });
+      const referredProfiles = Array.from(mapByUser.values());
+
+      // Build referrals detail
+      const referrals = referredProfiles.map(ref => ({
         userId: ref.userId._id,
         userName: `${ref.personalInfo?.firstName || 'User'} ${ref.personalInfo?.lastName || ''}`.trim(),
         phone: ref.personalInfo?.phone || 'Not provided',
         joinedAt: ref.createdAt || new Date(),
         completionPercentage: ref.status?.completionPercentage || 0,
         hasDeposited: (ref.wallet?.totalDeposits || 0) > 0,
-        bonusEarned: 0 // This would need to be calculated from transaction history
+        bonusEarned: 0
       }));
 
-      // Update the profile
-      profile.referral.totalReferrals = totalReferrals;
-      profile.referral.completedReferrals = completedReferrals;
-      profile.referral.pendingReferrals = totalReferrals - completedReferrals;
-      profile.referral.referrals = referrals;
-      
-      await profile.save();
+      const totalReferrals = referrals.length;
+      const completedReferrals = referrals.filter(r => r.hasDeposited).length;
+
+      if (!referrerProfile.referral) referrerProfile.referral = {};
+      referrerProfile.referral.totalReferrals = totalReferrals;
+      referrerProfile.referral.completedReferrals = completedReferrals;
+      referrerProfile.referral.pendingReferrals = Math.max(0, totalReferrals - completedReferrals);
+      referrerProfile.referral.referrals = referrals;
+
+      await referrerProfile.save();
+      updatedProfiles++;
     }
 
     res.json({
       success: true,
       message: 'Referral counts recalculated successfully',
-      updatedProfiles: profilesWithCodes.length
+      updatedProfiles
     });
   } catch (error) {
     console.error('Error recalculating referral counts:', error);

@@ -181,9 +181,33 @@ router.post('/subscription/purchase', async (req, res) => {
 
     await profile.save();
 
-    // Note: Referral bonus is only given on first wallet deposit, not on subscription purchases
-    // Subscriptions are purchased using wallet balance that was already deposited
-    console.log('ℹ️ Subscription purchased using wallet balance - no referral bonus on subscription purchase');
+    // Process referral bonus for first plan purchase
+    try {
+      const { processReferralBonus, ensureProfileReferral } = require('./utils/referralUtils');
+      
+      // Ensure profile has referral info from user
+      await ensureProfileReferral(user, profile);
+      
+      // Check if this is the first plan purchase
+      const priorSubscriptions = await Subscription.countDocuments({ 
+        userId: user._id, 
+        _id: { $ne: subscription._id },
+        status: 'active'
+      });
+      
+      const isFirstPlanPurchase = priorSubscriptions === 0;
+
+      if (isFirstPlanPurchase) {
+        const referralResult = await processReferralBonus(user, profile, plan.price, plan.name);
+        if (referralResult.success) {
+          console.log('🎉 Plan purchase referral bonus processed:', referralResult.bonus);
+        }
+      } else {
+        console.log('ℹ️ Not first plan purchase - no referral bonus');
+      }
+    } catch (rbErr) {
+      console.error('Referral bonus on plan purchase failed:', rbErr);
+    }
 
     // Create transaction record
     const transaction = new Transaction({

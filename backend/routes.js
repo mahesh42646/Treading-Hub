@@ -2128,14 +2128,11 @@ router.post('/wallet/deposit', async (req, res) => {
       });
     }
 
-    // Import referral utilities
-    const { processReferralBonus, ensureProfileReferral } = require('./utils/referralUtils');
+    // Import referral utilities for profile sync
+    const { ensureProfileReferral } = require('./utils/referralUtils');
     
     // Ensure profile has referral info from user
     await ensureProfileReferral(user, profile);
-
-    // Check if this is first deposit
-    const isFirstDeposit = profile.wallet.totalDeposits === 0;
 
     // Update wallet balance
     profile.wallet.walletBalance += amount;
@@ -2154,13 +2151,8 @@ router.post('/wallet/deposit', async (req, res) => {
     });
     await transaction.save();
 
-    // Process referral bonus if this is first deposit
-    if (isFirstDeposit) {
-      const referralResult = await processReferralBonus(user, profile, amount, 'deposit');
-      if (referralResult.success) {
-        console.log('🎉 Referral bonus processed:', referralResult.bonus);
-      }
-    }
+    // Note: Referral bonus is only given on first plan purchase, not on wallet deposits
+    console.log('ℹ️ Wallet deposit completed - referral bonus will be given on first plan purchase');
 
     res.json({
       success: true,

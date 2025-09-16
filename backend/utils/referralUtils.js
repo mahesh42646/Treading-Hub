@@ -2,16 +2,16 @@ const { User, Profile } = require('../schema');
 const Transaction = require('../models/Transaction');
 
 /**
- * Process referral bonus for first wallet deposit ONLY
- * @param {Object} user - User who made the deposit
+ * Process referral bonus for first plan purchase
+ * @param {Object} user - User who purchased the plan
  * @param {Object} profile - User's profile
- * @param {Number} depositAmount - Amount of the deposit
- * @param {String} paymentType - Should always be 'deposit'
+ * @param {Number} planPrice - Price of the plan
+ * @param {String} planName - Name of the plan
  * @returns {Object} Result of referral processing
  */
-async function processReferralBonus(user, profile, depositAmount, paymentType = 'deposit') {
+async function processReferralBonus(user, profile, planPrice, planName) {
   try {
-    console.log('🔍 Processing referral bonus for user:', user.email);
+    console.log('🔍 Processing referral bonus for plan purchase by user:', user.email);
     
     // Check if user was referred
     const referralCode = user.referredBy || profile?.referral?.referredBy;
@@ -20,10 +20,10 @@ async function processReferralBonus(user, profile, depositAmount, paymentType = 
       return { success: false, message: 'No referral code' };
     }
 
-    // Check if this is their first payment
+    // Check if this is their first plan purchase
     if (profile.referral?.hasCompletedFirstPayment) {
-      console.log('❌ User has already completed first payment');
-      return { success: false, message: 'First payment already processed' };
+      console.log('❌ User has already completed first plan purchase');
+      return { success: false, message: 'First plan purchase already processed' };
     }
 
     // Find referrer profile
@@ -55,16 +55,16 @@ async function processReferralBonus(user, profile, depositAmount, paymentType = 
       };
     }
 
-    // Calculate 20% bonus on first deposit
-    const referralBonus = Math.round(depositAmount * 0.20);
-    console.log('💰 Calculating referral bonus on first deposit:', referralBonus);
+    // Calculate 20% bonus on plan price
+    const referralBonus = Math.round(planPrice * 0.20);
+    console.log('💰 Calculating referral bonus on plan purchase:', referralBonus, 'for plan:', planName);
 
-    // Mark referred user's first payment as completed
+    // Mark referred user's first plan purchase as completed
     if (!profile.referral) {
       profile.referral = {};
     }
     profile.referral.hasCompletedFirstPayment = true;
-    profile.referral.firstPaymentAmount = depositAmount;
+    profile.referral.firstPaymentAmount = planPrice;
     profile.referral.firstPaymentDate = new Date();
     profile.referral.bonusCredited = true;
     profile.referral.referredBy = referralCode; // Ensure it's set
@@ -89,7 +89,7 @@ async function processReferralBonus(user, profile, depositAmount, paymentType = 
       joinedAt: profile.createdAt || new Date(),
       completionPercentage: profile.status?.completionPercentage || 0,
       hasDeposited: true,
-      firstPaymentAmount: depositAmount,
+      firstPaymentAmount: planPrice,
       firstPaymentDate: new Date(),
       bonusEarned: referralBonus,
       bonusCreditedAt: new Date()
@@ -117,13 +117,14 @@ async function processReferralBonus(user, profile, depositAmount, paymentType = 
       userId: referrerProfile.userId,
       type: 'referral_bonus',
       amount: referralBonus,
-      description: `Referral bonus: 20% of ₹${depositAmount} from ${profile.personalInfo?.firstName || user.email}'s first wallet deposit`,
+      description: `Referral bonus: 20% of ₹${planPrice} from ${profile.personalInfo?.firstName || user.email}'s first plan purchase (${planName})`,
       status: 'completed',
       metadata: {
         referredUserId: user._id,
         referralCode: referralCode,
-        originalAmount: depositAmount,
-        paymentType: 'deposit'
+        originalAmount: planPrice,
+        planName: planName,
+        paymentType: 'plan_purchase'
       }
     });
 

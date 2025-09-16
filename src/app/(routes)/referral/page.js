@@ -253,7 +253,7 @@ export default function Referral() {
                         <div className="col-md-6 mb-3">
                           <label className="form-label">Commission Rate</label>
                           <div className="form-control-plaintext">
-                            <span className="badge bg-success fs-6">20% of first deposit</span>
+                            <span className="badge bg-success fs-6">20% of first plan purchase</span>
                           </div>
                         </div>
                       </div>
@@ -272,7 +272,7 @@ export default function Referral() {
                               <th>Phone</th>
                               <th>Date Joined</th>
                               <th>Status</th>
-                              <th>First Deposit</th>
+                              <th>Plan Purchase</th>
                               <th>Bonus Earned</th>
                             </tr>
                           </thead>
@@ -291,7 +291,7 @@ export default function Referral() {
                                   {referral.hasDeposited ? (
                                     <span className="text-success">₹{referral.firstPaymentAmount || 0}</span>
                                   ) : (
-                                    <span className="text-muted">Not yet</span>
+                                    <span className="text-muted">No plan yet</span>
                                   )}
                                 </td>
                                 <td className="text-success fw-bold">
@@ -318,7 +318,7 @@ export default function Referral() {
                     <div className="card-body p-4">
                       <h5 className="mb-3">Share & Earn</h5>
                       <p className="text-muted mb-3">
-                        Share your referral link with friends and earn 20% bonus on their first wallet deposit.
+                        Share your referral link with friends and earn 20% bonus when they purchase their first plan.
                       </p>
                       
                       <div className="d-grid gap-2">
@@ -387,7 +387,7 @@ export default function Referral() {
                         </div>
                         <div>
                           <h6 className="mb-1">You Earn</h6>
-                          <p className="text-muted small mb-0">Earn 20% bonus on their first wallet deposit only</p>
+                          <p className="text-muted small mb-0">Earn 20% bonus when they purchase their first plan</p>
                         </div>
                       </div>
                     </div>

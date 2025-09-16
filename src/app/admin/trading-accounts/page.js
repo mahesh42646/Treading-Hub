@@ -40,11 +40,6 @@ const AdminTradingAccounts = () => {
     notes: ''
   });
 
-  useEffect(() => {
-    fetchAccounts();
-    fetchUsers();
-  }, [currentPage, searchTerm, filterAssigned, filterBroker, fetchAccounts, fetchUsers]);
-
   const fetchAccounts = useCallback(async () => {
     try {
       setLoading(true);
@@ -85,6 +80,11 @@ const AdminTradingAccounts = () => {
       console.error('Error fetching users:', error);
     }
   }, []);
+
+  useEffect(() => {
+    fetchAccounts();
+    fetchUsers();
+  }, [currentPage, searchTerm, filterAssigned, filterBroker, fetchAccounts, fetchUsers]);
 
   const handleCreateAccount = async (e) => {
     e.preventDefault();

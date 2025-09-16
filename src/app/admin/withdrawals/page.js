@@ -16,16 +16,6 @@ export default function AdminWithdrawals() {
     type: ''
   });
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      fetchWithdrawals();
-    }
-  }, [filters, isAuthenticated, authLoading, fetchWithdrawals]);
-
   const checkAuth = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
@@ -66,6 +56,16 @@ export default function AdminWithdrawals() {
       setLoading(false);
     }
   }, [filters]);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      fetchWithdrawals();
+    }
+  }, [filters, isAuthenticated, authLoading, fetchWithdrawals]);
 
   const handleAction = async (withdrawalId, action) => {
     try {

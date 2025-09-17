@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import DashboardHeader from '../../user/components/DashboardHeader';
 
 export default function DashboardReferral() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [referralData, setReferralData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,7 +89,7 @@ export default function DashboardReferral() {
 
   return (
     <div className="container-fluid">
-      <DashboardHeader />
+     
       
       <div className="row">
         <div className="col-12">

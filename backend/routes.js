@@ -594,6 +594,8 @@ router.get('/profile/:uid', async (req, res) => {
 // Profile setup (step 2) - basic profile without PAN card
 router.post('/profile-setup', async (req, res) => {
   try {
+    console.log('🚀 Profile setup request received:', req.body);
+    
     const {
       uid,
       firstName,
@@ -696,8 +698,7 @@ router.post('/profile-setup', async (req, res) => {
       }
       
       if (!isUnique) {
-        // Delete the profile we just created since referral code generation failed
-        await Profile.findByIdAndDelete(profile._id);
+        // Referral code generation failed - profile not saved yet so no need to delete
         return res.status(500).json({
           success: false,
           message: 'Failed to generate unique referral code. Please try again.'
@@ -744,13 +745,14 @@ router.post('/profile-setup', async (req, res) => {
         country: profile.personalInfo.country,
         city: profile.personalInfo.city,
         phone: profile.personalInfo.phone,
-        referralCode: profile.referral.code,
+        referralCode: profile.myReferralCode,
         status: profile.status,
         kyc: profile.kyc
       }
     });
   } catch (error) {
-    console.error('Error creating profile:', error);
+    console.error('❌ Error creating profile:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to create profile',

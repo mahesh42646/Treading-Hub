@@ -198,11 +198,31 @@ router.post('/create', async (req, res) => {
           }
           await existingUser.save();
           
-          // Update referrer's pending count
+          // Add referral record to referrer's referrals array
           try {
-            referrerUser.totalReferralsBy = (referrerUser.totalReferralsBy || 0) + 1;
-            await referrerUser.save();
-          } catch {}
+            const exists = (referrerUser.referrals || []).some(r => r.user?.toString() === existingUser._id.toString());
+            if (!exists) {
+              referrerUser.referrals.push({
+                user: existingUser._id,
+                refState: 'pending',
+                firstPayment: false,
+                firstPlan: false,
+                firstPaymentAmount: 0,
+                firstPaymentDate: null,
+                bonusCredited: false,
+                bonusAmount: 0,
+                profileComplete: existingUser.myProfilePercent || 0,
+                joinedAt: existingUser.createdAt || new Date()
+              });
+              referrerUser.totalReferralsBy = (referrerUser.totalReferralsBy || 0) + 1;
+              await referrerUser.save();
+              console.log('✅ Added referral record to referrer for existing user');
+            } else {
+              console.log('⚠️ Referral record already exists for this user');
+            }
+          } catch (referralError) {
+            console.error('❌ Error adding referral record for existing user:', referralError);
+          }
           
           console.log('✅ Updated existing user with referral code and referrer stats');
         } else {
@@ -656,6 +676,27 @@ router.post('/profile-setup', async (req, res) => {
 
     // Save user with embedded profile
     await user.save();
+    
+    // Update referrer's referrals array with profile completion
+    if (user.referredByCode) {
+      try {
+        const referrerUser = await User.findOne({ myReferralCode: user.referredByCode });
+        if (referrerUser && Array.isArray(referrerUser.referrals)) {
+          const referralIndex = referrerUser.referrals.findIndex(
+            ref => ref.user.toString() === user._id.toString()
+          );
+          
+          if (referralIndex !== -1) {
+            // Update existing referral record
+            referrerUser.referrals[referralIndex].profileComplete = 75;
+            await referrerUser.save();
+            console.log('✅ Updated referral record with profile completion');
+          }
+        }
+      } catch (referralError) {
+        console.error('❌ Error updating referral record with profile completion:', referralError);
+      }
+    }
     
     console.log('✅ Profile data stored successfully');
 
@@ -2093,39 +2134,77 @@ router.get('/referral/stats/:uid', async (req, res) => {
       await user.reload?.();
     }
 
-    // Build referral stats by querying users who used this user's code
-    // Support both new field `referredByCode` and legacy `referredBy`
-    const referredUsers = await User.find({
-      $or: [
-        { referredByCode: user.myReferralCode },
-        { referredBy: user.myReferralCode }
-      ]
-    });
+    // Use referrals array as primary source, fallback to query if empty
+    let referralsList = [];
+    let totalReferrals = 0;
+    let completedReferrals = 0;
+    let pendingReferrals = 0;
 
-    // Map referral data
-    const referralsList = referredUsers.map(ru => {
-      const name = ru.profile ? `${ru.profile.personalInfo?.firstName || ''} ${ru.profile.personalInfo?.lastName || ''}`.trim() : '';
-      const phone = ru.profile?.personalInfo?.phone || 'N/A';
-      const joinedAt = ru.createdAt || new Date();
-      const completionPercentage = typeof ru.myProfilePercent === 'number' ? ru.myProfilePercent : 0;
-      const hasDeposited = !!ru.myFirstPayment;
-      const hasFirstPlan = !!ru.myFirstPlan;
-      return {
-        userId: ru._id,
-        userName: name || ru.email || 'User',
-        phone,
-        completionPercentage,
-        joinedAt,
-        hasDeposited,
-        hasFirstPlan,
-        bonusEarned: 0
-      };
-    });
+    if (Array.isArray(user.referrals) && user.referrals.length > 0) {
+      // Use referrals array as primary source
+      // First get all referred users for details
+      const referredUserIds = user.referrals.map(ref => ref.user);
+      const referredUsers = await User.find({ _id: { $in: referredUserIds } });
+      
+      referralsList = user.referrals.map(ref => {
+        // Get user details for each referral
+        const referredUser = referredUsers.find(ru => ru._id.toString() === ref.user.toString());
+        const name = referredUser?.profile ? `${referredUser.profile.personalInfo?.firstName || ''} ${referredUser.profile.personalInfo?.lastName || ''}`.trim() : '';
+        const phone = referredUser?.profile?.personalInfo?.phone || 'N/A';
+        const joinedAt = ref.joinedAt || referredUser?.createdAt || new Date();
+        const completionPercentage = ref.profileComplete || referredUser?.myProfilePercent || 0;
+        const hasDeposited = ref.firstPayment || referredUser?.myFirstPayment || false;
+        const hasFirstPlan = ref.firstPlan || referredUser?.myFirstPlan || false;
+        
+        return {
+          userId: ref.user,
+          userName: name || referredUser?.email || 'User',
+          phone,
+          completionPercentage,
+          joinedAt,
+          hasDeposited,
+          hasFirstPlan,
+          bonusEarned: ref.bonusAmount || 0,
+          status: ref.refState || 'pending'
+        };
+      });
+      
+      totalReferrals = user.referrals.length;
+      completedReferrals = user.referrals.filter(r => r.refState === 'completed').length;
+      pendingReferrals = totalReferrals - completedReferrals;
+    } else {
+      // Fallback: query users who used this user's code
+      const referredUsers = await User.find({
+        $or: [
+          { referredByCode: user.myReferralCode },
+          { referredBy: user.myReferralCode }
+        ]
+      });
 
-    // Compute counts
-    const totalReferrals = referralsList.length;
-    const completedReferrals = referralsList.filter(r => r.hasFirstPlan || r.hasDeposited).length;
-    const pendingReferrals = totalReferrals - completedReferrals;
+      referralsList = referredUsers.map(ru => {
+        const name = ru.profile ? `${ru.profile.personalInfo?.firstName || ''} ${ru.profile.personalInfo?.lastName || ''}`.trim() : '';
+        const phone = ru.profile?.personalInfo?.phone || 'N/A';
+        const joinedAt = ru.createdAt || new Date();
+        const completionPercentage = typeof ru.myProfilePercent === 'number' ? ru.myProfilePercent : 0;
+        const hasDeposited = !!ru.myFirstPayment;
+        const hasFirstPlan = !!ru.myFirstPlan;
+        return {
+          userId: ru._id,
+          userName: name || ru.email || 'User',
+          phone,
+          completionPercentage,
+          joinedAt,
+          hasDeposited,
+          hasFirstPlan,
+          bonusEarned: 0,
+          status: hasDeposited || hasFirstPlan ? 'completed' : 'pending'
+        };
+      });
+
+      totalReferrals = referralsList.length;
+      completedReferrals = referralsList.filter(r => r.hasFirstPlan || r.hasDeposited).length;
+      pendingReferrals = totalReferrals - completedReferrals;
+    }
 
     // Compute total earnings from stored referrals array (if present)
     let totalEarnings = 0;

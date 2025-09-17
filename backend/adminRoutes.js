@@ -402,19 +402,61 @@ router.post('/users/:uid/assign-plan', verifyAdminAuth, async (req, res) => {
   }
 });
 
+// Admin: get user plans
+router.get('/users/:uid/plans', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    res.json({ success: true, plans: user.plans || [] });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // Admin: update a plan validity/status
 router.put('/users/:uid/plans/:planEntryId', verifyAdminAuth, async (req, res) => {
   try {
     const { uid, planEntryId } = req.params;
-    const { endDate, status, durationDays } = req.body;
+    const { endDate, status, durationDays, action } = req.body;
     const { User } = require('./schema');
     const user = await User.findOne({ uid });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    
     const entry = (user.plans || []).find(p => p._id.toString() === planEntryId);
     if (!entry) return res.status(404).json({ success: false, message: 'Plan entry not found' });
-    if (endDate) entry.endDate = new Date(endDate);
-    if (typeof durationDays === 'number') entry.durationDays = durationDays;
-    if (status) entry.status = status;
+    
+    if (action === 'extend') {
+      // Extend plan by adding days to current end date
+      if (durationDays) {
+        const currentEndDate = new Date(entry.endDate);
+        const newEndDate = new Date(currentEndDate.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+        entry.endDate = newEndDate;
+        entry.durationDays += durationDays;
+      }
+    } else if (action === 'update_status') {
+      // Update only the status
+      if (status) entry.status = status;
+    } else if (action === 'edit') {
+      // Full edit mode
+      if (endDate) entry.endDate = new Date(endDate);
+      if (status) entry.status = status;
+      if (typeof durationDays === 'number') {
+        entry.durationDays = durationDays;
+        // Recalculate end date based on start date and new duration
+        const startDate = entry.startDate;
+        const newEndDate = new Date(startDate.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+        entry.endDate = newEndDate;
+      }
+    } else {
+      // Default behavior (backward compatibility)
+      if (endDate) entry.endDate = new Date(endDate);
+      if (typeof durationDays === 'number') entry.durationDays = durationDays;
+      if (status) entry.status = status;
+    }
+    
     await user.save();
     res.json({ success: true, plan: entry });
   } catch (e) {

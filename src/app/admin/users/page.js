@@ -51,6 +51,15 @@ const AdminUsers = () => {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralBonus, setReferralBonus] = useState(0);
+  const [showPlanManagementModal, setShowPlanManagementModal] = useState(false);
+  const [userPlans, setUserPlans] = useState([]);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [showPlanEditModal, setShowPlanEditModal] = useState(false);
+  const [planEditData, setPlanEditData] = useState({
+    endDate: '',
+    status: 'active',
+    durationDays: 0
+  });
 
   const refreshReferralCounts = useCallback(async () => {
     try {
@@ -174,15 +183,22 @@ const AdminUsers = () => {
         credentials: 'include'
       });
 
-      const [userData, walletData, referralData, transactionData] = await Promise.all([
+      // Fetch user plans
+      const plansResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans`, {
+        credentials: 'include'
+      });
+
+      const [userData, walletData, referralData, transactionData, plansData] = await Promise.all([
         userResponse.json(),
         walletResponse.json(),
         referralResponse.json(),
-        transactionResponse.json()
+        transactionResponse.json(),
+        plansResponse.json()
       ]);
 
       if (userData.success) {
         setSelectedUser(userData.user);
+        setUserPlans(plansData.plans || []);
         setUserAnalytics({
           ...userData.user,
           wallet: walletData,
@@ -342,6 +358,132 @@ const AdminUsers = () => {
     }
   };
 
+  const fetchUserPlans = async (uid) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserPlans(data.plans || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user plans:', error);
+    }
+  };
+
+  const removeUserPlan = async (uid, planEntryId) => {
+    if (!confirm('Are you sure you want to remove this plan?')) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        alert('Plan removed successfully');
+        fetchUserPlans(uid);
+        fetchUserDetails(uid);
+      }
+    } catch (error) {
+      console.error('Error removing plan:', error);
+      alert('Failed to remove plan');
+    }
+  };
+
+  const extendUserPlan = async (uid, planEntryId, days) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          durationDays: days,
+          action: 'extend'
+        })
+      });
+
+      if (response.ok) {
+        alert('Plan extended successfully');
+        fetchUserPlans(uid);
+        fetchUserDetails(uid);
+      }
+    } catch (error) {
+      console.error('Error extending plan:', error);
+      alert('Failed to extend plan');
+    }
+  };
+
+  const updatePlanStatus = async (uid, planEntryId, status) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: status,
+          action: 'update_status'
+        })
+      });
+
+      if (response.ok) {
+        alert('Plan status updated successfully');
+        fetchUserPlans(uid);
+        fetchUserDetails(uid);
+      }
+    } catch (error) {
+      console.error('Error updating plan status:', error);
+      alert('Failed to update plan status');
+    }
+  };
+
+  const openPlanEditModal = (plan) => {
+    setEditingPlan(plan);
+    setPlanEditData({
+      endDate: plan.endDate ? new Date(plan.endDate).toISOString().split('T')[0] : '',
+      status: plan.status,
+      durationDays: plan.durationDays
+    });
+    setShowPlanEditModal(true);
+  };
+
+  const savePlanEdit = async () => {
+    if (!selectedUser || !editingPlan) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${selectedUser.uid}/plans/${editingPlan._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          endDate: planEditData.endDate ? new Date(planEditData.endDate) : undefined,
+          status: planEditData.status,
+          durationDays: parseInt(planEditData.durationDays),
+          action: 'edit'
+        })
+      });
+
+      if (response.ok) {
+        alert('Plan updated successfully');
+        setShowPlanEditModal(false);
+        setEditingPlan(null);
+        fetchUserPlans(selectedUser.uid);
+        fetchUserDetails(selectedUser.uid);
+      }
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      alert('Failed to update plan');
+    }
+  };
+
   const getKycStatusBadge = (status) => {
     const statusConfig = {
       'pending': { class: 'bg-warning', text: 'Pending' },
@@ -409,6 +551,13 @@ const AdminUsers = () => {
                 >
                   <FaCreditCard className="me-2" />
                   Assign Plan
+                </button>
+                <button 
+                  className="btn btn-outline-info"
+                  onClick={() => setShowPlanManagementModal(true)}
+                >
+                  <FaEdit className="me-2" />
+                  Manage Plans
                 </button>
                 <button 
                   className="btn btn-outline-warning"
@@ -825,6 +974,135 @@ const AdminUsers = () => {
             </div>
           </div>
 
+          {/* Plan Management */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="card-title mb-0">
+                    <FaCreditCard className="me-2" />
+                    Plan Management
+                  </h5>
+                  <div className="btn-group btn-group-sm">
+                    <button 
+                      className="btn btn-outline-primary"
+                      onClick={() => setShowSubscriptionModal(true)}
+                    >
+                      <FaPlus className="me-1" />
+                      Assign New Plan
+                    </button>
+                    <button 
+                      className="btn btn-outline-info"
+                      onClick={() => setShowPlanManagementModal(true)}
+                    >
+                      <FaEdit className="me-1" />
+                      Manage All Plans
+                    </button>
+                  </div>
+                </div>
+                
+                {userPlans && userPlans.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Plan Name</th>
+                          <th>Price</th>
+                          <th>Duration</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Status</th>
+                          <th>Assigned By</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userPlans.map((plan, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <strong>{plan.name}</strong>
+                            </td>
+                            <td>₹{plan.price}</td>
+                            <td>{plan.durationDays} days</td>
+                            <td>{new Date(plan.startDate).toLocaleDateString()}</td>
+                            <td>{new Date(plan.endDate).toLocaleDateString()}</td>
+                            <td>
+                              <span className={`badge ${
+                                plan.status === 'active' ? 'bg-success' :
+                                plan.status === 'expired' ? 'bg-danger' :
+                                'bg-warning'
+                              }`}>
+                                {plan.status}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge ${
+                                plan.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
+                              }`}>
+                                {plan.assignedBy}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button 
+                                  className="btn btn-outline-primary"
+                                  onClick={() => openPlanEditModal(plan)}
+                                  title="Edit Plan"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <button 
+                                  className="btn btn-outline-success"
+                                  onClick={() => {
+                                    const days = prompt('Enter days to extend:');
+                                    if (days && !isNaN(days)) {
+                                      extendUserPlan(selectedUser.uid, plan._id, parseInt(days));
+                                    }
+                                  }}
+                                  title="Extend Plan"
+                                >
+                                  <FaPlus />
+                                </button>
+                                <select 
+                                  className="form-select form-select-sm"
+                                  style={{ width: 'auto' }}
+                                  value={plan.status}
+                                  onChange={(e) => updatePlanStatus(selectedUser.uid, plan._id, e.target.value)}
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="expired">Expired</option>
+                                  <option value="cancelled">Cancelled</option>
+                                </select>
+                                <button 
+                                  className="btn btn-outline-danger"
+                                  onClick={() => removeUserPlan(selectedUser.uid, plan._id)}
+                                  title="Remove Plan"
+                                >
+                                  <FaTimes />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted">No plans assigned to this user</p>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setShowSubscriptionModal(true)}
+                    >
+                      <FaPlus className="me-2" />
+                      Assign First Plan
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Referral Management */}
           <div className="col-12 mb-4">
             <div className="card border-0 shadow-sm">
@@ -1178,6 +1456,224 @@ const AdminUsers = () => {
                   disabled={!referralBonus}
                 >
                   Mark Complete & Add Bonus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan Management Modal */}
+      {showPlanManagementModal && selectedUser && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-xl">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Manage Plans for {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowPlanManagementModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6>Current Plans ({userPlans.length})</h6>
+                  <button 
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setShowSubscriptionModal(true)}
+                  >
+                    <FaPlus className="me-1" />
+                    Assign New Plan
+                  </button>
+                </div>
+                
+                {userPlans && userPlans.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Plan Name</th>
+                          <th>Price</th>
+                          <th>Duration</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Status</th>
+                          <th>Assigned By</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userPlans.map((plan, idx) => (
+                          <tr key={idx}>
+                            <td><strong>{plan.name}</strong></td>
+                            <td>₹{plan.price}</td>
+                            <td>{plan.durationDays} days</td>
+                            <td>{new Date(plan.startDate).toLocaleDateString()}</td>
+                            <td>{new Date(plan.endDate).toLocaleDateString()}</td>
+                            <td>
+                              <span className={`badge ${
+                                plan.status === 'active' ? 'bg-success' :
+                                plan.status === 'expired' ? 'bg-danger' :
+                                'bg-warning'
+                              }`}>
+                                {plan.status}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge ${
+                                plan.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
+                              }`}>
+                                {plan.assignedBy}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button 
+                                  className="btn btn-outline-primary"
+                                  onClick={() => openPlanEditModal(plan)}
+                                  title="Edit Plan"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <button 
+                                  className="btn btn-outline-success"
+                                  onClick={() => {
+                                    const days = prompt('Enter days to extend:');
+                                    if (days && !isNaN(days)) {
+                                      extendUserPlan(selectedUser.uid, plan._id, parseInt(days));
+                                    }
+                                  }}
+                                  title="Extend Plan"
+                                >
+                                  <FaPlus />
+                                </button>
+                                <select 
+                                  className="form-select form-select-sm"
+                                  style={{ width: 'auto' }}
+                                  value={plan.status}
+                                  onChange={(e) => updatePlanStatus(selectedUser.uid, plan._id, e.target.value)}
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="expired">Expired</option>
+                                  <option value="cancelled">Cancelled</option>
+                                </select>
+                                <button 
+                                  className="btn btn-outline-danger"
+                                  onClick={() => removeUserPlan(selectedUser.uid, plan._id)}
+                                  title="Remove Plan"
+                                >
+                                  <FaTimes />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted">No plans assigned to this user</p>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setShowSubscriptionModal(true)}
+                    >
+                      <FaPlus className="me-2" />
+                      Assign First Plan
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowPlanManagementModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan Edit Modal */}
+      {showPlanEditModal && editingPlan && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Plan: {editingPlan.name}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowPlanEditModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">End Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={planEditData.endDate}
+                    onChange={(e) => setPlanEditData({
+                      ...planEditData,
+                      endDate: e.target.value
+                    })}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Status</label>
+                  <select 
+                    className="form-select"
+                    value={planEditData.status}
+                    onChange={(e) => setPlanEditData({
+                      ...planEditData,
+                      status: e.target.value
+                    })}
+                  >
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Duration (Days)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={planEditData.durationDays}
+                    onChange={(e) => setPlanEditData({
+                      ...planEditData,
+                      durationDays: parseInt(e.target.value) || 0
+                    })}
+                    placeholder="Enter duration in days"
+                  />
+                </div>
+                <div className="alert alert-info">
+                  <strong>Current Plan Details:</strong><br/>
+                  Name: {editingPlan.name}<br/>
+                  Price: ₹{editingPlan.price}<br/>
+                  Original Duration: {editingPlan.durationDays} days
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowPlanEditModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={savePlanEdit}
+                >
+                  Save Changes
                 </button>
               </div>
             </div>

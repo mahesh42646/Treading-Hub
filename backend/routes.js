@@ -673,59 +673,12 @@ router.post('/profile-setup', async (req, res) => {
       }
     });
 
-    // Check if user already has referral code, if not create one
-    if (!user.myReferralCode) {
-      console.log('⚠️ User missing referral code, generating new one...');
-      
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let setupReferralCode = '';
-      let isUnique = false;
-      let attempts = 0;
-      
-      // Generate unique referral code (max 10 attempts)
-      while (!isUnique && attempts < 10) {
-        setupReferralCode = '';
-        for (let i = 0; i < 10; i++) {
-          setupReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        
-        // Check if code is unique
-        const existingUser = await User.findOne({ myReferralCode: setupReferralCode });
-        if (!existingUser) {
-          isUnique = true;
-        }
-        attempts++;
-      }
-      
-      if (!isUnique) {
-        // Referral code generation failed - profile not saved yet so no need to delete
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to generate unique referral code. Please try again.'
-        });
-      }
-      
-      // Initialize referral fields only if missing
-      user.myReferralCode = setupReferralCode;
-      user.myFirstPayment = user.myFirstPayment !== undefined ? user.myFirstPayment : false;
-      user.myFirstPlan = user.myFirstPlan !== undefined ? user.myFirstPlan : false;
-      user.myFirstPaymentDate = user.myFirstPaymentDate || null;
-      user.myFirstPaymentAmount = user.myFirstPaymentAmount !== undefined ? user.myFirstPaymentAmount : 0;
-      user.referrals = user.referrals || [];
-      user.totalReferralsBy = user.totalReferralsBy !== undefined ? user.totalReferralsBy : 0;
-      
-      await user.save();
-      console.log('✅ NEW referral code created for user:', user._id, 'Code:', setupReferralCode);
-    } else {
-      console.log('✅ User already has referral code:', user.myReferralCode);
-    }
-
+    // SIMPLE: Just copy referral code from user to profile
+    profile.myReferralCode = user.myReferralCode;
+    
     // Update profile completion percentage
     user.myProfilePercent = completionPercentage;
     await user.save();
-
-    // Store referral code in profile for easy access
-    profile.myReferralCode = user.myReferralCode;
     
     await profile.save();
 
@@ -2125,30 +2078,26 @@ router.put('/support/ticket/:ticketId/status', async (req, res) => {
   }
 });
 
-// Validate referral code
+// Validate referral code - NEW UNIFIED SYSTEM
 router.get('/referral/validate/:code', async (req, res) => {
   try {
     const { code } = req.params;
     
-    const profile = await Profile.findOne({ 'referral.code': code });
-    if (!profile) {
+    // Find user by referral code (new system)
+    const user = await User.findOne({ myReferralCode: code });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Invalid or expired referral code'
       });
     }
 
-    const user = await User.findById(profile.userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Referrer not found'
-      });
-    }
-
+    // Get profile for additional info
+    const profile = await Profile.findOne({ userId: user._id });
+    
     res.json({
       success: true,
-      referrerName: `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`,
+      referrerName: profile ? `${profile.personalInfo?.firstName || 'User'} ${profile.personalInfo?.lastName || ''}`.trim() : 'User',
       referrerId: user.uid,
       referralCode: code
     });
@@ -2175,31 +2124,47 @@ router.get('/referral/stats/:uid', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
-    if (!profile) {
-      return res.status(404).json({
+    // Initialize referral fields if missing (for existing users)
+    if (!user.myReferralCode) {
+      const { initializeUserReferral } = require('./utils/simpleReferralUtils');
+      await initializeUserReferral(user._id);
+      // Refetch user with updated data
+      const updatedUser = await User.findOne({ uid });
+      if (updatedUser) {
+        user.myReferralCode = updatedUser.myReferralCode;
+        user.referrals = updatedUser.referrals || [];
+        user.totalReferralsBy = updatedUser.totalReferralsBy || 0;
+      }
+    }
+
+    // Use new referral system from User schema
+    const { getUserReferralStats } = require('./utils/simpleReferralUtils');
+    const referralData = await getUserReferralStats(user._id);
+
+    if (!referralData) {
+      return res.status(500).json({
         success: false,
-        message: 'Profile not found'
+        message: 'Failed to get referral data'
       });
     }
 
     res.json({
       success: true,
       stats: {
-        totalReferrals: profile.referral.totalReferrals,
-        completedReferrals: profile.referral.completedReferrals,
-        pendingReferrals: profile.referral.pendingReferrals,
-        totalEarnings: profile.referral.totalEarnings,
-        referralCode: profile.referral.code
+        totalReferrals: referralData.totalReferrals,
+        completedReferrals: referralData.completedReferrals,
+        pendingReferrals: referralData.pendingReferrals,
+        totalEarnings: referralData.totalEarnings,
+        referralCode: referralData.myReferralCode
       },
-      referrals: profile.referral.referrals.map(ref => ({
-        userId: ref.userId,
-        userName: ref.userName,
-        phone: ref.phone,
-        completionPercentage: ref.completionPercentage,
+      referrals: referralData.referrals.map(ref => ({
+        userId: ref.user,
+        userName: `User ${ref.user}`, // Will be populated with real name later
+        phone: 'N/A',
+        completionPercentage: ref.profileComplete,
         joinedAt: ref.joinedAt,
-        hasDeposited: ref.hasDeposited,
-        bonusEarned: ref.bonusEarned
+        hasDeposited: ref.firstPayment,
+        bonusEarned: ref.bonusAmount
       }))
     });
   } catch (error) {

@@ -1,5 +1,5 @@
 const { User } = require('../schema');
-const Transaction = require('../models/Transaction');
+const mongoose = require('mongoose');
 
 /**
  * Generate a unique referral code
@@ -164,21 +164,27 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
           await referrer.save();
           
           // Create transaction for referrer
-          const referralTransaction = new Transaction({
-            userId: referrer._id,
-            type: 'referral_bonus',
-            amount: bonusAmount,
-            description: `Referral bonus: 20% of ₹${amount} from first ${type}`,
-            status: 'completed',
-            metadata: {
-              referredUserId: userId,
-              referralCode: user.referredByCode,
-              originalAmount: amount,
-              paymentType: type
-            }
-          });
-          
-          await referralTransaction.save();
+          try {
+            const Transaction = require('../models/Transaction');
+            const referralTransaction = new Transaction({
+              userId: referrer._id,
+              type: 'referral_bonus',
+              amount: bonusAmount,
+              description: `Referral bonus: 20% of ₹${amount} from first ${type}`,
+              status: 'completed',
+              metadata: {
+                referredUserId: userId,
+                referralCode: user.referredByCode,
+                originalAmount: amount,
+                paymentType: type
+              }
+            });
+            
+            await referralTransaction.save();
+          } catch (txnError) {
+            console.error('❌ Error creating referral transaction:', txnError);
+            // Continue without failing the whole process
+          }
           console.log('✅ Referral bonus credited:', bonusAmount, 'to', referrer._id);
         }
       }

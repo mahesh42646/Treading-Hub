@@ -263,13 +263,75 @@ router.post('/create', async (req, res) => {
     
     console.log('✅ User saved successfully');
 
-    // Initialize referral code for new user
-    const { initializeUserReferral, addReferral } = require('./utils/simpleReferralUtils');
-    await initializeUserReferral(user._id);
+    // MANDATORY: Initialize referral code for new user
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let referralCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    
+    // Generate unique referral code (max 10 attempts)
+    while (!isUnique && attempts < 10) {
+      referralCode = '';
+      for (let i = 0; i < 10; i++) {
+        referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Check if code is unique
+      const existingUser = await User.findOne({ myReferralCode: referralCode });
+      if (!existingUser) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+    
+    if (!isUnique) {
+      // Delete the user we just created since referral code generation failed
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate unique referral code. Please try again.'
+      });
+    }
+    
+    // Initialize all required referral fields
+    user.myReferralCode = referralCode;
+    user.myProfilePercent = 0;
+    user.myFirstPayment = false;
+    user.myFirstPlan = false;
+    user.myFirstPaymentDate = null;
+    user.myFirstPaymentAmount = 0;
+    user.referrals = [];
+    user.totalReferralsBy = 0;
+    user.referredByCode = validReferralCode || null;
+    
+    await user.save();
+    console.log('✅ User created with referral code:', referralCode);
 
     // If user was referred, add referral record
     if (validReferralCode) {
-      await addReferral(user._id, validReferralCode);
+      try {
+        const referrer = await User.findOne({ myReferralCode: validReferralCode });
+        if (referrer) {
+          referrer.referrals.push({
+            user: user._id,
+            refState: 'pending',
+            firstPayment: false,
+            firstPlan: false,
+            firstPaymentAmount: 0,
+            firstPaymentDate: null,
+            bonusCredited: false,
+            bonusAmount: 0,
+            profileComplete: 0,
+            joinedAt: new Date()
+          });
+          referrer.totalReferralsBy += 1;
+          await referrer.save();
+          console.log('✅ Added referral record to referrer:', referrer._id);
+        }
+      } catch (referralError) {
+        console.error('❌ Error adding referral record:', referralError);
+        // Continue - user is already created with referral code
+      }
     }
 
     res.status(201).json({
@@ -390,13 +452,76 @@ router.post('/create-with-profile', async (req, res) => {
 
     await profile.save();
 
-    // Initialize referral code for new user
-    const { initializeUserReferral, addReferral } = require('./utils/simpleReferralUtils');
-    await initializeUserReferral(user._id);
+    // MANDATORY: Initialize referral code for new user
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let referralCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    
+    // Generate unique referral code (max 10 attempts)
+    while (!isUnique && attempts < 10) {
+      referralCode = '';
+      for (let i = 0; i < 10; i++) {
+        referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Check if code is unique
+      const existingUser = await User.findOne({ myReferralCode: referralCode });
+      if (!existingUser) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+    
+    if (!isUnique) {
+      // Delete the user and profile we just created since referral code generation failed
+      await Profile.findByIdAndDelete(profile._id);
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate unique referral code. Please try again.'
+      });
+    }
+    
+    // Initialize all required referral fields
+    user.myReferralCode = referralCode;
+    user.myProfilePercent = completionPercentage;
+    user.myFirstPayment = false;
+    user.myFirstPlan = false;
+    user.myFirstPaymentDate = null;
+    user.myFirstPaymentAmount = 0;
+    user.referrals = [];
+    user.totalReferralsBy = 0;
+    user.referredByCode = referredBy || null;
+    
+    await user.save();
+    console.log('✅ User created with referral code:', referralCode);
 
     // If user was referred, add referral record
     if (referredBy) {
-      await addReferral(user._id, referredBy);
+      try {
+        const referrer = await User.findOne({ myReferralCode: referredBy });
+        if (referrer) {
+          referrer.referrals.push({
+            user: user._id,
+            refState: 'pending',
+            firstPayment: false,
+            firstPlan: false,
+            firstPaymentAmount: 0,
+            firstPaymentDate: null,
+            bonusCredited: false,
+            bonusAmount: 0,
+            profileComplete: completionPercentage,
+            joinedAt: new Date()
+          });
+          referrer.totalReferralsBy += 1;
+          await referrer.save();
+          console.log('✅ Added referral record to referrer:', referrer._id);
+        }
+      } catch (referralError) {
+        console.error('❌ Error adding referral record:', referralError);
+        // Continue - user is already created with referral code
+      }
     }
 
     res.status(201).json({
@@ -543,18 +668,53 @@ router.post('/profile-setup', async (req, res) => {
       }
     });
 
-    await profile.save();
-
-    // Update user profile completion and initialize referral data
-    const { initializeUserReferral, updateProfileCompletion } = require('./utils/simpleReferralUtils');
-    
-    // Initialize referral code if not already set
+    // MANDATORY: Generate referral code - profile creation depends on this
     if (!user.myReferralCode) {
-      await initializeUserReferral(user._id);
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let referralCode = '';
+      let isUnique = false;
+      let attempts = 0;
+      
+      // Generate unique referral code (max 10 attempts)
+      while (!isUnique && attempts < 10) {
+        referralCode = '';
+        for (let i = 0; i < 10; i++) {
+          referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // Check if code is unique
+        const existingUser = await User.findOne({ myReferralCode: referralCode });
+        if (!existingUser) {
+          isUnique = true;
+        }
+        attempts++;
+      }
+      
+      if (!isUnique) {
+        // Delete the profile we just created since referral code generation failed
+        await Profile.findByIdAndDelete(profile._id);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to generate unique referral code. Please try again.'
+        });
+      }
+      
+      // Initialize all required referral fields
+      user.myReferralCode = referralCode;
+      user.myProfilePercent = completionPercentage;
+      user.myFirstPayment = false;
+      user.myFirstPlan = false;
+      user.myFirstPaymentDate = null;
+      user.myFirstPaymentAmount = 0;
+      user.referrals = [];
+      user.totalReferralsBy = 0;
+      user.referredByCode = user.referredByCode || null;
+      
+      await user.save();
+      console.log('✅ Referral code CREATED for user:', user._id, 'Code:', referralCode);
     }
-    
-    // Update profile completion percentage in user document
-    await updateProfileCompletion(user._id, completionPercentage);
+
+    await profile.save();
 
     // Update user email verification status if needed
     if (!user.emailVerified) {

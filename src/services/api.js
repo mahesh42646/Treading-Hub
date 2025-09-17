@@ -4,6 +4,9 @@ import { getApiEndpoint, buildApiUrl } from '../utils/config';
 const apiRequest = async (endpoint, options = {}) => {
   const url = typeof endpoint === 'string' ? buildApiUrl(endpoint) : endpoint;
   
+  console.log('🌐 HTTP: Making request to:', url);
+  console.log('🌐 HTTP: Options:', options);
+  
   // Don't set Content-Type for FormData (browser will set it automatically with boundary)
   const defaultOptions = {
     headers: {
@@ -18,12 +21,18 @@ const apiRequest = async (endpoint, options = {}) => {
 
   const response = await fetch(url, { ...defaultOptions, ...options });
   
+  console.log('📡 HTTP: Response status:', response.status);
+  console.log('📡 HTTP: Response ok:', response.ok);
+  
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.log('❌ HTTP: Error data:', errorData);
     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
   
-  return response.json();
+  const responseData = await response.json();
+  console.log('✅ HTTP: Response data:', responseData);
+  return responseData;
 };
 
 // User API Service
@@ -62,11 +71,18 @@ export const userApi = {
     }),
 
   // Profile setup
-  profileSetup: (profileData) => 
-    apiRequest(getApiEndpoint('USER_PROFILE_SETUP'), {
+  profileSetup: (profileData) => {
+    const endpoint = getApiEndpoint('USER_PROFILE_SETUP');
+    const fullUrl = buildApiUrl(endpoint);
+    console.log('🌐 API: Profile setup endpoint:', endpoint);
+    console.log('🌐 API: Full URL:', fullUrl);
+    console.log('📤 API: Sending data:', profileData);
+    
+    return apiRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify(profileData),
-    }),
+    });
+  },
 
   // KYC verification
   kycVerification: (uid, formData) => 

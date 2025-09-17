@@ -124,10 +124,6 @@ router.post('/subscription/purchase', async (req, res) => {
       });
     }
 
-    // Deduct amounts from wallet
-    profile.wallet.walletBalance -= paymentMethod.walletAmount;
-    profile.wallet.referralBalance -= paymentMethod.referralAmount;
-
     // Calculate subscription dates
     const startDate = new Date();
     const expiryDate = new Date(startDate.getTime() + (plan.duration * 24 * 60 * 60 * 1000));
@@ -135,27 +131,43 @@ router.post('/subscription/purchase', async (req, res) => {
     // Determine if this is the first plan before pushing
     const isFirstPlan = !Array.isArray(user.plans) || user.plans.length === 0;
 
-    // Push plan to user's plans array for visibility/history
+    // Create plan entry
+    const planEntry = {
+      planId: plan._id,
+      name: plan.name,
+      price: plan.price,
+      durationDays: plan.duration,
+      startDate,
+      endDate: expiryDate,
+      status: 'active',
+      assignedBy: 'user'
+    };
+
+    // Store original wallet balances for rollback
+    const originalWalletBalance = profile.wallet.walletBalance;
+    const originalReferralBalance = profile.wallet.referralBalance;
+
     try {
-      const planEntry = {
-        planId: plan._id,
-        name: plan.name,
-        price: plan.price,
-        durationDays: plan.duration,
-        startDate,
-        endDate: expiryDate,
-        status: 'active',
-        assignedBy: 'user'
-      };
+      // Deduct amounts from wallet
+      profile.wallet.walletBalance -= paymentMethod.walletAmount;
+      profile.wallet.referralBalance -= paymentMethod.referralAmount;
+
+      // Push plan to user's plans array
       if (!Array.isArray(user.plans)) user.plans = [];
       user.plans.push(planEntry);
+      
       // Mark first plan flag for the user
       if (isFirstPlan && !user.myFirstPlan) {
         user.myFirstPlan = true;
       }
+      
       await user.save();
     } catch (e) {
-      console.warn('Failed to push plan entry to user.plans:', e?.message);
+      // Rollback wallet amounts if plan creation fails
+      profile.wallet.walletBalance = originalWalletBalance;
+      profile.wallet.referralBalance = originalReferralBalance;
+      await user.save();
+      throw new Error(`Failed to create plan: ${e.message}`);
     }
 
     // No separate Subscription model/profile badge needed; plans are stored on user
@@ -191,7 +203,20 @@ router.post('/subscription/purchase', async (req, res) => {
 
     await transaction.save();
 
-    res.json({ success: true, message: 'Plan purchased successfully', plan: user.plans[user.plans.length - 1], plans: user.plans });
+    console.log('Plan purchase successful:', {
+      userId: user._id,
+      planName: plan.name,
+      planPrice: plan.price,
+      userPlansCount: user.plans.length,
+      myFirstPlan: user.myFirstPlan
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'Plan purchased successfully', 
+      plan: user.plans[user.plans.length - 1], 
+      plans: user.plans 
+    });
   } catch (error) {
     console.error('Error purchasing subscription:', error);
     res.status(500).json({

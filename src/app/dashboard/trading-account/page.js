@@ -21,6 +21,7 @@ export default function DashboardTradingAccount() {
     walletAmount: 0,
     referralAmount: 0
   });
+  const [purchasing, setPurchasing] = useState(false);
 
   // Check if profile is complete (new unified status)
   const isProfileComplete = () => {
@@ -79,13 +80,25 @@ export default function DashboardTradingAccount() {
   };
 
   const handlePurchasePlan = async () => {
+    if (purchasing) return; // Prevent multiple submissions
+    
     try {
+      setPurchasing(true);
       const totalPayment = paymentMethod.walletAmount + paymentMethod.referralAmount;
       
       if (totalPayment < selectedPlan.price) {
         alert('Insufficient balance. Please add money to your wallet.');
+        setPurchasing(false);
         return;
       }
+
+      console.log('Purchasing plan:', {
+        planId: selectedPlan._id,
+        paymentMethod: paymentMethod,
+        uid: user.uid,
+        totalPayment,
+        planPrice: selectedPlan.price
+      });
 
       const response = await api.post('/subscription/purchase', {
         planId: selectedPlan._id,
@@ -93,14 +106,22 @@ export default function DashboardTradingAccount() {
         uid: user.uid
       });
 
-      if (response.success) {
-        alert('Plan purchased successfully!');
+      console.log('Purchase response:', response);
+
+      if (response && response.success) {
+        alert(`Plan purchased successfully! You now have access to the ${response.plan?.name || selectedPlan.name} plan.`);
         setShowPlanModal(false);
+        setSelectedPlan(null);
         fetchData(); // Refresh data
+      } else {
+        console.error('Purchase failed:', response);
+        alert(response?.message || 'Failed to purchase plan. Please try again.');
       }
     } catch (error) {
       console.error('Error purchasing plan:', error);
-      alert('Failed to purchase plan. Please try again.');
+      alert(`Failed to purchase plan: ${error.message}`);
+    } finally {
+      setPurchasing(false);
     }
   };
 
@@ -505,9 +526,16 @@ export default function DashboardTradingAccount() {
                   type="button" 
                   className="btn btn-primary"
                   onClick={handlePurchasePlan}
-                  disabled={paymentMethod.walletAmount + paymentMethod.referralAmount < selectedPlan.price}
+                  disabled={paymentMethod.walletAmount + paymentMethod.referralAmount < selectedPlan.price || purchasing}
                 >
-                  Purchase Plan
+                  {purchasing ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Purchasing...
+                    </>
+                  ) : (
+                    'Purchase Plan'
+                  )}
                 </button>
               </div>
             </div>

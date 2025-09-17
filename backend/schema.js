@@ -300,22 +300,9 @@ const profileSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate referral code function
-profileSchema.pre('save', function(next) {
-  if (!this.referral.code) {
-    this.referral.code = generateReferralCode();
-  }
-  next();
-});
-
-function generateReferralCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 10; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
+// Note: Referral code is managed on the User model and copied into
+// Profile as `myReferralCode` during profile creation. No pre-save
+// hook is needed here.
 
 // Create models
 const User = mongoose.model('User', userSchema);

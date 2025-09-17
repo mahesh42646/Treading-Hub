@@ -58,7 +58,7 @@ const Register = () => {
   const validateReferralCode = async (code) => {
     try {
       console.log('🔍 Validating referral code:', code);
-      const validateUrl = buildApiUrl(`/referral/validate/${code}`);
+      const validateUrl = buildApiUrl(`/users/referral/validate/${code}`);
       console.log('🔗 Validation URL:', validateUrl);
       
       const response = await fetch(validateUrl);

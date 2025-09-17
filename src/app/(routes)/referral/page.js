@@ -62,8 +62,8 @@ export default function Referral() {
     );
   }
 
-  const referralCode = referralData?.referralCode || 'Loading...';
-  const referralLink = `${window.location.origin}/ref/${referralCode}`;
+  const referralCode = referralData?.stats?.referralCode || referralData?.referralCode || 'Loading...';
+  const referralLink = referralCode && referralCode !== 'Loading...' ? `${window.location.origin}/register?ref=${referralCode}` : 'Loading...';
   const stats = referralData?.stats || {
     totalReferrals: 0,
     completedReferrals: 0,

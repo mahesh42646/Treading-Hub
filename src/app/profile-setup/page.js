@@ -172,7 +172,7 @@ const ProfileSetup = () => {
                         <div>
                           <strong>Referral Code Applied!</strong>
                           <br />
-                          <small>You're joining with referral code: <strong>{referralCode}</strong></small>
+                          <small>You&apos;re joining with referral code: <strong>{referralCode}</strong></small>
                         </div>
                       </div>
                     </div>

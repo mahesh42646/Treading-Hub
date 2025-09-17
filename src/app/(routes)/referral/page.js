@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../user/components/Header';
 import Footer from '../../user/components/Footer';
 import Sidebar from '../../user/components/Sidebar';
 
 export default function Referral() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [referralData, setReferralData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);

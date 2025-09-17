@@ -123,8 +123,9 @@ const ProfileSetup = () => {
         setError(data.message || 'Failed to create profile');
       }
     } catch (error) {
-      console.error('Profile setup error:', error.message);
-      setError('An error occurred. Please try again.');
+      console.error('Profile setup error:', error);
+      const errorMessage = error.message || 'An error occurred. Please try again.';
+      setError(`Error: ${errorMessage}`);
     } finally {
       setSubmitting(false);
     }

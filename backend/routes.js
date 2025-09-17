@@ -584,21 +584,51 @@ router.get('/profile/:uid', async (req, res) => {
 // Profile setup (step 2) - basic profile without PAN card
 router.post('/profile-setup', async (req, res) => {
   try {
-      const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
+    console.log('🔍 Profile setup request received:', req.body);
+    
+    const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
+
+    // Validate required fields
+    if (!uid || !firstName || !lastName || !gender || !dateOfBirth || !country || !city || !phone) {
+      const missing = [];
+      if (!uid) missing.push('uid');
+      if (!firstName) missing.push('firstName');
+      if (!lastName) missing.push('lastName');
+      if (!gender) missing.push('gender');
+      if (!dateOfBirth) missing.push('dateOfBirth');
+      if (!country) missing.push('country');
+      if (!city) missing.push('city');
+      if (!phone) missing.push('phone');
+      
+      return res.status(400).json({ 
+        success: false, 
+        message: `Missing required fields: ${missing.join(', ')}`,
+        received: req.body,
+        missing: missing
+      });
+    }
 
     // Find user
     const user = await User.findOne({ uid });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found',
+        searchedUid: uid
+      });
     }
 
     // Check if profile already exists
     const existingProfile = await Profile.findOne({ userId: user._id });
     if (existingProfile) {
-      return res.status(400).json({ success: false, message: 'Profile already exists' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Profile already exists',
+        existingProfileId: existingProfile._id
+      });
     }
 
-    // Initialize user referral fields if missing
+    // Initialize user referral code if missing (simple)
     if (!user.myReferralCode) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let code = '';
@@ -613,49 +643,68 @@ router.post('/profile-setup', async (req, res) => {
       user.totalReferralsBy = 0;
     }
 
-    // Create profile
+    console.log('✅ User found, creating profile...');
+
+    // Create profile (simplified)
     const profile = new Profile({
       userId: user._id,
       myReferralCode: user.myReferralCode,
-      personalInfo: { firstName, lastName, gender, dateOfBirth: new Date(dateOfBirth), country, city, phone },
-      status: { isActive: true, completionPercentage: 75, completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] },
+      personalInfo: { 
+        firstName, 
+        lastName, 
+        gender, 
+        dateOfBirth: new Date(dateOfBirth), 
+        country, 
+        city, 
+        phone 
+      },
+      status: { 
+        isActive: true, 
+        completionPercentage: 75, 
+        completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] 
+      },
       kyc: { status: 'not_applied' }
     });
 
-    // Save both
+    console.log('✅ Profile object created, saving...');
+
+    // Save both (simplified - no complex referral logic)
     user.myProfilePercent = 75;
     user.emailVerified = true;
+    
     await user.save();
+    console.log('✅ User saved');
+    
     await profile.save();
-
-    // Update referrer's referral progress to 75% if applicable
-    try {
-      if (user.referredByCode) {
-        const referrer = await User.findOne({ myReferralCode: user.referredByCode });
-        if (referrer) {
-          const referralIndex = referrer.referrals.findIndex(
-            ref => ref.user.toString() === user._id.toString()
-          );
-          if (referralIndex !== -1) {
-            referrer.referrals[referralIndex].profileComplete = 75;
-            await referrer.save();
-            console.log('✅ Updated referrer referral progress to 75%');
-          }
-        }
-      }
-    } catch (upErr) {
-      console.warn('Warning: failed to update referrer referral progress to 75%:', upErr?.message);
-    }
+    console.log('✅ Profile saved');
 
     res.status(201).json({
       success: true,
       message: 'Profile created successfully',
-      profile: { firstName, lastName, gender, country, city, phone, referralCode: user.myReferralCode }
+      profile: { 
+        firstName, 
+        lastName, 
+        gender, 
+        country, 
+        city, 
+        phone, 
+        referralCode: user.myReferralCode 
+      }
     });
 
   } catch (error) {
-    console.error('Profile setup error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to create profile', error: error.message });
+    console.error('❌ Profile setup error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      receivedBody: req.body
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to create profile', 
+      error: error.message,
+      details: error.stack
+    });
   }
 });
 

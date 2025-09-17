@@ -175,7 +175,7 @@ const AdminPlans = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="h3 mb-1">Plan Management</h1>
-          <p className="text-muted mb-0">Manage subscription plans and pricing</p>
+          <p className="text-muted mb-0">Manage trading plans and pricing</p>
         </div>
         <button 
           className="btn btn-primary"

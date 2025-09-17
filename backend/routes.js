@@ -2155,7 +2155,7 @@ router.get('/referral/stats/:uid', async (req, res) => {
         const joinedAt = ref.joinedAt || referredUser?.createdAt || new Date();
         const completionPercentage = referredUser?.profile?.status?.completionPercentage ?? ref.profileComplete ?? referredUser?.myProfilePercent ?? 0;
         const hasDeposited = referredUser?.myFirstPayment || ref.firstPayment || false;
-        const hasFirstPlan = ref.firstPlan || referredUser?.myFirstPlan || false;
+        const hasFirstPlan = ref.firstPlan || referredUser?.myFirstPlan || ((referredUser?.plans || []).length > 0);
         
         return {
           userId: ref.user,
@@ -2190,7 +2190,7 @@ router.get('/referral/stats/:uid', async (req, res) => {
         const joinedAt = ru.createdAt || new Date();
         const completionPercentage = ru.profile?.status?.completionPercentage ?? ru.myProfilePercent ?? 0;
         const hasDeposited = !!ru.myFirstPayment;
-        const hasFirstPlan = !!ru.myFirstPlan;
+        const hasFirstPlan = !!ru.myFirstPlan || ((ru.plans || []).length > 0);
         return {
           userId: ru._id,
           userName: name || ru.email || 'User',

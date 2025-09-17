@@ -12,7 +12,7 @@ export default function DashboardTradingAccount() {
     walletBalance: 0,
     referralBalance: 0
   });
-  const [subscription, setSubscription] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
   const [tradingAccount, setTradingAccount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -47,12 +47,12 @@ export default function DashboardTradingAccount() {
         referralBalance: walletResponse.referralBalance || 0
       });
 
-      // Fetch current subscription
+      // Fetch current plan from user.plans
       const subResponse = await api.get(`/subscription/current/${user.uid}`);
       if (subResponse.subscription) {
-        setSubscription(subResponse.subscription);
+        setCurrentPlan(subResponse.subscription);
         
-        // If has subscription, fetch trading account
+        // If has plan, fetch trading account
         const tradingResponse = await api.get(`/trading-account/user/${user.uid}`);
         if (tradingResponse.tradingAccount) {
           setTradingAccount(tradingResponse.tradingAccount);
@@ -125,13 +125,13 @@ export default function DashboardTradingAccount() {
               <p className="text-muted mb-0">
                 {!isProfileComplete() 
                   ? "Complete your profile to access trading plans" 
-                  : subscription 
+                  : currentPlan 
                     ? "Manage your trading account and monitor performance"
                     : "Choose a plan to get started with trading"
                 }
               </p>
             </div>
-            {subscription && tradingAccount && (
+            {currentPlan && tradingAccount && (
               <div className="d-flex gap-2">
                 <button className="btn btn-success">
                   <i className="bi bi-check-circle me-2"></i>
@@ -173,8 +173,8 @@ export default function DashboardTradingAccount() {
         </div>
       )}
 
-      {/* No Subscription - Show Plans */}
-      {isProfileComplete() && !subscription && (
+      {/* No Plan - Show Plans */}
+      {isProfileComplete() && !currentPlan && (
         <div className="row">
           <div className="col-12">
             <div className="card border-0 shadow-sm mb-4">
@@ -264,8 +264,8 @@ export default function DashboardTradingAccount() {
         </div>
       )}
 
-      {/* Has Subscription - Show Trading Account */}
-      {subscription && (
+      {/* Has Plan - Show Trading Account */}
+      {currentPlan && (
         <div className="row">
           <div className="col-12">
             {/* Subscription Status */}
@@ -275,19 +275,19 @@ export default function DashboardTradingAccount() {
                   <div className="col-md-8">
                     <h5 className="mb-1">
                       <i className="bi bi-star-fill text-warning me-2"></i>
-                      {subscription.planName} Plan
+                      {currentPlan.name} Plan
                     </h5>
                     <p className="text-muted mb-1">
-                      Active until {new Date(subscription.expiryDate).toLocaleDateString()}
+                      Active until {new Date(currentPlan.endDate).toLocaleDateString()}
                     </p>
                     <small className="text-success">
                       <i className="bi bi-check-circle me-1"></i>
-                      Subscription Active
+                      Plan Active
                     </small>
                   </div>
                   <div className="col-md-4 text-end">
-                    <span className={`badge bg-${subscription.status === 'active' ? 'success' : 'danger'} fs-6`}>
-                      {subscription.status.toUpperCase()}
+                    <span className={`badge bg-${currentPlan.status === 'active' ? 'success' : 'danger'} fs-6`}>
+                      {currentPlan.status.toUpperCase()}
                     </span>
                   </div>
                 </div>
@@ -403,7 +403,7 @@ export default function DashboardTradingAccount() {
                     Your trading account is being set up by our admin team. You will receive the account details shortly.
                   </p>
                   <small className="text-muted">
-                    This usually takes 24-48 hours after subscription activation.
+                    This usually takes 24-48 hours after plan activation.
                   </small>
                 </div>
               </div>

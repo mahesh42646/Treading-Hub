@@ -628,7 +628,7 @@ const AdminTradingAccounts = () => {
                     </label>
                   </div>
                   <small className="text-muted">
-                    This will reset the user&apos;s subscription start date to now and extend the validity to full plan duration.
+                    This will reset the user&apos;s plan start date to now and extend the validity to full plan duration.
                   </small>
                 </div>
               </div>

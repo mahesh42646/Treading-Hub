@@ -520,12 +520,16 @@ const AdminUsers = () => {
                           </div>
                         </td>
                         <td>
-                          {user.profile?.subscription ? (
+                          {user.plans && user.plans.length > 0 ? (
                             <div>
-                              <span className="badge bg-success">{user.profile.subscription.planName}</span><br/>
-                              <small className="text-muted">
-                                {new Date(user.profile.subscription.expiryDate).toLocaleDateString()}
-                              </small>
+                              {user.plans.map((plan, index) => (
+                                <div key={index}>
+                                  <span className="badge bg-success">{plan.name}</span><br/>
+                                  <small className="text-muted">
+                                    {new Date(plan.endDate).toLocaleDateString()}
+                                  </small>
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <span className="badge bg-secondary">No Plan</span>

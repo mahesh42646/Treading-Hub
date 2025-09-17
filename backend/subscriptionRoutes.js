@@ -4,7 +4,7 @@ const router = express.Router();
 // Import models
 const { User } = require('./schema');
 const Plan = require('./models/Plan');
-const Subscription = require('./models/Subscription');
+// Subscriptions model removed: plans are stored in user.plans[]
 const TradingAccount = require('./models/TradingAccount');
 const Transaction = require('./models/Transaction');
 
@@ -26,7 +26,7 @@ router.get('/plans/active', async (req, res) => {
   }
 });
 
-// Get current user subscription
+// Get current user plan (from user.plans[])
 router.get('/subscription/current/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
@@ -39,23 +39,10 @@ router.get('/subscription/current/:uid', async (req, res) => {
       });
     }
 
-    const subscription = await Subscription.findOne({ 
-      userId: user._id, 
-      isActive: true,
-      expiryDate: { $gt: new Date() }
-    }).populate('planId');
-
-    if (subscription) {
-      res.json({
-        success: true,
-        subscription
-      });
-    } else {
-      res.json({
-        success: true,
-        subscription: null
-      });
-    }
+    const now = new Date();
+    const plans = user.plans || [];
+    const activePlan = plans.find(p => p.status === 'active' && new Date(p.endDate) > now) || null;
+    res.json({ success: true, subscription: activePlan });
   } catch (error) {
     console.error('Error fetching subscription:', error);
     res.status(500).json({
@@ -103,17 +90,13 @@ router.post('/subscription/purchase', async (req, res) => {
       });
     }
 
-    // Check if user already has active subscription
-    const existingSubscription = await Subscription.findOne({
-      userId: user._id,
-      isActive: true,
-      expiryDate: { $gt: new Date() }
-    });
-
-    if (existingSubscription) {
+    // Check if user already has active plan in user's plans array
+    const now = new Date();
+    const hasActivePlan = (user.plans || []).some(p => p.status === 'active' && new Date(p.endDate) > now);
+    if (hasActivePlan) {
       return res.status(400).json({
         success: false,
-        message: 'You already have an active subscription'
+        message: 'You already have an active plan'
       });
     }
 
@@ -149,25 +132,8 @@ router.post('/subscription/purchase', async (req, res) => {
     const startDate = new Date();
     const expiryDate = new Date(startDate.getTime() + (plan.duration * 24 * 60 * 60 * 1000));
 
-    // Create subscription
-    const subscription = new Subscription({
-      userId: user._id,
-      planId: plan._id,
-      planName: plan.name,
-      planPrice: plan.price,
-      duration: plan.duration,
-      startDate,
-      expiryDate,
-      paymentMethod: {
-        walletAmount: paymentMethod.walletAmount,
-        referralAmount: paymentMethod.referralAmount,
-        totalAmount: totalPayment
-      },
-      assignedBy: 'user',
-      status: 'active'
-    });
-
-    await subscription.save();
+    // Determine if this is the first plan before pushing
+    const isFirstPlan = !Array.isArray(user.plans) || user.plans.length === 0;
 
     // Push plan to user's plans array for visibility/history
     try {
@@ -183,37 +149,22 @@ router.post('/subscription/purchase', async (req, res) => {
       };
       if (!Array.isArray(user.plans)) user.plans = [];
       user.plans.push(planEntry);
+      // Mark first plan flag for the user
+      if (isFirstPlan && !user.myFirstPlan) {
+        user.myFirstPlan = true;
+      }
       await user.save();
     } catch (e) {
       console.warn('Failed to push plan entry to user.plans:', e?.message);
     }
 
-    // Update profile with subscription badge
-    profile.subscription = {
-      planId: plan._id,
-      planName: plan.name,
-      startDate,
-      expiryDate,
-      isActive: true,
-      assignedBy: 'user'
-    };
-
-    await profile.save();
+    // No separate Subscription model/profile badge needed; plans are stored on user
 
     // Process referral bonus for first plan purchase
     try {
       const { processFirstPayment } = require('./utils/simpleReferralUtils');
       
-      // Check if this is the first plan purchase
-      const priorSubscriptions = await Subscription.countDocuments({ 
-        userId: user._id, 
-        _id: { $ne: subscription._id },
-        status: 'active'
-      });
-      
-      const isFirstPlanPurchase = priorSubscriptions === 0;
-
-      if (isFirstPlanPurchase) {
+      if (isFirstPlan) {
         await processFirstPayment(user._id, plan.price, 'plan');
         console.log('🎉 First plan purchase processed - referral bonus credited if applicable');
       } else {
@@ -231,7 +182,6 @@ router.post('/subscription/purchase', async (req, res) => {
       description: `Subscription purchase: ${plan.name} plan`,
       status: 'completed',
       metadata: {
-        subscriptionId: subscription._id,
         planId: plan._id,
         planName: plan.name,
         paymentMethod: paymentMethod
@@ -241,11 +191,7 @@ router.post('/subscription/purchase', async (req, res) => {
 
     await transaction.save();
 
-    res.json({
-      success: true,
-      message: 'Subscription purchased successfully',
-      subscription
-    });
+    res.json({ success: true, message: 'Plan purchased successfully', plan: user.plans[user.plans.length - 1], plans: user.plans });
   } catch (error) {
     console.error('Error purchasing subscription:', error);
     res.status(500).json({

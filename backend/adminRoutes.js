@@ -16,7 +16,7 @@ const Transaction = require('./models/Transaction');
 const Blog = require('./models/Blog');
 const News = require('./models/News');
 const Withdrawal = require('./models/Withdrawal');
-const Subscription = require('./models/Subscription');
+// Subscription model removed - using user.plans array instead
 const TradingAccount = require('./models/TradingAccount');
 
 // Configure multer for file uploads
@@ -1281,24 +1281,22 @@ router.post('/trading-accounts/:accountId/assign', verifyAdminAuth, async (req, 
     // Assign account
     await account.assignToUser(user._id, user.email, subscriptionId);
 
-    // Update subscription if provided
+    // Update user's plan if provided
     if (subscriptionId) {
-      const subscription = await Subscription.findById(subscriptionId);
-      if (subscription) {
-        subscription.tradingAccountAssigned = true;
-        
+      const planEntry = user.plans.find(p => p._id.toString() === subscriptionId);
+      if (planEntry) {
         // If extendPlanValidity is true, extend the plan validity to 100% from now
         if (extendPlanValidity) {
           const now = new Date();
-          const planDuration = subscription.duration; // in days
+          const planDuration = planEntry.durationDays; // in days
           const newExpiryDate = new Date(now.getTime() + (planDuration * 24 * 60 * 60 * 1000));
           
-          subscription.startDate = now;
-          subscription.expiryDate = newExpiryDate;
-          subscription.status = 'active';
+          planEntry.startDate = now;
+          planEntry.endDate = newExpiryDate;
+          planEntry.status = 'active';
         }
         
-        await subscription.save();
+        await user.save();
       }
     }
 
@@ -1330,11 +1328,16 @@ router.post('/trading-accounts/:accountId/unassign', verifyAdminAuth, async (req
       });
     }
 
-    // Update subscription if assigned
+    // Update user's plan if assigned
     if (account.subscriptionId) {
-      await Subscription.findByIdAndUpdate(account.subscriptionId, {
-        tradingAccountAssigned: false
-      });
+      const user = await User.findById(account.assignedTo);
+      if (user) {
+        const planEntry = user.plans.find(p => p._id.toString() === account.subscriptionId);
+        if (planEntry) {
+          // Plan status remains unchanged when unassigning trading account
+          await user.save();
+        }
+      }
     }
 
     // Unassign account

@@ -594,41 +594,21 @@ router.get('/profile/:uid', async (req, res) => {
 // Profile setup (step 2) - basic profile without PAN card
 router.post('/profile-setup', async (req, res) => {
   try {
-    console.log('🚀 Profile setup request received:', req.body);
-    
-    const {
-      uid,
-      firstName,
-      lastName,
-      gender,
-      dateOfBirth,
-      country,
-      city,
-      phone
-    } = req.body;
-
-    // Validate required fields
-    if (!uid || !firstName || !lastName || !gender || !dateOfBirth || 
-        !country || !city || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Required fields are missing'
-      });
-    }
+    const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
 
     // Find user
-    console.log('🔍 Looking for user with uid:', uid);
     const user = await User.findOne({ uid });
     if (!user) {
-      console.log('❌ User not found for uid:', uid);
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-    console.log('✅ User found:', user._id, 'Email:', user.email);
 
-    // Initialize referral fields if missing (for existing users)
+    // Check if profile already exists
+    const existingProfile = await Profile.findOne({ userId: user._id });
+    if (existingProfile) {
+      return res.status(400).json({ success: false, message: 'Profile already exists' });
+    }
+
+    // Initialize user referral fields if missing
     if (!user.myReferralCode) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let code = '';
@@ -636,109 +616,37 @@ router.post('/profile-setup', async (req, res) => {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       user.myReferralCode = code;
-    }
-    if (user.myProfilePercent === undefined) user.myProfilePercent = 0;
-    if (user.myFirstPayment === undefined) user.myFirstPayment = false;
-    if (user.myFirstPlan === undefined) user.myFirstPlan = false;
-    if (!user.referrals) user.referrals = [];
-    if (user.totalReferralsBy === undefined) user.totalReferralsBy = 0;
-
-    // Check if profile already exists
-    const existingProfile = await Profile.findOne({ userId: user._id });
-    if (existingProfile) {
-      return res.status(400).json({
-        success: false,
-        message: 'Profile already exists'
-      });
+      user.myProfilePercent = 0;
+      user.myFirstPayment = false;
+      user.myFirstPlan = false;
+      user.referrals = [];
+      user.totalReferralsBy = 0;
     }
 
-    // Check if phone number already exists in another profile
-    const existingPhoneProfile = await Profile.findOne({ 
-      'personalInfo.phone': phone,
-      userId: { $ne: user._id } // Exclude current user
-    });
-    
-    if (existingPhoneProfile) {
-      return res.status(400).json({
-        success: false,
-        message: 'This phone number is already registered with another account. Please use a different phone number.'
-      });
-    }
-
-    // Calculate profile completion percentage (75% for basic profile)
-    const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
-    const completionPercentage = 75; // 75% complete without PAN card
-
-    // Create profile with new schema structure
+    // Create profile
     const profile = new Profile({
       userId: user._id,
-      personalInfo: {
-        firstName,
-        lastName,
-        gender,
-        dateOfBirth: new Date(dateOfBirth),
-        country,
-        city,
-        phone
-      },
-      status: {
-        isActive: completionPercentage >= 70,
-        completionPercentage: completionPercentage,
-        completedFields: completedFields
-      },
-      kyc: {
-        status: 'not_applied'
-      }
+      myReferralCode: user.myReferralCode,
+      personalInfo: { firstName, lastName, gender, dateOfBirth: new Date(dateOfBirth), country, city, phone },
+      status: { isActive: true, completionPercentage: 75, completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] },
+      kyc: { status: 'not_applied' }
     });
 
-    // SIMPLE: Just copy referral code from user to profile (with fallback)
-    console.log('📝 Setting profile referral code:', user.myReferralCode);
-    profile.myReferralCode = user.myReferralCode || null;
-    
-    // Update profile completion percentage (initialize if needed)
-    if (user.myProfilePercent === undefined) {
-      user.myProfilePercent = 0;
-    }
-    user.myProfilePercent = completionPercentage;
-    console.log('💾 Saving user...');
+    // Save both
+    user.myProfilePercent = 75;
+    user.emailVerified = true;
     await user.save();
-    
-    console.log('💾 Saving profile...');
     await profile.save();
-    console.log('✅ Profile saved successfully');
-
-    // Update user email verification status if needed
-    if (!user.emailVerified) {
-      user.emailVerified = true;
-      await user.save();
-    }
 
     res.status(201).json({
       success: true,
       message: 'Profile created successfully',
-      profile: {
-        firstName: profile.personalInfo.firstName,
-        lastName: profile.personalInfo.lastName,
-        gender: profile.personalInfo.gender,
-        country: profile.personalInfo.country,
-        city: profile.personalInfo.city,
-        phone: profile.personalInfo.phone,
-        referralCode: profile.myReferralCode,
-        status: profile.status,
-        kyc: profile.kyc
-      }
+      profile: { firstName, lastName, gender, country, city, phone, referralCode: user.myReferralCode }
     });
+
   } catch (error) {
-    console.error('❌ Error creating profile:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Request body:', req.body);
-    console.error('User data:', user ? {id: user._id, uid: user.uid, referralCode: user.myReferralCode} : 'null');
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create profile',
-      error: error.message,
-      details: error.stack
-    });
+    console.error('Profile setup error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to create profile', error: error.message });
   }
 });
 

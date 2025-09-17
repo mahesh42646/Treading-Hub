@@ -2084,48 +2084,68 @@ router.get('/referral/stats/:uid', async (req, res) => {
       });
     }
 
-    // Initialize referral fields if missing (for existing users)
+    // Ensure user has a referral code
     if (!user.myReferralCode) {
       const { initializeUserReferral } = require('./utils/simpleReferralUtils');
       await initializeUserReferral(user._id);
-      // Refetch user with updated data
-      const updatedUser = await User.findOne({ uid });
-      if (updatedUser) {
-        user.myReferralCode = updatedUser.myReferralCode;
-        user.referrals = updatedUser.referrals || [];
-        user.totalReferralsBy = updatedUser.totalReferralsBy || 0;
-      }
+      await user.reload?.();
     }
 
-    // Use new referral system from User schema
-    const { getUserReferralStats } = require('./utils/simpleReferralUtils');
-    const referralData = await getUserReferralStats(user._id);
+    // Build referral stats by querying users who used this user's code
+    const referredUsers = await User.find({ referredByCode: user.myReferralCode });
 
-    if (!referralData) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to get referral data'
+    // Optionally hydrate basic profile info
+    const { Profile } = require('./schema');
+    const referredProfiles = await Profile.find({ userId: { $in: referredUsers.map(u => u._id) } });
+    const userIdToProfile = new Map(referredProfiles.map(p => [p.userId.toString(), p]));
+
+    const referralsList = referredUsers.map(ru => {
+      const prof = userIdToProfile.get(ru._id.toString());
+      const name = prof ? `${prof.personalInfo?.firstName || ''} ${prof.personalInfo?.lastName || ''}`.trim() : '';
+      const phone = prof?.personalInfo?.phone || 'N/A';
+      const joinedAt = ru.createdAt || new Date();
+      const completionPercentage = typeof ru.myProfilePercent === 'number' ? ru.myProfilePercent : 0;
+      const hasDeposited = !!ru.myFirstPayment;
+      const hasFirstPlan = !!ru.myFirstPlan;
+      return {
+        userId: ru._id,
+        userName: name || ru.email || 'User',
+        phone,
+        completionPercentage,
+        joinedAt,
+        hasDeposited,
+        hasFirstPlan,
+        bonusEarned: 0
+      };
+    });
+
+    // Compute counts
+    const totalReferrals = referralsList.length;
+    const completedReferrals = referralsList.filter(r => r.hasFirstPlan || r.hasDeposited).length;
+    const pendingReferrals = totalReferrals - completedReferrals;
+
+    // Compute total earnings from stored referrals array (if present)
+    let totalEarnings = 0;
+    if (Array.isArray(user.referrals) && user.referrals.length > 0) {
+      totalEarnings = user.referrals.reduce((sum, r) => sum + (r.bonusAmount || 0), 0);
+      // Map bonus amounts if possible
+      const bonusMap = new Map(user.referrals.map(r => [r.user?.toString(), r.bonusAmount || 0]));
+      referralsList.forEach(r => {
+        const b = bonusMap.get(r.userId.toString());
+        if (typeof b === 'number') r.bonusEarned = b;
       });
     }
 
     res.json({
       success: true,
       stats: {
-        totalReferrals: referralData.totalReferrals,
-        completedReferrals: referralData.completedReferrals,
-        pendingReferrals: referralData.pendingReferrals,
-        totalEarnings: referralData.totalEarnings,
-        referralCode: referralData.myReferralCode
+        totalReferrals,
+        completedReferrals,
+        pendingReferrals,
+        totalEarnings,
+        referralCode: user.myReferralCode
       },
-      referrals: referralData.referrals.map(ref => ({
-        userId: ref.user,
-        userName: `User ${ref.user}`, // Will be populated with real name later
-        phone: 'N/A',
-        completionPercentage: ref.profileComplete,
-        joinedAt: ref.joinedAt,
-        hasDeposited: ref.firstPayment,
-        bonusEarned: ref.bonusAmount
-      }))
+      referrals: referralsList
     });
   } catch (error) {
     console.error('Error fetching referral stats:', error);

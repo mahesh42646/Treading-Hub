@@ -1165,28 +1165,66 @@ router.post('/assign-plan', verifyAdminAuth, async (req, res) => {
     const now = new Date();
     const expiryDate = new Date(now.getTime() + (plan.duration * 24 * 60 * 60 * 1000));
 
-    // Update profile with plan subscription
-    profile.subscription = {
+    // Create plan entry for user's plans array (consistent with user purchases)
+    const planEntry = {
       planId: plan._id,
-      planName: plan.name,
+      name: plan.name,
+      price: plan.price,
+      durationDays: plan.duration,
       startDate: now,
-      expiryDate: expiryDate,
-      isActive: true,
+      endDate: expiryDate,
+      status: 'active',
       assignedBy: 'admin'
     };
 
-    await profile.save();
+    // Add to user's plans array
+    if (!Array.isArray(user.plans)) user.plans = [];
+    user.plans.push(planEntry);
+
+    await user.save();
 
     res.json({
       success: true,
       message: 'Plan assigned successfully',
-      subscription: profile.subscription
+      plan: planEntry,
+      plans: user.plans
     });
   } catch (error) {
     console.error('Error assigning plan:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to assign plan',
+      error: error.message
+    });
+  }
+});
+
+// Manual referral processing for testing
+router.post('/process-referral/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { amount, type = 'plan' } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const { processFirstPayment } = require('./utils/simpleReferralUtils');
+    await processFirstPayment(user._id, amount, type);
+    
+    res.json({
+      success: true,
+      message: 'Referral processing completed'
+    });
+  } catch (error) {
+    console.error('Error processing referral:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process referral',
       error: error.message
     });
   }

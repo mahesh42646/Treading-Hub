@@ -124,10 +124,19 @@ async function addReferral(newUserId, referralCode) {
  */
 async function processFirstPayment(userId, amount, type = 'deposit') {
   try {
+    console.log('processFirstPayment called:', { userId, amount, type });
     const user = await User.findById(userId);
     if (!user) {
+      console.log('User not found for referral processing');
       return;
     }
+    
+    console.log('User found for referral processing:', {
+      userId: user._id,
+      referredByCode: user.referredByCode,
+      myFirstPayment: user.myFirstPayment,
+      myFirstPlan: user.myFirstPlan
+    });
 
     // If this call is for a deposit and we've already marked first deposit, exit
     if (type !== 'plan' && user.myFirstPayment) {
@@ -156,8 +165,14 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
 
     // If user was referred, credit bonus to referrer
     if (user.referredByCode) {
+      console.log('User was referred, looking for referrer with code:', user.referredByCode);
       const referrer = await User.findOne({ myReferralCode: user.referredByCode });
       if (referrer) {
+        console.log('Referrer found:', {
+          referrerId: referrer._id,
+          referrerEmail: referrer.email,
+          referralsCount: referrer.referrals.length
+        });
         const bonusAmount = Math.round(amount * 0.20); // 20% bonus
         
         // Initialize referrer's wallet if not exists
@@ -181,13 +196,21 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
           ref => ref.user.toString() === userId.toString()
         );
         
+        console.log('Looking for referral record:', {
+          referralIndex,
+          totalReferrals: referrer.referrals.length,
+          lookingForUserId: userId
+        });
+        
         if (referralIndex !== -1) {
+          console.log('Found referral record, updating for type:', type);
           // For deposits, only mark firstPayment; For plan, complete and credit bonus
           if (type === 'deposit') {
             if (!referrer.referrals[referralIndex].firstPayment) {
               referrer.referrals[referralIndex].firstPayment = true;
               referrer.referrals[referralIndex].firstPaymentAmount = amount;
               referrer.referrals[referralIndex].firstPaymentDate = new Date();
+              console.log('Marked first payment for deposit');
             }
           } else if (type === 'plan') {
             referrer.referrals[referralIndex].firstPlan = true;
@@ -197,6 +220,7 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
               referrer.referrals[referralIndex].bonusCredited = true;
               referrer.referrals[referralIndex].bonusAmount = bonusAmount;
             }
+            console.log('Marked first plan and completed referral');
           }
           
           await referrer.save();

@@ -176,6 +176,13 @@ router.post('/subscription/purchase', async (req, res) => {
     try {
       const { processFirstPayment } = require('./utils/simpleReferralUtils');
       
+      console.log('Processing referral for user:', {
+        userId: user._id,
+        isFirstPlan,
+        referredByCode: user.referredByCode,
+        planPrice: plan.price
+      });
+      
       if (isFirstPlan) {
         await processFirstPayment(user._id, plan.price, 'plan');
         console.log('🎉 First plan purchase processed - referral bonus credited if applicable');
@@ -184,24 +191,32 @@ router.post('/subscription/purchase', async (req, res) => {
       }
     } catch (rbErr) {
       console.error('Referral bonus on plan purchase failed:', rbErr);
+      // Don't fail the entire transaction if referral processing fails
+      // The plan purchase should still succeed
     }
 
     // Create transaction record
-    const transaction = new Transaction({
-      userId: user._id,
-      type: 'subscription',
-      amount: totalPayment,
-      description: `Subscription purchase: ${plan.name} plan`,
-      status: 'completed',
-      metadata: {
-        planId: plan._id,
-        planName: plan.name,
-        paymentMethod: paymentMethod
-      },
-      processedAt: new Date()
-    });
+    try {
+      const transaction = new Transaction({
+        userId: user._id,
+        type: 'subscription',
+        amount: totalPayment,
+        description: `Subscription purchase: ${plan.name} plan`,
+        status: 'completed',
+        metadata: {
+          planId: plan._id,
+          planName: plan.name,
+          paymentMethod: paymentMethod
+        },
+        processedAt: new Date()
+      });
 
-    await transaction.save();
+      await transaction.save();
+    } catch (txErr) {
+      console.error('Transaction creation failed:', txErr);
+      // Don't fail the entire purchase if transaction creation fails
+      // The plan purchase should still succeed
+    }
 
     console.log('Plan purchase successful:', {
       userId: user._id,

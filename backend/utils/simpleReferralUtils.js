@@ -125,16 +125,32 @@ async function addReferral(newUserId, referralCode) {
 async function processFirstPayment(userId, amount, type = 'deposit') {
   try {
     const user = await User.findById(userId);
-    if (!user || user.myFirstPayment) {
-      return; // Already processed first payment
+    if (!user) {
+      return;
     }
 
-    // Mark user's first payment
-    user.myFirstPayment = true;
-    user.myFirstPaymentAmount = amount;
-    user.myFirstPaymentDate = new Date();
-    
-    if (type === 'plan') {
+    // If this call is for a deposit and we've already marked first deposit, exit
+    if (type !== 'plan' && user.myFirstPayment) {
+      return;
+    }
+
+    // If this call is for a plan and we've already marked first plan, exit
+    if (type === 'plan' && user.myFirstPlan) {
+      return;
+    }
+
+    // Mark user's firsts
+    if (type === 'deposit') {
+      user.myFirstPayment = true;
+      user.myFirstPaymentAmount = amount;
+      user.myFirstPaymentDate = new Date();
+    } else if (type === 'plan') {
+      // Ensure first deposit fields exist if not set previously (for consistency)
+      if (!user.myFirstPayment) {
+        user.myFirstPayment = true;
+        user.myFirstPaymentAmount = amount;
+        user.myFirstPaymentDate = new Date();
+      }
       user.myFirstPlan = true;
     }
 
@@ -166,15 +182,21 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
         );
         
         if (referralIndex !== -1) {
-          referrer.referrals[referralIndex].refState = 'completed';
-          referrer.referrals[referralIndex].firstPayment = true;
-          referrer.referrals[referralIndex].firstPaymentAmount = amount;
-          referrer.referrals[referralIndex].firstPaymentDate = new Date();
-          referrer.referrals[referralIndex].bonusCredited = true;
-          referrer.referrals[referralIndex].bonusAmount = bonusAmount;
-          
-          if (type === 'plan') {
+          // For deposits, only mark firstPayment; For plan, complete and credit bonus
+          if (type === 'deposit') {
+            if (!referrer.referrals[referralIndex].firstPayment) {
+              referrer.referrals[referralIndex].firstPayment = true;
+              referrer.referrals[referralIndex].firstPaymentAmount = amount;
+              referrer.referrals[referralIndex].firstPaymentDate = new Date();
+            }
+          } else if (type === 'plan') {
             referrer.referrals[referralIndex].firstPlan = true;
+            referrer.referrals[referralIndex].refState = 'completed';
+            // Credit bonus only if not yet credited
+            if (!referrer.referrals[referralIndex].bonusCredited) {
+              referrer.referrals[referralIndex].bonusCredited = true;
+              referrer.referrals[referralIndex].bonusAmount = bonusAmount;
+            }
           }
           
           await referrer.save();

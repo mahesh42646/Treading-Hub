@@ -1724,4 +1724,108 @@ router.put('/user-wallet/:uid', verifyAdminAuth, async (req, res) => {
   }
 });
 
+// Get all referrals with detailed information for admin
+router.get('/referrals/detailed', verifyAdminAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Get all profiles that have referrals
+    const profilesWithReferrals = await Profile.find({
+      'referral.referrals.0': { $exists: true }
+    }).populate('userId', 'email createdAt');
+
+    const allReferrals = [];
+
+    for (const profile of profilesWithReferrals) {
+      const referrer = {
+        referrerId: profile.userId._id,
+        referrerEmail: profile.userId.email,
+        referrerName: `${profile.personalInfo?.firstName || 'User'} ${profile.personalInfo?.lastName || ''}`.trim(),
+        referralCode: profile.referral?.code
+      };
+
+      for (const referral of profile.referral.referrals || []) {
+        try {
+          // Get referred user details
+          const referredUser = await User.findById(referral.userId);
+          const referredProfile = await Profile.findOne({ userId: referral.userId });
+
+          if (referredUser && referredProfile) {
+            const hasFirstDeposit = (referredProfile.wallet?.totalDeposits || 0) > 0;
+            const hasActivePlan = referredProfile.subscription?.status === 'active';
+            const profileCompletion = referredProfile.status?.completionPercentage || 0;
+            const hasCompletedFirstPayment = referredProfile.referral?.hasCompletedFirstPayment || false;
+
+            allReferrals.push({
+              ...referrer,
+              referredUserId: referral.userId,
+              referredUserEmail: referredUser.email,
+              referredUserName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
+              referredUserPhone: referredProfile.personalInfo?.phone || 'Not provided',
+              joinedAt: referredProfile.createdAt || referral.joinedAt,
+              profileCompletion: profileCompletion,
+              hasFirstDeposit: hasFirstDeposit,
+              hasActivePlan: hasActivePlan,
+              planName: referredProfile.subscription?.planName || null,
+              planPrice: referredProfile.subscription?.planPrice || 0,
+              planExpiryDate: referredProfile.subscription?.expiryDate || null,
+              firstPaymentAmount: referredProfile.referral?.firstPaymentAmount || 0,
+              firstPaymentDate: referredProfile.referral?.firstPaymentDate || null,
+              bonusEarned: referral.bonusEarned || 0,
+              bonusCreditedAt: referral.bonusCreditedAt || null,
+              status: hasCompletedFirstPayment || hasActivePlan ? 'completed' : 'pending',
+              referralComplete: hasCompletedFirstPayment || hasActivePlan,
+              kycStatus: referredProfile.kyc?.status || 'not_started',
+              walletBalance: referredProfile.wallet?.walletBalance || 0,
+              referralBalance: referredProfile.wallet?.referralBalance || 0
+            });
+          }
+        } catch (err) {
+          console.error('Error processing referral for admin:', err);
+        }
+      }
+    }
+
+    // Sort by joinedAt (newest first)
+    allReferrals.sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt));
+
+    // Paginate
+    const paginatedReferrals = allReferrals.slice(skip, skip + limit);
+    const totalPages = Math.ceil(allReferrals.length / limit);
+
+    // Calculate stats
+    const stats = {
+      totalReferrals: allReferrals.length,
+      completedReferrals: allReferrals.filter(r => r.status === 'completed').length,
+      pendingReferrals: allReferrals.filter(r => r.status === 'pending').length,
+      totalBonusPaid: allReferrals.reduce((sum, r) => sum + (r.bonusEarned || 0), 0),
+      averageProfileCompletion: allReferrals.length > 0 
+        ? allReferrals.reduce((sum, r) => sum + r.profileCompletion, 0) / allReferrals.length 
+        : 0
+    };
+
+    res.json({
+      success: true,
+      referrals: paginatedReferrals,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: allReferrals.length,
+        itemsPerPage: limit
+      },
+      stats: stats
+    });
+
+  } catch (error) {
+    console.error('Error fetching detailed referrals for admin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referral details',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

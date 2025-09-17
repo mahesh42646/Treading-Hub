@@ -5,24 +5,26 @@ import { FaEye, FaShareAlt } from 'react-icons/fa';
 
 const AdminReferrals = () => {
   const [referrals, setReferrals] = useState([]);
-  const [statistics, setStatistics] = useState({
-    totalReferrals: 0,
-    completedReferrals: 0,
-    pendingReferrals: 0,
-    totalCommissionPaid: 0
-  });
+  const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const fetchReferrals = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/referrals`, {
-        credentials: 'include'
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/referrals/detailed?page=${currentPage}&limit=${pageSize}`,
+        {
+          credentials: 'include'
+        }
+      );
       
       if (response.ok) {
         const data = await response.json();
         setReferrals(data.referrals || []);
-        setStatistics(data.statistics || {});
+        setStats(data.stats || {});
+        setTotalPages(data.pagination?.totalPages || 1);
       }
     } catch (error) {
       console.error('Error fetching referrals:', error);
@@ -33,19 +35,16 @@ const AdminReferrals = () => {
 
   useEffect(() => {
     fetchReferrals();
-  }, []);
+  }, [currentPage, pageSize]);
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending':
-        return <span className="badge bg-warning">Pending</span>;
-      case 'completed':
-        return <span className="badge bg-success">Completed</span>;
-      case 'paid':
-        return <span className="badge bg-info">Paid</span>;
-      default:
-        return <span className="badge bg-secondary">{status}</span>;
-    }
+    return status === 'completed' ? 'badge bg-success' : 'badge bg-warning';
+  };
+
+  const getCompletionColor = (percentage) => {
+    if (percentage >= 100) return 'text-success';
+    if (percentage >= 70) return 'text-warning';
+    return 'text-danger';
   };
 
   if (loading) {
@@ -66,6 +65,16 @@ const AdminReferrals = () => {
           <p className="text-muted mb-0">Track referral activities and commissions</p>
         </div>
         <div className="d-flex gap-2">
+          <select 
+            className="form-select form-select-sm"
+            value={pageSize}
+            onChange={(e) => setPageSize(parseInt(e.target.value))}
+            style={{ width: 'auto' }}
+          >
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+            <option value={50}>50 per page</option>
+          </select>
           <button className="btn btn-outline-primary btn-sm">
             <FaEye className="me-1" />
             Export Report
@@ -86,7 +95,7 @@ const AdminReferrals = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Total Referrals</h6>
-                  <h4 className="mb-0 fw-bold">{statistics.totalReferrals}</h4>
+                  <h4 className="mb-0 fw-bold">{stats.totalReferrals || 0}</h4>
                 </div>
               </div>
             </div>
@@ -104,7 +113,7 @@ const AdminReferrals = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Completed</h6>
-                  <h4 className="mb-0 fw-bold">{statistics.completedReferrals}</h4>
+                  <h4 className="mb-0 fw-bold">{stats.completedReferrals || 0}</h4>
                 </div>
               </div>
             </div>
@@ -122,7 +131,7 @@ const AdminReferrals = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="card-title text-muted mb-1">Pending</h6>
-                  <h4 className="mb-0 fw-bold">{statistics.pendingReferrals}</h4>
+                  <h4 className="mb-0 fw-bold">{stats.pendingReferrals || 0}</h4>
                 </div>
               </div>
             </div>
@@ -139,8 +148,8 @@ const AdminReferrals = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Total Commission</h6>
-                  <h4 className="mb-0 fw-bold">₹{statistics.totalCommissionPaid.toLocaleString()}</h4>
+                  <h6 className="card-title text-muted mb-1">Total Bonus Paid</h6>
+                  <h4 className="mb-0 fw-bold">₹{(stats.totalBonusPaid || 0).toLocaleString()}</h4>
                 </div>
               </div>
             </div>
@@ -151,71 +160,160 @@ const AdminReferrals = () => {
       <div className="card border-0 shadow-sm">
         <div className="card-body">
           {referrals.length > 0 ? (
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Referrer</th>
-                    <th>Referred User</th>
-                    <th>Referral Code</th>
-                    <th>Deposits</th>
-                    <th>Commission</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {referrals.map((referral) => (
-                    <tr key={referral._id}>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                            <FaShareAlt className="text-primary" size={12} />
-                          </div>
-                          <div>
-                            <strong>{referral.referrer.email}</strong>
-                            <br/>
-                            <small className="text-muted">{referral.referrer.name || 'No name'}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div>
-                          <strong>{referral.referred.email}</strong>
-                          <br/>
-                          <small className="text-muted">{referral.referred.name || 'No name'}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <code className="bg-light px-2 py-1 rounded">{referral.referralCode}</code>
-                      </td>
-                      <td>
-                        <strong>₹{referral.totalDeposits.toLocaleString()}</strong>
-                        <br/>
-                        <small className={`text-${referral.hasDeposited ? 'success' : 'muted'}`}>
-                          {referral.hasDeposited ? 'Has deposited' : 'No deposits yet'}
-                        </small>
-                      </td>
-                      <td>
-                        <strong>₹{referral.commission.toLocaleString()}</strong>
-                        <br/>
-                        <small className={`text-${referral.commissionPaid ? 'success' : 'muted'}`}>
-                          {referral.commissionPaid ? 'Paid' : 'Pending'}
-                        </small>
-                      </td>
-                      <td>
-                        {getStatusBadge(referral.status)}
-                      </td>
-                      <td>
-                        <small className="text-muted">
-                          {new Date(referral.createdAt).toLocaleDateString()}
-                        </small>
-                      </td>
+            <>
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Referrer</th>
+                      <th>Referred User</th>
+                      <th>Profile %</th>
+                      <th>First Deposit</th>
+                      <th>Plan</th>
+                      <th>Status</th>
+                      <th>Bonus</th>
+                      <th>Joined</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {referrals.map((referral, index) => (
+                      <tr key={`${referral.referrerId}-${referral.referredUserId}-${index}`}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
+                              <FaShareAlt className="text-primary" size={12} />
+                            </div>
+                            <div>
+                              <strong>{referral.referrerName}</strong>
+                              <br/>
+                              <small className="text-muted">{referral.referrerEmail}</small>
+                              <br/>
+                              <small className="badge bg-light text-dark">Code: {referral.referralCode}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <strong>{referral.referredUserName}</strong>
+                            <br/>
+                            <small className="text-muted">{referral.referredUserEmail}</small>
+                            <br/>
+                            <small className="text-muted">{referral.referredUserPhone}</small>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <div className="progress flex-grow-1 me-2" style={{ height: '8px', width: '60px' }}>
+                              <div 
+                                className="progress-bar" 
+                                style={{ width: `${referral.profileCompletion}%` }}
+                              ></div>
+                            </div>
+                            <small className={getCompletionColor(referral.profileCompletion)}>
+                              {referral.profileCompletion}%
+                            </small>
+                          </div>
+                        </td>
+                        <td>
+                          {referral.hasFirstDeposit ? (
+                            <>
+                              <span className="badge bg-success">✓ True</span>
+                              <br />
+                              <small className="text-muted">₹{referral.walletBalance.toLocaleString()}</small>
+                            </>
+                          ) : (
+                            <span className="badge bg-secondary">✗ False</span>
+                          )}
+                        </td>
+                        <td>
+                          {referral.hasActivePlan ? (
+                            <div>
+                              <span className="badge bg-success">✓ {referral.planName}</span>
+                              <br />
+                              <small className="text-muted">₹{referral.planPrice.toLocaleString()}</small>
+                              {referral.planExpiryDate && (
+                                <>
+                                  <br />
+                                  <small className="text-muted">
+                                    Exp: {new Date(referral.planExpiryDate).toLocaleDateString()}
+                                  </small>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="badge bg-secondary">No Plan</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={getStatusBadge(referral.status)}>
+                            {referral.status === 'completed' ? 'Complete' : 'Pending'}
+                          </span>
+                          <br />
+                          <small className="text-muted">KYC: {referral.kycStatus}</small>
+                        </td>
+                        <td>
+                          <strong className="text-success">₹{(referral.bonusEarned || 0).toLocaleString()}</strong>
+                          {referral.bonusCreditedAt && (
+                            <>
+                              <br />
+                              <small className="text-muted">
+                                {new Date(referral.bonusCreditedAt).toLocaleDateString()}
+                              </small>
+                            </>
+                          )}
+                        </td>
+                        <td>
+                          <small className="text-muted">
+                            {new Date(referral.joinedAt).toLocaleDateString()}
+                          </small>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-3">
+                  <nav>
+                    <ul className="pagination">
+                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                        <button 
+                          className="page-link"
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </button>
+                      </li>
+                      {[...Array(Math.min(totalPages, 10))].map((_, i) => {
+                        const pageNum = i + 1;
+                        return (
+                          <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                            <button 
+                              className="page-link"
+                              onClick={() => setCurrentPage(pageNum)}
+                            >
+                              {pageNum}
+                            </button>
+                          </li>
+                        );
+                      })}
+                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                        <button 
+                          className="page-link"
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-5">
               <p className="text-muted">No referrals found.</p>

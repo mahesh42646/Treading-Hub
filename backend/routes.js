@@ -2336,6 +2336,51 @@ router.get('/profile/referral', async (req, res) => {
       await profile.save();
     }
 
+    // Get detailed referral data with real-time status
+    const detailedReferrals = [];
+    
+    for (const referral of profile.referral.referrals || []) {
+      try {
+        // Get fresh user and profile data
+        const referredUser = await User.findById(referral.userId);
+        const referredProfile = await Profile.findOne({ userId: referral.userId });
+        
+        if (referredUser && referredProfile) {
+          const hasFirstDeposit = (referredProfile.wallet?.totalDeposits || 0) > 0;
+          const hasActivePlan = referredProfile.subscription?.status === 'active';
+          const profileCompletion = referredProfile.status?.completionPercentage || 0;
+          const hasCompletedFirstPayment = referredProfile.referral?.hasCompletedFirstPayment || false;
+          
+          detailedReferrals.push({
+            userId: referral.userId,
+            userName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
+            email: referredUser.email,
+            phone: referredProfile.personalInfo?.phone || 'Not provided',
+            joinedAt: referredProfile.createdAt || referral.joinedAt,
+            profileCompletion: profileCompletion,
+            hasFirstDeposit: hasFirstDeposit,
+            hasActivePlan: hasActivePlan,
+            planName: referredProfile.subscription?.planName || null,
+            planPrice: referredProfile.subscription?.planPrice || 0,
+            firstPaymentAmount: referredProfile.referral?.firstPaymentAmount || 0,
+            firstPaymentDate: referredProfile.referral?.firstPaymentDate || null,
+            bonusEarned: referral.bonusEarned || 0,
+            bonusCreditedAt: referral.bonusCreditedAt || null,
+            status: hasCompletedFirstPayment || hasActivePlan ? 'completed' : 'pending',
+            referralComplete: hasCompletedFirstPayment || hasActivePlan
+          });
+        }
+      } catch (err) {
+        console.error('Error processing referral:', err);
+        // Include original referral data if fresh data fetch fails
+        detailedReferrals.push({
+          ...referral,
+          status: referral.hasDeposited ? 'completed' : 'pending',
+          referralComplete: referral.hasDeposited || false
+        });
+      }
+    }
+
     // Get wallet balance for referral earnings
     const referralBalance = profile.wallet?.referralBalance || 0;
 
@@ -2347,7 +2392,7 @@ router.get('/profile/referral', async (req, res) => {
         pendingReferrals: profile.referral.pendingReferrals || 0,
         totalEarnings: referralBalance
       },
-      referrals: profile.referral.referrals || []
+      referrals: detailedReferrals
     };
 
     res.json(responseData);

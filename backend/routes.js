@@ -2197,12 +2197,12 @@ router.get('/referral/stats/:uid', async (req, res) => {
           hasDeposited,
           hasFirstPlan,
           bonusEarned: 0,
-          status: hasDeposited || hasFirstPlan ? 'completed' : 'pending'
+          status: hasFirstPlan ? 'completed' : 'pending'
         };
       });
 
       totalReferrals = referralsList.length;
-      completedReferrals = referralsList.filter(r => r.hasFirstPlan || r.hasDeposited).length;
+      completedReferrals = referralsList.filter(r => r.hasFirstPlan).length;
       pendingReferrals = totalReferrals - completedReferrals;
     }
 

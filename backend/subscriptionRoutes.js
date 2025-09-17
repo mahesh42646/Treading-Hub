@@ -169,6 +169,25 @@ router.post('/subscription/purchase', async (req, res) => {
 
     await subscription.save();
 
+    // Push plan to user's plans array for visibility/history
+    try {
+      const planEntry = {
+        planId: plan._id,
+        name: plan.name,
+        price: plan.price,
+        durationDays: plan.duration,
+        startDate,
+        endDate: expiryDate,
+        status: 'active',
+        assignedBy: 'user'
+      };
+      if (!Array.isArray(user.plans)) user.plans = [];
+      user.plans.push(planEntry);
+      await user.save();
+    } catch (e) {
+      console.warn('Failed to push plan entry to user.plans:', e?.message);
+    }
+
     // Update profile with subscription badge
     profile.subscription = {
       planId: plan._id,

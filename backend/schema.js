@@ -75,6 +75,41 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  
+  // Purchased/Assigned Plans history
+  plans: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    planId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plan'
+    },
+    name: { type: String },
+    price: { type: Number, default: 0 },
+    durationDays: { type: Number, default: 0 },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
+    assignedBy: { type: String, enum: ['user', 'admin'], default: 'user' },
+    createdAt: { type: Date, default: Date.now }
+  }],
+
+  // Trading accounts assigned to the user
+  tradingAccounts: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    provider: { type: String },
+    accountId: { type: String },
+    login: { type: String },
+    server: { type: String },
+    status: { type: String, enum: ['active', 'suspended', 'closed'], default: 'active' },
+    assignedBy: { type: String, enum: ['admin'], default: 'admin' },
+    createdAt: { type: Date, default: Date.now }
+  }],
   totalReferralsBy: {
     type: Number,
     default: 0

@@ -324,6 +324,21 @@ router.put('/kyc-approve/:uid', verifyAdminAuth, async (req, res) => {
       user.profile.status.completionPercentage = 100;
       await user.save();
     }
+
+    // If this user was referred, bump referrer's referral record to 100% profile completion
+    try {
+      if (user.referredByCode) {
+        const { User } = require('./schema');
+        const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+        if (referrer && Array.isArray(referrer.referrals)) {
+          const idx = referrer.referrals.findIndex(r => r.user.toString() === user._id.toString());
+          if (idx !== -1) {
+            referrer.referrals[idx].profileComplete = 100;
+            await referrer.save();
+          }
+        }
+      }
+    } catch (_) {}
     
     res.json({ success: true, profile: user.profile });
   } catch (error) {
@@ -357,6 +372,102 @@ router.put('/kyc-reject/:uid', verifyAdminAuth, async (req, res) => {
 });
 
 // Plan Management
+// Admin: assign a plan to a user
+router.post('/users/:uid/assign-plan', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { planId, name, price, durationDays, startDate } = req.body;
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = new Date(start.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+    const planEntry = {
+      planId: planId || undefined,
+      name,
+      price: price || 0,
+      durationDays: durationDays || 0,
+      startDate: start,
+      endDate: end,
+      status: 'active',
+      assignedBy: 'admin'
+    };
+    if (!Array.isArray(user.plans)) user.plans = [];
+    user.plans.push(planEntry);
+    await user.save();
+    res.json({ success: true, plans: user.plans });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// Admin: update a plan validity/status
+router.put('/users/:uid/plans/:planEntryId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, planEntryId } = req.params;
+    const { endDate, status, durationDays } = req.body;
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const entry = (user.plans || []).find(p => p._id.toString() === planEntryId);
+    if (!entry) return res.status(404).json({ success: false, message: 'Plan entry not found' });
+    if (endDate) entry.endDate = new Date(endDate);
+    if (typeof durationDays === 'number') entry.durationDays = durationDays;
+    if (status) entry.status = status;
+    await user.save();
+    res.json({ success: true, plan: entry });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// Admin: remove a plan entry
+router.delete('/users/:uid/plans/:planEntryId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, planEntryId } = req.params;
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.plans = (user.plans || []).filter(p => p._id.toString() !== planEntryId);
+    await user.save();
+    res.json({ success: true, plans: user.plans });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// Admin: assign trading account
+router.post('/users/:uid/trading-accounts', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const account = req.body; // provider, accountId, login, server, status
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!Array.isArray(user.tradingAccounts)) user.tradingAccounts = [];
+    user.tradingAccounts.push({ ...account, assignedBy: 'admin' });
+    await user.save();
+    res.json({ success: true, tradingAccounts: user.tradingAccounts });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// Admin: remove trading account
+router.delete('/users/:uid/trading-accounts/:entryId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, entryId } = req.params;
+    const { User } = require('./schema');
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.tradingAccounts = (user.tradingAccounts || []).filter(a => a._id.toString() !== entryId);
+    await user.save();
+    res.json({ success: true, tradingAccounts: user.tradingAccounts });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
 router.get('/plans', verifyAdminAuth, async (req, res) => {
   try {
     const plans = await Plan.find().sort({ priority: 1, createdAt: -1 });

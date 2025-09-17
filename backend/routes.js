@@ -193,6 +193,9 @@ router.post('/create', async (req, res) => {
         const referrerUser = await User.findOne({ myReferralCode: referredBy });
         if (referrerUser) {
           existingUser.referredBy = referredBy;
+          if (!existingUser.referredByCode) {
+            existingUser.referredByCode = referredBy;
+          }
           await existingUser.save();
           
           // Update referrer's pending count
@@ -225,29 +228,15 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Validate referral code if provided (new system on User)
-    let validReferralCode = null;
-    if (referredBy) {
-      console.log('🔍 Validating referral code:', referredBy);
-      const referrerUser = await User.findOne({ myReferralCode: referredBy });
-      if (referrerUser) {
-        validReferralCode = referredBy;
-        console.log('✅ Valid referral code provided:', referredBy);
-        console.log('✅ Referrer found:', { userId: referrerUser._id.toString() });
-      } else {
-        console.log('❌ Invalid referral code provided:', referredBy);
-        console.log('❌ No user found with referral code:', referredBy);
-      }
-    } else {
-      console.log('ℹ️ No referral code provided in request');
-    }
+    // Simplified referral handling: don't validate via endpoint.
+    // If referredBy code is provided, record it on the new user and try to attach a pending referral to the referrer if found.
 
     // Create new user
     const user = new User({
       uid,
       email,
       emailVerified: emailVerified || isGoogleUser || false,
-      referredBy: validReferralCode
+      referredBy: referredBy || null
     });
 
     console.log('💾 About to save user with data:', {
@@ -300,30 +289,33 @@ router.post('/create', async (req, res) => {
     user.myFirstPaymentAmount = 0;
     user.referrals = [];
     user.totalReferralsBy = 0;
-    user.referredByCode = validReferralCode || null;
+    user.referredByCode = referredBy || null;
     
     await user.save();
     console.log('✅ User created with referral code:', userReferralCode);
 
-    // If user was referred, add referral record (new system)
-    if (validReferralCode) {
+    // If user was referred, add referral record (new system, no strict validation)
+    if (referredBy) {
       try {
-        const referrer = await User.findOne({ myReferralCode: validReferralCode });
+        const referrer = await User.findOne({ myReferralCode: referredBy });
         if (referrer) {
-          referrer.referrals.push({
-            user: user._id,
-            refState: 'pending',
-            firstPayment: false,
-            firstPlan: false,
-            firstPaymentAmount: 0,
-            firstPaymentDate: null,
-            bonusCredited: false,
-            bonusAmount: 0,
-            profileComplete: 0,
-            joinedAt: new Date()
-          });
-          referrer.totalReferralsBy += 1;
-          await referrer.save();
+          const exists = (referrer.referrals || []).some(r => r.user?.toString() === user._id.toString());
+          if (!exists) {
+            referrer.referrals.push({
+              user: user._id,
+              refState: 'pending',
+              firstPayment: false,
+              firstPlan: false,
+              firstPaymentAmount: 0,
+              firstPaymentDate: null,
+              bonusCredited: false,
+              bonusAmount: 0,
+              profileComplete: 0,
+              joinedAt: new Date()
+            });
+            referrer.totalReferralsBy = (referrer.totalReferralsBy || 0) + 1;
+            await referrer.save();
+          }
           console.log('✅ Added referral record to referrer:', referrer._id);
         }
       } catch (referralError) {
@@ -592,7 +584,7 @@ router.get('/profile/:uid', async (req, res) => {
 // Profile setup (step 2) - basic profile without PAN card
 router.post('/profile-setup', async (req, res) => {
   try {
-    const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
+      const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
 
     // Find user
     const user = await User.findOne({ uid });
@@ -635,6 +627,14 @@ router.post('/profile-setup', async (req, res) => {
     user.emailVerified = true;
     await user.save();
     await profile.save();
+
+    // Update referrer's referral progress to 75% if applicable
+    try {
+      const { updateProfileCompletion } = require('./utils/simpleReferralUtils');
+      await updateProfileCompletion(user._id, 75);
+    } catch (upErr) {
+      console.warn('Warning: failed to update referrer referral progress to 75%:', upErr?.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -1068,8 +1068,10 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
     try {
       user.myProfilePercent = 100;
       await user.save();
+      const { updateProfileCompletion } = require('./utils/simpleReferralUtils');
+      await updateProfileCompletion(user._id, 100);
     } catch (syncError) {
-      console.warn('Warning: failed to sync user.myProfilePercent on KYC approve:', syncError?.message);
+      console.warn('Warning: failed to sync user.myProfilePercent/update referral on KYC approve:', syncError?.message);
     }
 
     // Update profile completion details

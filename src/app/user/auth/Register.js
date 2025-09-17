@@ -29,16 +29,10 @@ const Register = () => {
   useEffect(() => {
     // Check for referral code in URL parameters first
     const urlReferralCode = searchParams.get('ref');
-    const urlReferrerName = searchParams.get('referrer');
-    
     if (urlReferralCode) {
       setReferralCode(urlReferralCode);
       console.log('✅ Referral code from URL:', urlReferralCode);
-      
-      // Validate referral code and get referrer name
-      validateReferralCode(urlReferralCode);
-      
-      // Also store in localStorage as backup
+      // Store in localStorage as backup
       localStorage.setItem('referralCode', urlReferralCode);
     } else {
       // Fallback to localStorage if no URL params
@@ -55,34 +49,8 @@ const Register = () => {
     }
   }, [searchParams]);
 
-  const validateReferralCode = async (code) => {
-    try {
-      console.log('🔍 Validating referral code:', code);
-      const validateUrl = buildApiUrl(`/users/referral/validate/${code}`);
-      console.log('🔗 Validation URL:', validateUrl);
-      
-      const response = await fetch(validateUrl);
-      console.log('📡 Validation response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setReferrerName(data.referrerName || '');
-        localStorage.setItem('referrerName', data.referrerName || '');
-        console.log('✅ Referral code validated successfully:', data);
-      } else {
-        const errorData = await response.text();
-        console.error('❌ Invalid referral code response:', { code, status: response.status, error: errorData });
-        console.error('❌ KEEPING referral code despite validation failure for registration');
-        // DON'T clear the referral code - keep it for registration
-        // setReferralCode(''); // Clear invalid code
-      }
-    } catch (error) {
-      console.error('❌ Error validating referral code:', error);
-      console.error('❌ KEEPING referral code despite validation error for registration');
-      // DON'T clear the referral code - keep it for registration
-      // setReferralCode(''); // Clear on error
-    }
-  };
+  // No validation needed per simplified rules
+  const validateReferralCode = async () => {};
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

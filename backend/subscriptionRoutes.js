@@ -183,10 +183,7 @@ router.post('/subscription/purchase', async (req, res) => {
 
     // Process referral bonus for first plan purchase
     try {
-      const { processReferralBonus, ensureProfileReferral } = require('./utils/referralUtils');
-      
-      // Ensure profile has referral info from user
-      await ensureProfileReferral(user, profile);
+      const { processFirstPayment } = require('./utils/simpleReferralUtils');
       
       // Check if this is the first plan purchase
       const priorSubscriptions = await Subscription.countDocuments({ 
@@ -198,10 +195,8 @@ router.post('/subscription/purchase', async (req, res) => {
       const isFirstPlanPurchase = priorSubscriptions === 0;
 
       if (isFirstPlanPurchase) {
-        const referralResult = await processReferralBonus(user, profile, plan.price, plan.name);
-        if (referralResult.success) {
-          console.log('🎉 Plan purchase referral bonus processed:', referralResult.bonus);
-        }
+        await processFirstPayment(user._id, plan.price, 'plan');
+        console.log('🎉 First plan purchase processed - referral bonus credited if applicable');
       } else {
         console.log('ℹ️ Not first plan purchase - no referral bonus');
       }

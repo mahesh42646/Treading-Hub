@@ -72,8 +72,8 @@ const ProfilePage = () => {
   };
 
   const copyReferralLink = () => {
-    if (profile?.referral?.code) {
-      const referralLink = `${window.location.origin}/register?ref=${profile.referral.code}`;
+    if (profile?.myReferralCode) {
+      const referralLink = `${window.location.origin}/register?ref=${profile.myReferralCode}`;
       navigator.clipboard.writeText(referralLink);
       setMessage('Referral link copied to clipboard!');
       setTimeout(() => setMessage(''), 3000);
@@ -309,7 +309,7 @@ const ProfilePage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={profile.referral?.code ? `${window.location.origin}/register?ref=${profile.referral.code}` : 'N/A'}
+                        value={profile.myReferralCode ? `${window.location.origin}/register?ref=${profile.myReferralCode}` : 'N/A'}
                         readOnly
                       />
                       <button

@@ -261,36 +261,15 @@ router.post('/create', async (req, res) => {
 
     await user.save();
     
-    console.log('✅ User saved successfully with referredBy:', user.referredBy);
+    console.log('✅ User saved successfully');
 
-    // If user was referred, update referrer's pending count
+    // Initialize referral code for new user
+    const { initializeUserReferral, addReferral } = require('./utils/simpleReferralUtils');
+    await initializeUserReferral(user._id);
+
+    // If user was referred, add referral record
     if (validReferralCode) {
-      try {
-        const referrerProfile = await Profile.findOne({ 'referral.code': validReferralCode });
-        if (referrerProfile) {
-          // Initialize referral object if it doesn't exist
-          if (!referrerProfile.referral) {
-            referrerProfile.referral = {
-              totalReferrals: 0,
-              completedReferrals: 0,
-              pendingReferrals: 0,
-              totalEarnings: 0,
-              referrals: []
-            };
-          }
-          
-          referrerProfile.referral.totalReferrals += 1;
-          referrerProfile.referral.pendingReferrals += 1;
-          await referrerProfile.save();
-          console.log('📈 Updated referrer pending count:', {
-            referrer: referrerProfile.personalInfo?.firstName,
-            totalReferrals: referrerProfile.referral.totalReferrals,
-            pendingReferrals: referrerProfile.referral.pendingReferrals
-          });
-        }
-      } catch (error) {
-        console.error('❌ Error updating referrer stats:', error);
-      }
+      await addReferral(user._id, validReferralCode);
     }
 
     res.status(201).json({
@@ -411,10 +390,13 @@ router.post('/create-with-profile', async (req, res) => {
 
     await profile.save();
 
-    // If user was referred, add them to referrer's list
+    // Initialize referral code for new user
+    const { initializeUserReferral, addReferral } = require('./utils/simpleReferralUtils');
+    await initializeUserReferral(user._id);
+
+    // If user was referred, add referral record
     if (referredBy) {
-      const { addReferralRecord } = require('./utils/referralUtils');
-      await addReferralRecord(user, profile, referredBy);
+      await addReferral(user._id, referredBy);
     }
 
     res.status(201).json({
@@ -2128,12 +2110,6 @@ router.post('/wallet/deposit', async (req, res) => {
       });
     }
 
-    // Import referral utilities for profile sync
-    const { ensureProfileReferral } = require('./utils/referralUtils');
-    
-    // Ensure profile has referral info from user
-    await ensureProfileReferral(user, profile);
-
     // Update wallet balance
     profile.wallet.walletBalance += amount;
     profile.wallet.totalDeposits += amount;
@@ -2151,8 +2127,7 @@ router.post('/wallet/deposit', async (req, res) => {
     });
     await transaction.save();
 
-    // Note: Referral bonus is only given on first plan purchase, not on wallet deposits
-    console.log('ℹ️ Wallet deposit completed - referral bonus will be given on first plan purchase');
+    console.log('ℹ️ Wallet deposit completed');
 
     res.json({
       success: true,
@@ -2305,7 +2280,7 @@ router.post('/wallet/withdraw', async (req, res) => {
   }
 });
 
-// Get user's referral data
+// Get user's referral data - Simple unified approach
 router.get('/profile/referral', async (req, res) => {
   try {
     const uid = req.headers['x-user-uid'];
@@ -2313,96 +2288,60 @@ router.get('/profile/referral', async (req, res) => {
       return res.status(401).json({ error: 'No user ID provided' });
     }
 
-    const user = await User.findOne({ uid });
+    const user = await User.findOne({ uid }).populate('referrals.user', 'email');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
-    if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+    const { getUserReferralStats } = require('./utils/simpleReferralUtils');
+    const referralData = await getUserReferralStats(user._id);
+
+    if (!referralData) {
+      return res.status(500).json({ error: 'Failed to get referral data' });
     }
 
-    // Ensure referral object exists
-    if (!profile.referral) {
-      profile.referral = {
-        code: null,
-        totalReferrals: 0,
-        completedReferrals: 0,
-        pendingReferrals: 0,
-        totalEarnings: 0,
-        referrals: []
-      };
-      await profile.save();
-    }
-
-    // Get detailed referral data with real-time status
+    // Get detailed referral info with profile data
     const detailedReferrals = [];
-    
-    for (const referral of profile.referral.referrals || []) {
+    for (const referral of user.referrals) {
       try {
-        // Get fresh user and profile data
-        const referredUser = await User.findById(referral.userId);
-        const referredProfile = await Profile.findOne({ userId: referral.userId });
+        const referredUser = await User.findById(referral.user).populate('userId');
+        const referredProfile = await Profile.findOne({ userId: referral.user });
         
         if (referredUser && referredProfile) {
-          const hasFirstDeposit = (referredProfile.wallet?.totalDeposits || 0) > 0;
-          const hasActivePlan = referredProfile.subscription?.status === 'active';
-          const profileCompletion = referredProfile.status?.completionPercentage || 0;
-          const hasCompletedFirstPayment = referredProfile.referral?.hasCompletedFirstPayment || false;
-          
           detailedReferrals.push({
-            userId: referral.userId,
+            userId: referral.user,
             userName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
             email: referredUser.email,
             phone: referredProfile.personalInfo?.phone || 'Not provided',
-            joinedAt: referredProfile.createdAt || referral.joinedAt,
-            profileCompletion: profileCompletion,
-            hasFirstDeposit: hasFirstDeposit,
-            hasActivePlan: hasActivePlan,
+            joinedAt: referral.joinedAt,
+            profileCompletion: referral.profileComplete,
+            hasFirstDeposit: referredUser.myFirstPayment,
+            hasActivePlan: referredUser.myFirstPlan,
             planName: referredProfile.subscription?.planName || null,
             planPrice: referredProfile.subscription?.planPrice || 0,
-            firstPaymentAmount: referredProfile.referral?.firstPaymentAmount || 0,
-            firstPaymentDate: referredProfile.referral?.firstPaymentDate || null,
-            bonusEarned: referral.bonusEarned || 0,
-            bonusCreditedAt: referral.bonusCreditedAt || null,
-            status: hasCompletedFirstPayment || hasActivePlan ? 'completed' : 'pending',
-            referralComplete: hasCompletedFirstPayment || hasActivePlan
+            firstPaymentAmount: referral.firstPaymentAmount,
+            firstPaymentDate: referral.firstPaymentDate,
+            bonusEarned: referral.bonusAmount,
+            bonusCreditedAt: referral.firstPaymentDate,
+            status: referral.refState,
+            referralComplete: referral.refState === 'completed'
           });
         }
       } catch (err) {
         console.error('Error processing referral:', err);
-        // Include original referral data if fresh data fetch fails
-        detailedReferrals.push({
-          ...referral,
-          status: referral.hasDeposited ? 'completed' : 'pending',
-          referralComplete: referral.hasDeposited || false
-        });
       }
     }
 
-    // Calculate real-time stats from the detailed referrals
-    const realTimeStats = {
-      totalReferrals: detailedReferrals.length,
-      completedReferrals: detailedReferrals.filter(r => r.referralComplete).length,
-      pendingReferrals: detailedReferrals.filter(r => !r.referralComplete).length
-    };
-
-    // Get wallet balance for referral earnings
-    const referralBalance = profile.wallet?.referralBalance || 0;
-
-    const responseData = {
-      referralCode: profile.referral.code,
+    res.json({
+      referralCode: user.myReferralCode,
       stats: {
-        totalReferrals: realTimeStats.totalReferrals,
-        completedReferrals: realTimeStats.completedReferrals,
-        pendingReferrals: realTimeStats.pendingReferrals,
-        totalEarnings: referralBalance
+        totalReferrals: referralData.totalReferrals,
+        completedReferrals: referralData.completedReferrals,
+        pendingReferrals: referralData.pendingReferrals,
+        totalEarnings: referralData.totalEarnings
       },
       referrals: detailedReferrals
-    };
-
-    res.json(responseData);
+    });
 
   } catch (error) {
     console.error('Error fetching referral data:', error);

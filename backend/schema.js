@@ -2,6 +2,83 @@ const mongoose = require('mongoose');
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  // Referral System - Simple unified approach
+  referredByCode: {
+    type: String,
+    default: null
+  },
+  myReferralCode: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  myFirstPayment: {
+    type: Boolean,
+    default: false
+  },
+  myFirstPlan: {
+    type: Boolean,
+    default: false
+  },
+  myFirstPaymentDate: {
+    type: Date,
+    default: null
+  },
+  myFirstPaymentAmount: {
+    type: Number,
+    default: 0
+  },
+  myProfilePercent: {
+    type: Number,
+    default: 0
+  },
+  referrals: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    refState: {
+      type: String,
+      enum: ['pending', 'completed'],
+      default: 'pending'
+    },
+    firstPayment: {
+      type: Boolean,
+      default: false
+    },
+    firstPlan: {
+      type: Boolean,
+      default: false
+    },
+    firstPaymentAmount: {
+      type: Number,
+      default: 0
+    },
+    firstPaymentDate: {
+      type: Date,
+      default: null
+    },
+    bonusCredited: {
+      type: Boolean,
+      default: false
+    },
+    bonusAmount: {
+      type: Number,
+      default: 0
+    },
+    profileComplete: {
+      type: Number,
+      default: 0
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  totalReferralsBy: {
+    type: Number,
+    default: 0
+  },
   uid: {
     type: String,
     required: true,
@@ -25,10 +102,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'moderator'],
     default: 'user'
-  },
-  referredBy: {
-    type: String,
-    default: null
   }
 }, {
   timestamps: true
@@ -124,86 +197,6 @@ const profileSchema = new mongoose.Schema({
     }
   },
 
-  // Referral System
-  referral: {
-    code: {
-      type: String,
-      unique: true,
-      length: 10
-    },
-    referredBy: {
-      type: String,
-      default: null
-    },
-    hasCompletedFirstPayment: {
-      type: Boolean,
-      default: false
-    },
-    firstPaymentAmount: {
-      type: Number,
-      default: 0
-    },
-    firstPaymentDate: {
-      type: Date,
-      default: null
-    },
-    bonusCredited: {
-      type: Boolean,
-      default: false
-    },
-    totalReferrals: {
-      type: Number,
-      default: 0
-    },
-    completedReferrals: {
-      type: Number,
-      default: 0
-    },
-    pendingReferrals: {
-      type: Number,
-      default: 0
-    },
-    totalEarnings: {
-      type: Number,
-      default: 0
-    },
-    referrals: [{
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      },
-      userName: String,
-      phone: String,
-      joinedAt: {
-        type: Date,
-        default: Date.now
-      },
-      completionPercentage: {
-        type: Number,
-        default: 0
-      },
-      hasDeposited: {
-        type: Boolean,
-        default: false
-      },
-      firstPaymentAmount: {
-        type: Number,
-        default: 0
-      },
-      firstPaymentDate: {
-        type: Date,
-        default: null
-      },
-      bonusEarned: {
-        type: Number,
-        default: 0
-      },
-      bonusCreditedAt: {
-        type: Date,
-        default: null
-      }
-    }]
-  },
 
   // Profile Status
   status: {

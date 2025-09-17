@@ -581,35 +581,19 @@ router.get('/profile/:uid', async (req, res) => {
   }
 });
 
-// Profile setup (step 2) - SIMPLIFIED: just update user completion to 75%
+// Profile setup (step 2) - Store actual profile data in MongoDB
 router.post('/profile-setup', async (req, res) => {
   try {
     console.log('🔍 Profile setup request received:', req.body);
     
     const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
 
-    // Basic validation
-    if (!uid) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User ID is required'
-      });
-    }
-
-    // Find or create user (simplified)
-    let user = await User.findOne({ uid });
+    // Find user (user exists if they reached this page)
+    const user = await User.findOne({ uid });
     if (!user) {
-      // Create user if doesn't exist
-      user = new User({
-        uid,
-        email: 'temp@example.com', // Will be updated later
-        emailVerified: false,
-        myProfilePercent: 0,
-        myReferralCode: null,
-        myFirstPayment: false,
-        myFirstPlan: false,
-        referrals: [],
-        totalReferralsBy: 0
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found'
       });
     }
 
@@ -623,24 +607,47 @@ router.post('/profile-setup', async (req, res) => {
       user.myReferralCode = code;
     }
 
+    // Create and save Profile document with actual data
+    const profile = new Profile({
+      userId: user._id,
+      myReferralCode: user.myReferralCode,
+      personalInfo: { 
+        firstName, 
+        lastName, 
+        gender, 
+        dateOfBirth: new Date(dateOfBirth), 
+        country, 
+        city, 
+        phone 
+      },
+      status: { 
+        isActive: true, 
+        completionPercentage: 75, 
+        completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] 
+      },
+      kyc: { status: 'not_applied' }
+    });
+
     // Update user completion to 75%
     user.myProfilePercent = 75;
     user.emailVerified = true;
 
-    // Save user (this is all we need)
+    // Save both user and profile
     await user.save();
-    console.log('✅ User updated with 75% completion');
+    await profile.save();
+    
+    console.log('✅ Profile data stored successfully');
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: 'Profile setup completed successfully',
       profile: { 
-        firstName: firstName || 'User',
-        lastName: lastName || 'Name',
-        gender: gender || 'other',
-        country: country || 'Unknown',
-        city: city || 'Unknown',
-        phone: phone || '0000000000',
+        firstName, 
+        lastName, 
+        gender, 
+        country, 
+        city, 
+        phone, 
         referralCode: user.myReferralCode,
         completionPercentage: 75
       }

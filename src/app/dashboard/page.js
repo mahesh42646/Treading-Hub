@@ -1,20 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { sendEmailVerification } from 'firebase/auth';
 import { auth } from '../user/auth/firebase';
 import { getUserDisplayInfo } from '../utils/userDisplay';
+import { userApi } from '../../services/api';
 
 const Dashboard = () => {
   const { user, profile, logout, refreshProfile, checkEmailVerification } = useAuth();
   const [resendingEmail, setResendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
+  const [referralData, setReferralData] = useState({
+    referralCode: '',
+    totalReferrals: 0,
+    totalEarnings: 0
+  });
   const router = useRouter();
   
   const displayInfo = getUserDisplayInfo(user, profile);
+
+  // Fetch referral data
+  useEffect(() => {
+    const fetchReferralData = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const data = await userApi.getReferralStats(user.uid);
+        setReferralData({
+          referralCode: data.stats?.referralCode || data.stats?.myReferralCode || '',
+          totalReferrals: data.stats?.totalReferrals || 0,
+          totalEarnings: data.stats?.totalEarnings || 0
+        });
+      } catch (error) {
+        console.error('Error fetching referral data:', error);
+      }
+    };
+
+    fetchReferralData();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -200,8 +226,8 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Account Balance</h6>
-                  <h4 className="fw-bold mb-0">₹0.00</h4>
+                  <h6 className="text-muted mb-1">Wallet Balance</h6>
+                  <h4 className="fw-bold mb-0">₹{profile?.wallet?.walletBalance?.toFixed(2) || '0.00'}</h4>
                   <small className="text-success">+₹0.00 today</small>
                     </div>
                   </div>
@@ -214,14 +240,14 @@ const Dashboard = () => {
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-success bg-opacity-10 rounded-circle p-3">
-                    <i className="bi bi-graph-up text-success fs-4"></i>
+                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
+                    <i className="bi bi-gift text-warning fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Total P&L</h6>
-                  <h4 className="fw-bold mb-0 text-success">+₹0.00</h4>
-                  <small className="text-success">+0.00% this month</small>
+                  <h6 className="text-muted mb-1">Referral Balance</h6>
+                  <h4 className="fw-bold mb-0">₹{profile?.wallet?.referralBalance?.toFixed(2) || '0.00'}</h4>
+                  <small className="text-muted">Earned from referrals</small>
                 </div>
               </div>
             </div>
@@ -258,8 +284,8 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="text-muted mb-1">Referral Code</h6>
-                  <h4 className="fw-bold mb-0">{user?.myReferralCode || 'N/A'}</h4>
-                  <small className="text-muted">0 referrals</small>
+                  <h4 className="fw-bold mb-0">{referralData.referralCode || 'N/A'}</h4>
+                  <small className="text-muted">{referralData.totalReferrals} referrals</small>
                 </div>
                   </div>
                 </div>

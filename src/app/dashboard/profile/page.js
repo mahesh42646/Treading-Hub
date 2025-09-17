@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildApiUrl } from '../../../utils/config';
+import { userApi } from '../../../services/api';
 
 const ProfilePage = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -17,19 +18,48 @@ const ProfilePage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [referralData, setReferralData] = useState({
+    referralCode: '',
+    totalReferrals: 0,
+    totalEarnings: 0
+  });
+
+  const fetchReferralData = async () => {
+    try {
+      const data = await userApi.getReferralStats(user.uid);
+      setReferralData({
+        referralCode: data.stats?.referralCode || data.stats?.myReferralCode || '',
+        totalReferrals: data.stats?.totalReferrals || 0,
+        totalEarnings: data.stats?.totalEarnings || 0
+      });
+    } catch (error) {
+      console.error('Error fetching referral data:', error);
+    }
+  };
 
   useEffect(() => {
     if (profile) {
+      // Format date of birth for input field
+      let formattedDateOfBirth = '';
+      if (profile.personalInfo?.dateOfBirth) {
+        const date = new Date(profile.personalInfo.dateOfBirth);
+        formattedDateOfBirth = date.toISOString().split('T')[0];
+      }
+      
       setFormData({
         firstName: profile.personalInfo?.firstName || profile.firstName || '',
         lastName: profile.personalInfo?.lastName || profile.lastName || '',
         phoneNumber: profile.personalInfo?.phone || '',
-        dateOfBirth: profile.personalInfo?.dateOfBirth || '',
+        dateOfBirth: formattedDateOfBirth,
         gender: profile.personalInfo?.gender || '',
         city: profile.personalInfo?.city || ''
       });
     }
-  }, [profile]);
+    
+    if (user?.uid) {
+      fetchReferralData();
+    }
+  }, [profile, user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -79,8 +109,8 @@ const ProfilePage = () => {
   };
 
   const copyReferralLink = () => {
-    if (profile?.myReferralCode) {
-      const referralLink = `${window.location.origin}/register?ref=${profile.myReferralCode}`;
+    if (referralData.referralCode) {
+      const referralLink = `${window.location.origin}/register?ref=${referralData.referralCode}`;
       navigator.clipboard.writeText(referralLink);
       setMessage('Referral link copied to clipboard!');
       setTimeout(() => setMessage(''), 3000);
@@ -316,7 +346,7 @@ const ProfilePage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={profile.myReferralCode ? `${window.location.origin}/register?ref=${profile.myReferralCode}` : 'N/A'}
+                        value={user?.myReferralCode ? `${window.location.origin}/register?ref=${user.myReferralCode}` : 'N/A'}
                         readOnly
                       />
                       <button
@@ -334,9 +364,10 @@ const ProfilePage = () => {
                   <div className="mb-3">
                     <label className="form-label">Total Referrals</label>
                     <div className="d-flex align-items-center">
-                      <span className="h4 mb-0 me-2">{profile.totalReferralsBy || 0}</span>
+                      <span className="h4 mb-0 me-2">{referralData.totalReferrals}</span>
                       <span className="text-muted">users referred</span>
                     </div>
+                    <small className="text-success">Total earnings: ₹{referralData.totalEarnings.toFixed(2)}</small>
                   </div>
                 </div>
               </div>

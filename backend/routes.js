@@ -2151,14 +2151,16 @@ router.get('/referral/stats/:uid', async (req, res) => {
         const referredUser = referredUsers.find(ru => ru._id.toString() === ref.user.toString());
         const name = referredUser?.profile ? `${referredUser.profile.personalInfo?.firstName || ''} ${referredUser.profile.personalInfo?.lastName || ''}`.trim() : '';
         const phone = referredUser?.profile?.personalInfo?.phone || 'N/A';
+        const email = referredUser?.email || 'N/A';
         const joinedAt = ref.joinedAt || referredUser?.createdAt || new Date();
-        const completionPercentage = ref.profileComplete || referredUser?.myProfilePercent || 0;
-        const hasDeposited = ref.firstPayment || referredUser?.myFirstPayment || false;
+        const completionPercentage = referredUser?.profile?.status?.completionPercentage ?? ref.profileComplete ?? referredUser?.myProfilePercent ?? 0;
+        const hasDeposited = referredUser?.myFirstPayment || ref.firstPayment || false;
         const hasFirstPlan = ref.firstPlan || referredUser?.myFirstPlan || false;
         
         return {
           userId: ref.user,
           userName: name || referredUser?.email || 'User',
+          email,
           phone,
           completionPercentage,
           joinedAt,
@@ -2184,13 +2186,15 @@ router.get('/referral/stats/:uid', async (req, res) => {
       referralsList = referredUsers.map(ru => {
         const name = ru.profile ? `${ru.profile.personalInfo?.firstName || ''} ${ru.profile.personalInfo?.lastName || ''}`.trim() : '';
         const phone = ru.profile?.personalInfo?.phone || 'N/A';
+        const email = ru.email || 'N/A';
         const joinedAt = ru.createdAt || new Date();
-        const completionPercentage = typeof ru.myProfilePercent === 'number' ? ru.myProfilePercent : 0;
+        const completionPercentage = ru.profile?.status?.completionPercentage ?? ru.myProfilePercent ?? 0;
         const hasDeposited = !!ru.myFirstPayment;
         const hasFirstPlan = !!ru.myFirstPlan;
         return {
           userId: ru._id,
           userName: name || ru.email || 'User',
+          email,
           phone,
           completionPercentage,
           joinedAt,

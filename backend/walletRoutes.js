@@ -169,6 +169,13 @@ router.post('/razorpay-verify', async (req, res) => {
     });
     await depositTransaction.save();
 
+    // Mark user's first deposit (does not complete referral; completion happens on first plan)
+    if (!user.myFirstPayment) {
+      user.myFirstPayment = true;
+      user.myFirstPaymentAmount = depositAmount;
+      user.myFirstPaymentDate = new Date();
+    }
+
     // Note: Referral completion and bonus will be handled when user purchases a plan, not on deposit
     console.log('💳 Deposit processed - referral completion will happen on plan purchase');
 

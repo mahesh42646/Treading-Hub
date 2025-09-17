@@ -1230,6 +1230,319 @@ router.post('/process-referral/:uid', verifyAdminAuth, async (req, res) => {
   }
 });
 
+// Force referral processing for a specific user
+router.post('/force-referral-processing/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (!user.referredByCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'User was not referred by anyone'
+      });
+    }
+
+    // Find the referrer
+    const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+    if (!referrer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referrer not found'
+      });
+    }
+
+    // Check if user has made first payment/plan
+    if (!user.myFirstPayment && !user.myFirstPlan) {
+      return res.status(400).json({
+        success: false,
+        message: 'User has not made first payment or purchased plan'
+      });
+    }
+
+    // Find the referral record
+    const referralIndex = referrer.referrals.findIndex(
+      ref => ref.user.toString() === user._id.toString()
+    );
+
+    if (referralIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referral record not found'
+      });
+    }
+
+    // Update the referral record
+    const referralRecord = referrer.referrals[referralIndex];
+    referralRecord.firstPayment = user.myFirstPayment;
+    referralRecord.firstPlan = user.myFirstPlan;
+    referralRecord.refState = 'completed';
+    
+    if (user.myFirstPaymentAmount && !referralRecord.bonusCredited) {
+      const bonusAmount = Math.round(user.myFirstPaymentAmount * 0.20);
+      referralRecord.bonusCredited = true;
+      referralRecord.bonusAmount = bonusAmount;
+      
+      // Add bonus to referrer's wallet
+      if (!referrer.profile) {
+        referrer.profile = {};
+      }
+      if (!referrer.profile.wallet) {
+        referrer.profile.wallet = {
+          walletBalance: 0,
+          referralBalance: 0
+        };
+      }
+      referrer.profile.wallet.referralBalance += bonusAmount;
+    }
+
+    await referrer.save();
+
+    res.json({
+      success: true,
+      message: 'Referral processing forced successfully',
+      referral: {
+        refState: referralRecord.refState,
+        firstPayment: referralRecord.firstPayment,
+        firstPlan: referralRecord.firstPlan,
+        bonusCredited: referralRecord.bonusCredited,
+        bonusAmount: referralRecord.bonusAmount
+      }
+    });
+  } catch (error) {
+    console.error('Error forcing referral processing:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to force referral processing',
+      error: error.message
+    });
+  }
+});
+
+// Fix user flags for existing users with plans
+router.post('/fix-user-flags/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    let updated = false;
+    
+    // Check if user has plans but myFirstPlan is false
+    if (user.plans && user.plans.length > 0 && !user.myFirstPlan) {
+      user.myFirstPlan = true;
+      updated = true;
+      
+      // Find the first plan to set payment details
+      const firstPlan = user.plans[0];
+      if (firstPlan) {
+        user.myFirstPayment = true;
+        user.myFirstPaymentAmount = firstPlan.price;
+        user.myFirstPaymentDate = firstPlan.startDate || new Date();
+      }
+    }
+    
+    // Check if user has plans but myFirstPayment is false
+    if (user.plans && user.plans.length > 0 && !user.myFirstPayment) {
+      user.myFirstPayment = true;
+      if (!user.myFirstPaymentAmount && user.plans[0]) {
+        user.myFirstPaymentAmount = user.plans[0].price;
+        user.myFirstPaymentDate = user.plans[0].startDate || new Date();
+      }
+      updated = true;
+    }
+    
+    if (updated) {
+      await user.save();
+      
+      // Process referral if user was referred
+      if (user.referredByCode) {
+        try {
+          const { processFirstPayment } = require('./utils/simpleReferralUtils');
+          await processFirstPayment(user._id, user.myFirstPaymentAmount, 'plan');
+        } catch (refErr) {
+          console.error('Referral processing failed:', refErr);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: 'User flags updated successfully',
+        user: {
+          myFirstPlan: user.myFirstPlan,
+          myFirstPayment: user.myFirstPayment,
+          myFirstPaymentAmount: user.myFirstPaymentAmount,
+          plansCount: user.plans.length
+        }
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'No updates needed',
+        user: {
+          myFirstPlan: user.myFirstPlan,
+          myFirstPayment: user.myFirstPayment,
+          plansCount: user.plans.length
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error fixing user flags:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fix user flags',
+      error: error.message
+    });
+  }
+});
+
+// Debug referral data for a specific user
+router.get('/debug-referral/:uid', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Find the referrer
+    const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+    
+    res.json({
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        referredByCode: user.referredByCode,
+        myFirstPlan: user.myFirstPlan,
+        myFirstPayment: user.myFirstPayment,
+        myFirstPaymentAmount: user.myFirstPaymentAmount,
+        plansCount: user.plans.length
+      },
+      referrer: referrer ? {
+        uid: referrer.uid,
+        email: referrer.email,
+        myReferralCode: referrer.myReferralCode,
+        referralsCount: referrer.referrals.length,
+        referrals: referrer.referrals.map(ref => ({
+          userId: ref.user,
+          refState: ref.refState,
+          firstPayment: ref.firstPayment,
+          firstPlan: ref.firstPlan,
+          bonusCredited: ref.bonusCredited,
+          bonusAmount: ref.bonusAmount
+        }))
+      } : null
+    });
+  } catch (error) {
+    console.error('Error debugging referral:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to debug referral',
+      error: error.message
+    });
+  }
+});
+
+// Bulk fix all users with plans but incorrect flags
+router.post('/fix-all-user-flags', verifyAdminAuth, async (req, res) => {
+  try {
+    const users = await User.find({
+      'plans.0': { $exists: true }, // Users with at least one plan
+      $or: [
+        { myFirstPlan: false },
+        { myFirstPayment: false }
+      ]
+    });
+
+    let fixedCount = 0;
+    const results = [];
+
+    for (const user of users) {
+      let updated = false;
+      
+      // Check if user has plans but myFirstPlan is false
+      if (user.plans && user.plans.length > 0 && !user.myFirstPlan) {
+        user.myFirstPlan = true;
+        updated = true;
+        
+        // Find the first plan to set payment details
+        const firstPlan = user.plans[0];
+        if (firstPlan) {
+          user.myFirstPayment = true;
+          user.myFirstPaymentAmount = firstPlan.price;
+          user.myFirstPaymentDate = firstPlan.startDate || new Date();
+        }
+      }
+      
+      // Check if user has plans but myFirstPayment is false
+      if (user.plans && user.plans.length > 0 && !user.myFirstPayment) {
+        user.myFirstPayment = true;
+        if (!user.myFirstPaymentAmount && user.plans[0]) {
+          user.myFirstPaymentAmount = user.plans[0].price;
+          user.myFirstPaymentDate = user.plans[0].startDate || new Date();
+        }
+        updated = true;
+      }
+      
+      if (updated) {
+        await user.save();
+        fixedCount++;
+        
+        // Process referral if user was referred
+        if (user.referredByCode) {
+          try {
+            const { processFirstPayment } = require('./utils/simpleReferralUtils');
+            await processFirstPayment(user._id, user.myFirstPaymentAmount, 'plan');
+          } catch (refErr) {
+            console.error(`Referral processing failed for user ${user.uid}:`, refErr);
+          }
+        }
+        
+        results.push({
+          uid: user.uid,
+          email: user.email,
+          myFirstPlan: user.myFirstPlan,
+          myFirstPayment: user.myFirstPayment,
+          plansCount: user.plans.length
+        });
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Fixed ${fixedCount} users out of ${users.length} checked`,
+      fixedCount,
+      totalChecked: users.length,
+      results
+    });
+  } catch (error) {
+    console.error('Error bulk fixing user flags:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to bulk fix user flags',
+      error: error.message
+    });
+  }
+});
+
 // Trading Account Management
 
 // Get all trading accounts

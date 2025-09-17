@@ -156,9 +156,12 @@ router.post('/subscription/purchase', async (req, res) => {
       if (!Array.isArray(user.plans)) user.plans = [];
       user.plans.push(planEntry);
       
-      // Mark first plan flag for the user
-      if (isFirstPlan && !user.myFirstPlan) {
+      // Mark first plan flag for the user (always set when plan is purchased)
+      if (isFirstPlan) {
         user.myFirstPlan = true;
+        user.myFirstPayment = true;
+        user.myFirstPaymentAmount = plan.price;
+        user.myFirstPaymentDate = new Date();
       }
       
       await user.save();

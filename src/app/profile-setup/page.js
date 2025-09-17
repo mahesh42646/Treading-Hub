@@ -12,7 +12,6 @@ const ProfileSetup = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [phoneValidation, setPhoneValidation] = useState({ checking: false, available: null, message: '' });
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -31,53 +30,8 @@ const ProfileSetup = () => {
       ...prev,
       [name]: value
     }));
-
-    // Check phone number availability when phone field changes
-    if (name === 'phone' && value.length >= 10) {
-      checkPhoneAvailability(value);
-    } else if (name === 'phone') {
-      setPhoneValidation({ checking: false, available: null, message: '' });
-    }
   };
 
-  // Check if phone number is available
-  const checkPhoneAvailability = async (phone) => {
-    if (!phone || phone.length < 10) return;
-
-    setPhoneValidation({ checking: true, available: null, message: '' });
-
-    try {
-      const data = await userApi.checkPhone(phone);
-
-      if (data.success) {
-        if (data.exists) {
-          setPhoneValidation({ 
-            checking: false, 
-            available: false, 
-            message: 'This phone number is already registered with another account' 
-          });
-        } else {
-          setPhoneValidation({ 
-            checking: false, 
-            available: true, 
-            message: 'Phone number is available' 
-          });
-        }
-      } else {
-        setPhoneValidation({ 
-          checking: false, 
-          available: null, 
-          message: 'Error checking phone number availability' 
-        });
-      }
-    } catch (error) {
-      setPhoneValidation({ 
-        checking: false, 
-        available: null, 
-        message: 'Error checking phone number availability' 
-      });
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,50 +39,50 @@ const ProfileSetup = () => {
     setError('');
     setSuccess('');
 
-    // Validate required fields
-    if (!formData.firstName || !formData.lastName || !formData.gender || 
-        !formData.dateOfBirth || !formData.country || !formData.city || 
-        !formData.phone) {
-      setError('Please fill in all required fields');
-      setSubmitting(false);
-      return;
-    }
-
-    // Validate phone number availability
-    if (phoneValidation.available === false) {
-      setError('Please use a different phone number. This one is already registered.');
-      setSubmitting(false);
-      return;
-    }
-
     try {
-      const profileData = {
-        uid: user.uid,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        gender: formData.gender,
-        dateOfBirth: formData.dateOfBirth,
-        country: formData.country,
-        city: formData.city,
-        phone: formData.phone
-      };
+      // First, ensure user has a referral code by calling create user endpoint
+      console.log('Creating/updating user first...');
+      const userResponse = await fetch('https://0fare.com/api/api/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          isGoogleUser: false
+        }),
+      });
 
-      // Call API directly with correct URL
+      if (!userResponse.ok) {
+        throw new Error('Failed to create/update user');
+      }
+
+      console.log('User created/updated, now creating profile...');
+
+      // Now create the profile
       const response = await fetch('https://0fare.com/api/api/users/profile-setup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify({
+          uid: user.uid,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth,
+          country: formData.country,
+          city: formData.city,
+          phone: formData.phone
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
+      console.log('Response status:', response.status);
       const data = await response.json();
-
+      console.log('Response data:', data);
+      
       if (data.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');
         await refreshProfile();
@@ -138,8 +92,7 @@ const ProfileSetup = () => {
       }
     } catch (error) {
       console.error('Profile setup error:', error);
-      const errorMessage = error.message || 'An error occurred. Please try again.';
-      setError(`Error: ${errorMessage}`);
+      setError(`Error: ${error.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -318,10 +271,7 @@ const ProfileSetup = () => {
                     <label htmlFor="phone" className="form-label text-white">Phone Number *</label>
                     <input
                       type="tel"
-                      className={`form-control rounded-4 ${
-                        phoneValidation.available === false ? 'is-invalid' : 
-                        phoneValidation.available === true ? 'is-valid' : ''
-                      }`}
+                      className="form-control rounded-4"
                       id="phone"
                       name="phone"
                       value={formData.phone}
@@ -330,29 +280,11 @@ const ProfileSetup = () => {
                       placeholder="Enter your phone number"
                       style={{
                         background: 'rgba(60, 58, 58, 0.03)',
-                        border: phoneValidation.available === false 
-                          ? '1px solid rgba(220, 53, 69, 0.5)' 
-                          : phoneValidation.available === true 
-                          ? '1px solid rgba(25, 135, 84, 0.5)' 
-                          : '1px solid rgba(124, 124, 124, 0.39)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
                         backdropFilter: 'blur(20px)',
                         color: 'white'
                       }}
                     />
-                    {phoneValidation.checking && (
-                      <small className="text-info">
-                        <i className="bi bi-arrow-clockwise me-1"></i>
-                        Checking phone number availability...
-                      </small>
-                    )}
-                    {phoneValidation.message && !phoneValidation.checking && (
-                      <small className={`${
-                        phoneValidation.available === false ? 'text-danger' : 
-                        phoneValidation.available === true ? 'text-success' : 'text-warning'
-                      }`}>
-                        {phoneValidation.message}
-                      </small>
-                    )}
                   </div>
 
                   <div className="alert alert-info rounded-4 mb-3" style={{
@@ -373,7 +305,7 @@ const ProfileSetup = () => {
                   <button
                     type="submit"
                     className="btn w-100 rounded-4"
-                    disabled={submitting || phoneValidation.available === false}
+                    disabled={submitting}
                     style={{
                       background: 'rgba(60, 58, 58, 0.03)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',

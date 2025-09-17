@@ -268,10 +268,12 @@ export default function DashboardReferral() {
                         <td>
                           <strong className="text-success">₹{referral.bonusEarned || 0}</strong>
                           {referral.bonusCreditedAt && (
-                            <br />
-                            <small className="text-muted">
-                              {new Date(referral.bonusCreditedAt).toLocaleDateString()}
-                            </small>
+                            <>
+                              <br />
+                              <small className="text-muted">
+                                {new Date(referral.bonusCreditedAt).toLocaleDateString()}
+                              </small>
+                            </>
                           )}
                         </td>
                         <td>

@@ -625,6 +625,21 @@ router.post('/profile-setup', async (req, res) => {
       });
     }
 
+    // Initialize referral fields if missing (for existing users)
+    if (!user.myReferralCode) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 10; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      user.myReferralCode = code;
+    }
+    if (user.myProfilePercent === undefined) user.myProfilePercent = 0;
+    if (user.myFirstPayment === undefined) user.myFirstPayment = false;
+    if (user.myFirstPlan === undefined) user.myFirstPlan = false;
+    if (!user.referrals) user.referrals = [];
+    if (user.totalReferralsBy === undefined) user.totalReferralsBy = 0;
+
     // Check if profile already exists
     const existingProfile = await Profile.findOne({ userId: user._id });
     if (existingProfile) {
@@ -673,10 +688,13 @@ router.post('/profile-setup', async (req, res) => {
       }
     });
 
-    // SIMPLE: Just copy referral code from user to profile
-    profile.myReferralCode = user.myReferralCode;
+    // SIMPLE: Just copy referral code from user to profile (with fallback)
+    profile.myReferralCode = user.myReferralCode || null;
     
-    // Update profile completion percentage
+    // Update profile completion percentage (initialize if needed)
+    if (user.myProfilePercent === undefined) {
+      user.myProfilePercent = 0;
+    }
     user.myProfilePercent = completionPercentage;
     await user.save();
     

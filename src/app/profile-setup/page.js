@@ -113,7 +113,21 @@ const ProfileSetup = () => {
         phone: formData.phone
       };
 
-      const data = await userApi.profileSetup(profileData);
+      // Call API directly with correct URL
+      const response = await fetch('https://0fare.com/api/api/users/profile-setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       if (data.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');

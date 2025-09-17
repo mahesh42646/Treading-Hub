@@ -27,8 +27,12 @@ const Dashboard = () => {
     const fetchReferralData = async () => {
       if (!user?.uid) return;
       
+      console.log('🔍 User object:', user);
+      console.log('🔍 Profile object:', profile);
+      
       try {
         const data = await userApi.getReferralStats(user.uid);
+        console.log('🔍 Referral stats data:', data);
         setReferralData({
           referralCode: data.stats?.referralCode || data.stats?.myReferralCode || '',
           totalReferrals: data.stats?.totalReferrals || 0,
@@ -40,7 +44,7 @@ const Dashboard = () => {
     };
 
     fetchReferralData();
-  }, [user]);
+  }, [user, profile]);
 
   const handleLogout = async () => {
     try {

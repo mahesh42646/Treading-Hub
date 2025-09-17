@@ -236,7 +236,9 @@ router.post('/create', async (req, res) => {
       uid,
       email,
       emailVerified: emailVerified || isGoogleUser || false,
-      referredBy: referredBy || null
+      referredBy: referredBy || null,
+      // Ensure stats endpoints (which query referredByCode) can see the relationship immediately
+      referredByCode: referredBy || null
     });
 
     console.log('💾 About to save user with data:', {
@@ -2092,7 +2094,13 @@ router.get('/referral/stats/:uid', async (req, res) => {
     }
 
     // Build referral stats by querying users who used this user's code
-    const referredUsers = await User.find({ referredByCode: user.myReferralCode });
+    // Support both new field `referredByCode` and legacy `referredBy`
+    const referredUsers = await User.find({
+      $or: [
+        { referredByCode: user.myReferralCode },
+        { referredBy: user.myReferralCode }
+      ]
+    });
 
     // Map referral data
     const referralsList = referredUsers.map(ru => {

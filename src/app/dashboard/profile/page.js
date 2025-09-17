@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const fetchReferralData = async () => {
     try {
       const data = await userApi.getReferralStats(user.uid);
+      console.log('🔍 Profile referral stats data:', data);
       setReferralData({
         referralCode: data.stats?.referralCode || data.stats?.myReferralCode || '',
         totalReferrals: data.stats?.totalReferrals || 0,
@@ -346,7 +347,7 @@ const ProfilePage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={user?.myReferralCode ? `${window.location.origin}/register?ref=${user.myReferralCode}` : 'N/A'}
+                        value={referralData.referralCode ? `${window.location.origin}/register?ref=${referralData.referralCode}` : 'N/A'}
                         readOnly
                       />
                       <button

@@ -112,12 +112,12 @@ const SupportPage = () => {
     <div className="container py-4 px-lg-4">
    
         <div className="col-12">
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+          <div className="mb-3 mb-md-0">
             <h1 className="page-title mb-1">Support Center</h1>
             <p className="page-subtitle text-muted">Get help with your account and trading questions</p>
           </div>
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="/faq" className="btn btn-outline-primary">
               <i className="bi bi-question-circle"></i> FAQ
             </a>

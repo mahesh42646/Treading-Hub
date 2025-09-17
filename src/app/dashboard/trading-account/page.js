@@ -22,13 +22,12 @@ export default function DashboardTradingAccount() {
     referralAmount: 0
   });
 
-  // Check if profile is complete
+  // Check if profile is complete (new unified status)
   const isProfileComplete = () => {
     if (!profile) return false;
-    const completion = profile.profileCompletion;
-    return completion?.personalInfo && 
-           completion?.kycDocuments && 
-           completion?.kycStatus === 'approved';
+    const kycStatus = profile.kyc?.status;
+    const percent = profile.status?.completionPercentage || 0;
+    return percent >= 100 || kycStatus === 'approved';
   };
 
   useEffect(() => {
@@ -90,7 +89,8 @@ export default function DashboardTradingAccount() {
 
       const response = await api.post('/subscription/purchase', {
         planId: selectedPlan._id,
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        uid: user.uid
       });
 
       if (response.success) {

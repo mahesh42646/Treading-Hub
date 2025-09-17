@@ -189,16 +189,17 @@ router.post('/create', async (req, res) => {
       if (!existingUser.referredBy && referredBy) {
         console.log('🔄 Updating existing user with referral code:', referredBy);
         
-        // Validate referral code first
-        const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
-        if (referrerProfile) {
+        // Validate referral code first (new system on User.myReferralCode)
+        const referrerUser = await User.findOne({ myReferralCode: referredBy });
+        if (referrerUser) {
           existingUser.referredBy = referredBy;
           await existingUser.save();
           
           // Update referrer's pending count
-          referrerProfile.referral.totalReferrals += 1;
-          referrerProfile.referral.pendingReferrals += 1;
-          await referrerProfile.save();
+          try {
+            referrerUser.totalReferralsBy = (referrerUser.totalReferralsBy || 0) + 1;
+            await referrerUser.save();
+          } catch {}
           
           console.log('✅ Updated existing user with referral code and referrer stats');
         } else {
@@ -224,21 +225,18 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Validate referral code if provided
+    // Validate referral code if provided (new system on User)
     let validReferralCode = null;
     if (referredBy) {
       console.log('🔍 Validating referral code:', referredBy);
-      const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
-      if (referrerProfile) {
+      const referrerUser = await User.findOne({ myReferralCode: referredBy });
+      if (referrerUser) {
         validReferralCode = referredBy;
         console.log('✅ Valid referral code provided:', referredBy);
-        console.log('✅ Referrer found:', {
-          name: `${referrerProfile.personalInfo.firstName} ${referrerProfile.personalInfo.lastName}`,
-          userId: referrerProfile.userId
-        });
+        console.log('✅ Referrer found:', { userId: referrerUser._id.toString() });
       } else {
         console.log('❌ Invalid referral code provided:', referredBy);
-        console.log('❌ No profile found with referral code:', referredBy);
+        console.log('❌ No user found with referral code:', referredBy);
       }
     } else {
       console.log('ℹ️ No referral code provided in request');
@@ -307,7 +305,7 @@ router.post('/create', async (req, res) => {
     await user.save();
     console.log('✅ User created with referral code:', userReferralCode);
 
-    // If user was referred, add referral record
+    // If user was referred, add referral record (new system)
     if (validReferralCode) {
       try {
         const referrer = await User.findOne({ myReferralCode: validReferralCode });

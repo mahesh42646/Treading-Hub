@@ -450,8 +450,6 @@ router.post('/create-with-profile', async (req, res) => {
       }
     });
 
-    await profile.save();
-
     // MANDATORY: Initialize referral code for new user
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let profileReferralCode = '';
@@ -494,7 +492,12 @@ router.post('/create-with-profile', async (req, res) => {
     user.totalReferralsBy = 0;
     user.referredByCode = referredBy || null;
     
+    // Store referral code in profile as well
+    profile.myReferralCode = profileReferralCode;
+    
     await user.save();
+    await profile.save();
+    
     console.log('✅ User created with referral code:', profileReferralCode);
 
     // If user was referred, add referral record
@@ -668,8 +671,10 @@ router.post('/profile-setup', async (req, res) => {
       }
     });
 
-    // MANDATORY: Generate referral code - profile creation depends on this
+    // Check if user already has referral code, if not create one
     if (!user.myReferralCode) {
+      console.log('⚠️ User missing referral code, generating new one...');
+      
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let setupReferralCode = '';
       let isUnique = false;
@@ -699,21 +704,28 @@ router.post('/profile-setup', async (req, res) => {
         });
       }
       
-      // Initialize all required referral fields
+      // Initialize referral fields only if missing
       user.myReferralCode = setupReferralCode;
-      user.myProfilePercent = completionPercentage;
-      user.myFirstPayment = false;
-      user.myFirstPlan = false;
-      user.myFirstPaymentDate = null;
-      user.myFirstPaymentAmount = 0;
-      user.referrals = [];
-      user.totalReferralsBy = 0;
-      user.referredByCode = user.referredByCode || null;
+      user.myFirstPayment = user.myFirstPayment !== undefined ? user.myFirstPayment : false;
+      user.myFirstPlan = user.myFirstPlan !== undefined ? user.myFirstPlan : false;
+      user.myFirstPaymentDate = user.myFirstPaymentDate || null;
+      user.myFirstPaymentAmount = user.myFirstPaymentAmount !== undefined ? user.myFirstPaymentAmount : 0;
+      user.referrals = user.referrals || [];
+      user.totalReferralsBy = user.totalReferralsBy !== undefined ? user.totalReferralsBy : 0;
       
       await user.save();
-      console.log('✅ Referral code CREATED for user:', user._id, 'Code:', setupReferralCode);
+      console.log('✅ NEW referral code created for user:', user._id, 'Code:', setupReferralCode);
+    } else {
+      console.log('✅ User already has referral code:', user.myReferralCode);
     }
 
+    // Update profile completion percentage
+    user.myProfilePercent = completionPercentage;
+    await user.save();
+
+    // Store referral code in profile for easy access
+    profile.myReferralCode = user.myReferralCode;
+    
     await profile.save();
 
     // Update user email verification status if needed

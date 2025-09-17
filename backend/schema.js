@@ -198,6 +198,11 @@ const profileSchema = new mongoose.Schema({
   },
 
 
+  // Referral Code (copied from User schema for easy access)
+  myReferralCode: {
+    type: String
+  },
+
   // Profile Status
   status: {
     isActive: {

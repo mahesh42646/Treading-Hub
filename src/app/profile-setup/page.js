@@ -85,30 +85,23 @@ const ProfileSetup = () => {
     setError('');
     setSuccess('');
 
-    console.log('🚀 FRONTEND: Profile setup started');
-    console.log('👤 FRONTEND: User data:', user);
-    console.log('📝 FRONTEND: Form data:', formData);
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.gender || 
+        !formData.dateOfBirth || !formData.country || !formData.city || 
+        !formData.phone) {
+      setError('Please fill in all required fields');
+      setSubmitting(false);
+      return;
+    }
 
     // Validate phone number availability
     if (phoneValidation.available === false) {
-      console.log('❌ FRONTEND: Phone validation failed');
       setError('Please use a different phone number. This one is already registered.');
       setSubmitting(false);
       return;
     }
 
     try {
-      // Validate required fields
-      if (!formData.firstName || !formData.lastName || !formData.gender || 
-          !formData.dateOfBirth || !formData.country || !formData.city || 
-          !formData.phone) {
-        console.log('❌ FRONTEND: Required fields missing');
-        setError('Please fill in all required fields');
-        setSubmitting(false);
-        return;
-      }
-
-      // Create profile data
       const profileData = {
         uid: user.uid,
         firstName: formData.firstName,
@@ -120,37 +113,19 @@ const ProfileSetup = () => {
         phone: formData.phone
       };
 
-      console.log('📤 FRONTEND: Sending profile data:', profileData);
-      console.log('🌐 FRONTEND: API endpoint will be called...');
-
       const data = await userApi.profileSetup(profileData);
 
-      console.log('📥 FRONTEND: API response received:', data);
-
       if (data.success) {
-        console.log('✅ FRONTEND: Profile created successfully');
         setSuccess('Profile created successfully! Redirecting to dashboard...');
-        
-        // Refresh profile in auth context
-        console.log('🔄 FRONTEND: Refreshing profile...');
         await refreshProfile();
-        
-        setTimeout(() => {
-          console.log('🚀 FRONTEND: Redirecting to dashboard...');
-          router.push('/dashboard');
-        }, 2000);
+        setTimeout(() => router.push('/dashboard'), 2000);
       } else {
-        console.log('❌ FRONTEND: API returned error:', data.message);
         setError(data.message || 'Failed to create profile');
       }
     } catch (error) {
-      console.log('💥 FRONTEND: Exception caught:', error);
-      console.log('💥 FRONTEND: Error message:', error.message);
-      console.log('💥 FRONTEND: Error stack:', error.stack);
+      console.error('Profile setup error:', error.message);
       setError('An error occurred. Please try again.');
-      console.error('Profile setup error:', error);
     } finally {
-      console.log('🏁 FRONTEND: Profile setup completed');
       setSubmitting(false);
     }
   };

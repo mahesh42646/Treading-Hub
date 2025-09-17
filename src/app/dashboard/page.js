@@ -24,6 +24,9 @@ const Dashboard = () => {
     }
   };
 
+  // Check if user has profile data
+  const hasProfile = profile && profile.personalInfo && profile.personalInfo.firstName;
+
   // Handle resend email verification
   const handleResendEmail = async () => {
     if (!user) return;
@@ -104,7 +107,7 @@ const Dashboard = () => {
       <div className="row mb-4">
         <div className="col-12">
           {/* Profile Setup Alert */}
-          {!profile && shouldShowAlert('profile-setup') && (
+          {!hasProfile && shouldShowAlert('profile-setup') && (
             <div className="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
                   <div className="d-flex align-items-start">
                 <i className="bi bi-info-circle me-3 mt-1 fs-4"></i>
@@ -156,7 +159,7 @@ const Dashboard = () => {
               )}
               
           {/* KYC Status Alerts */}
-          {profile && kycStatusInfo && shouldShowAlert('kyc-status') && (
+          {hasProfile && kycStatusInfo && shouldShowAlert('kyc-status') && (
             <div className={`alert alert-${kycStatusInfo.badge === 'bg-warning' ? 'warning' : kycStatusInfo.badge === 'bg-info' ? 'info' : kycStatusInfo.badge === 'bg-success' ? 'success' : kycStatusInfo.badge === 'bg-danger' ? 'danger' : 'secondary'} alert-dismissible fade show rounded-3 mb-3`} role="alert">
                   <div className="d-flex align-items-start">
                 <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`}></i>
@@ -253,7 +256,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="text-muted mb-1">Referral Code</h6>
-                  <h4 className="fw-bold mb-0">{profile?.myReferralCode || 'N/A'}</h4>
+                  <h4 className="fw-bold mb-0">{user?.myReferralCode || 'N/A'}</h4>
                   <small className="text-muted">0 referrals</small>
                 </div>
                   </div>
@@ -299,7 +302,7 @@ const Dashboard = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                {!profile && (
+                {!hasProfile && (
                   <button 
                     className="btn btn-primary"
                     onClick={() => router.push('/profile-setup')}

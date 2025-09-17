@@ -15,7 +15,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 }
 
 // Import models
-const { User, Profile } = require('./schema');
+const { User } = require('./schema');
 const Transaction = require('./models/Transaction');
 const Withdrawal = require('./models/Withdrawal');
 
@@ -128,7 +128,7 @@ router.post('/razorpay-verify', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -170,13 +170,13 @@ router.post('/razorpay-verify', async (req, res) => {
     await depositTransaction.save();
 
     // Check if this is the first deposit and user has a referrer
-    if (profile.referral.referredBy && profile.wallet.totalDeposits === depositAmount) {
+    if (user.referredByCode && profile.wallet.totalDeposits === depositAmount) {
       // Find referrer and credit referral bonus
-      const referrerProfile = await Profile.findOne({ 'referral.code': profile.referral.referredBy });
+      const referrerUser = await User.findOne({ 'myReferralCode': user.referredByCode });
       
-      if (referrerProfile) {
-        if (!referrerProfile.wallet) {
-          referrerProfile.wallet = {
+      if (referrerUser && referrerUser.profile) {
+        if (!referrerUser.profile.wallet) {
+          referrerUser.profile.wallet = {
             walletBalance: 0,
             referralBalance: 0,
             totalDeposits: 0,
@@ -185,22 +185,11 @@ router.post('/razorpay-verify', async (req, res) => {
         }
         
         const referralBonus = depositAmount * 0.2; // 20% of first deposit
-        referrerProfile.wallet.referralBalance += referralBonus;
-        
-        // Update referral counts
-        if (!referrerProfile.referral) {
-          referrerProfile.referral = {
-            totalReferrals: 0,
-            completedReferrals: 0,
-            pendingReferrals: 0
-          };
-        }
-        referrerProfile.referral.completedReferrals += 1;
-        referrerProfile.referral.pendingReferrals = Math.max(0, referrerProfile.referral.pendingReferrals - 1);
+        referrerUser.profile.wallet.referralBalance += referralBonus;
         
         // Create referral bonus transaction for referrer
         const referralTransaction = new Transaction({
-          userId: referrerProfile.userId,
+          userId: referrerUser._id,
           type: 'referral_bonus',
           amount: referralBonus,
           description: `Referral bonus from ${profile.personalInfo?.firstName || 'User'}'s first deposit`,
@@ -214,11 +203,11 @@ router.post('/razorpay-verify', async (req, res) => {
           processedAt: new Date()
         });
         await referralTransaction.save();
-        await referrerProfile.save();
+        await referrerUser.save();
       }
     }
 
-    await profile.save();
+    await user.save();
 
     res.json({
       success: true,
@@ -249,7 +238,7 @@ router.get('/balance/:uid', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -265,7 +254,7 @@ router.get('/balance/:uid', async (req, res) => {
         totalDeposits: 0,
         totalWithdrawals: 0
       };
-      await profile.save();
+      await user.save();
     }
 
     // Get transactions
@@ -348,7 +337,7 @@ router.post('/withdraw', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -390,7 +379,7 @@ router.post('/withdraw', async (req, res) => {
       profile.wallet.referralBalance -= amount;
     }
     
-    await profile.save();
+    await user.save();
 
     // Create withdrawal request
     const withdrawal = new Withdrawal({
@@ -521,7 +510,7 @@ router.get('/referral-history/:uid', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -539,11 +528,10 @@ router.get('/referral-history/:uid', async (req, res) => {
     .skip((page - 1) * limit);
 
     // Get users who used this user's referral code
-    const referredUsers = await Profile.find({ 
-      'referral.referredBy': profile.referral.code 
+    const referredUsers = await User.find({ 
+      'referredByCode': user.myReferralCode 
     })
-    .populate('userId', 'uid email')
-    .select('personalInfo referral wallet')
+    .select('uid email profile.personalInfo profile.wallet createdAt')
     .sort({ createdAt: -1 });
 
     // Get total referral earnings
@@ -555,18 +543,18 @@ router.get('/referral-history/:uid', async (req, res) => {
     res.json({
       success: true,
       referralTransactions: referralTransactions,
-      referredUsers: referredUsers.map(user => ({
-        uid: user.userId.uid,
-        email: user.userId.email,
-        name: `${user.personalInfo?.firstName || ''} ${user.personalInfo?.lastName || ''}`.trim(),
-        joinedAt: user.createdAt,
-        hasDeposited: user.wallet?.totalDeposits > 0,
-        totalDeposits: user.wallet?.totalDeposits || 0,
-        referralBonus: user.wallet?.totalDeposits > 0 ? user.wallet.totalDeposits * 0.2 : 0
+      referredUsers: referredUsers.map(referredUser => ({
+        uid: referredUser.uid,
+        email: referredUser.email,
+        name: `${referredUser.profile?.personalInfo?.firstName || ''} ${referredUser.profile?.personalInfo?.lastName || ''}`.trim(),
+        joinedAt: referredUser.createdAt,
+        hasDeposited: referredUser.profile?.wallet?.totalDeposits > 0,
+        totalDeposits: referredUser.profile?.wallet?.totalDeposits || 0,
+        referralBonus: referredUser.profile?.wallet?.totalDeposits > 0 ? referredUser.profile.wallet.totalDeposits * 0.2 : 0
       })),
       totalReferralEarnings: totalReferralEarnings[0]?.total || 0,
       totalReferred: referredUsers.length,
-      activeReferred: referredUsers.filter(user => user.wallet?.totalDeposits > 0).length
+      activeReferred: referredUsers.filter(user => user.profile?.wallet?.totalDeposits > 0).length
     });
   } catch (error) {
     console.error('Error fetching referral history:', error);

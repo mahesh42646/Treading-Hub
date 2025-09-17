@@ -18,10 +18,10 @@ export default function DashboardReferral() {
       setReferralData({
         referralCode: data.stats?.referralCode || data.stats?.myReferralCode,
         stats: {
-          totalReferrals: data.stats?.totalReferrals || 0,
-          completedReferrals: data.stats?.completedReferrals || 0,
-          pendingReferrals: data.stats?.pendingReferrals || 0,
-          totalEarnings: data.stats?.totalEarnings || 0
+          totalReferrals: data.totalReferrals || 0,
+          completedReferrals: data.activeReferrals || 0,
+          pendingReferrals: (data.totalReferrals || 0) - (data.activeReferrals || 0),
+          totalEarnings: data.totalEarnings || 0
         },
         referrals: data.referrals || []
       });

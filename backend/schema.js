@@ -102,213 +102,183 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'moderator'],
     default: 'user'
+  },
+
+  // Profile Information - merged from Profile schema
+  profile: {
+    // Personal Information
+    personalInfo: {
+      firstName: {
+        type: String,
+        trim: true
+      },
+      lastName: {
+        type: String,
+        trim: true
+      },
+      gender: {
+        type: String,
+        enum: ['male', 'female', 'other']
+      },
+      dateOfBirth: {
+        type: Date
+      },
+      phone: {
+        type: String,
+        trim: true
+      },
+      country: {
+        type: String,
+        trim: true
+      },
+      city: {
+        type: String,
+        trim: true
+      }
+    },
+
+    // KYC Information
+    kyc: {
+      status: {
+        type: String,
+        enum: ['not_applied', 'applied', 'approved', 'rejected'],
+        default: 'not_applied'
+      },
+      panCardNumber: {
+        type: String,
+        trim: true
+      },
+      panHolderName: {
+        type: String,
+        trim: true
+      },
+      panCardImage: {
+        type: String
+      },
+      profilePhoto: {
+        type: String
+      },
+      rejectionNote: {
+        type: String,
+        default: null
+      },
+      appliedAt: {
+        type: Date
+      },
+      approvedAt: {
+        type: Date
+      },
+      rejectedAt: {
+        type: Date
+      },
+      approvedBy: {
+        type: String
+      },
+      rejectedBy: {
+        type: String
+      }
+    },
+
+    // Profile Status
+    status: {
+      isActive: {
+        type: Boolean,
+        default: false
+      },
+      completionPercentage: {
+        type: Number,
+        default: 0
+      },
+      completedFields: [{
+        type: String
+      }]
+    },
+
+    // Wallet System
+    wallet: {
+      walletBalance: {
+        type: Number,
+        default: 0
+      },
+      referralBalance: {
+        type: Number,
+        default: 0
+      },
+      totalDeposits: {
+        type: Number,
+        default: 0
+      },
+      totalWithdrawals: {
+        type: Number,
+        default: 0
+      },
+      currency: {
+        type: String,
+        default: 'INR'
+      }
+    },
+
+    // Transaction History
+    transactions: [{
+      type: {
+        type: String,
+        enum: ['deposit', 'withdrawal', 'referral_bonus', 'profit', 'fee'],
+        required: true
+      },
+      amount: {
+        type: Number,
+        required: true
+      },
+      description: {
+        type: String,
+        required: true
+      },
+      status: {
+        type: String,
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
+      },
+      paymentMethod: {
+        type: String,
+        enum: ['razorpay', 'bank_transfer', 'upi', 'card'],
+        default: 'razorpay'
+      },
+      transactionId: {
+        type: String
+      },
+      date: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+
+    // Trading Stats (for future development)
+    tradingStats: {
+      totalTrades: {
+        type: Number,
+        default: 0
+      },
+      winningTrades: {
+        type: Number,
+        default: 0
+      },
+      totalProfit: {
+        type: Number,
+        default: 0
+      },
+      winRate: {
+        type: Number,
+        default: 0
+      }
+    }
   }
 }, {
   timestamps: true
 });
-
-// Profile Schema - Completely reworked with clean structure
-const profileSchema = new mongoose.Schema({
-  // Reference to User
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true
-  },
-
-  // Personal Information
-  personalInfo: {
-    firstName: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    lastName: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    gender: {
-      type: String,
-      enum: ['male', 'female', 'other'],
-      required: true
-    },
-    dateOfBirth: {
-      type: Date,
-      required: true
-    },
-    phone: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    country: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    city: {
-      type: String,
-      required: true,
-      trim: true
-    }
-  },
-
-  // KYC Information
-  kyc: {
-    status: {
-      type: String,
-      enum: ['not_applied', 'applied', 'approved', 'rejected'],
-      default: 'not_applied'
-    },
-    panCardNumber: {
-      type: String,
-      trim: true
-    },
-    panHolderName: {
-      type: String,
-      trim: true
-    },
-    panCardImage: {
-      type: String
-    },
-    profilePhoto: {
-      type: String
-    },
-    rejectionNote: {
-      type: String,
-      default: null
-    },
-    appliedAt: {
-      type: Date
-    },
-    approvedAt: {
-      type: Date
-    },
-    rejectedAt: {
-      type: Date
-    },
-    approvedBy: {
-      type: String
-    },
-    rejectedBy: {
-      type: String
-    }
-  },
-
-
-  // Referral Code (copied from User schema for easy access)
-  myReferralCode: {
-    type: String
-  },
-
-  // Profile Status
-  status: {
-    isActive: {
-      type: Boolean,
-      default: false
-    },
-    completionPercentage: {
-      type: Number,
-      default: 0
-    },
-    completedFields: [{
-      type: String
-    }]
-  },
-
-  // Wallet System
-  wallet: {
-    walletBalance: {
-      type: Number,
-      default: 0
-    },
-    referralBalance: {
-      type: Number,
-      default: 0
-    },
-    totalDeposits: {
-      type: Number,
-      default: 0
-    },
-    totalWithdrawals: {
-      type: Number,
-      default: 0
-    },
-    currency: {
-      type: String,
-      default: 'INR'
-    }
-  },
-
-  // Transaction History
-  transactions: [{
-    type: {
-      type: String,
-      enum: ['deposit', 'withdrawal', 'referral_bonus', 'profit', 'fee'],
-      required: true
-    },
-    amount: {
-      type: Number,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'completed', 'failed'],
-      default: 'pending'
-    },
-    paymentMethod: {
-      type: String,
-      enum: ['razorpay', 'bank_transfer', 'upi', 'card'],
-      default: 'razorpay'
-    },
-    transactionId: {
-      type: String
-    },
-    date: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-
-  // Trading Stats (for future development)
-  tradingStats: {
-    totalTrades: {
-      type: Number,
-      default: 0
-    },
-    winningTrades: {
-      type: Number,
-      default: 0
-    },
-    totalProfit: {
-      type: Number,
-      default: 0
-    },
-    winRate: {
-      type: Number,
-      default: 0
-    }
-  }
-
-}, {
-  timestamps: true
-});
-
-// Note: Referral code is managed on the User model and copied into
-// Profile as `myReferralCode` during profile creation. No pre-save
-// hook is needed here.
 
 // Create models
 const User = mongoose.model('User', userSchema);
-const Profile = mongoose.model('Profile', profileSchema);
 
 module.exports = {
-  User,
-  Profile
+  User
 };

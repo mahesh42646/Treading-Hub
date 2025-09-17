@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import models
-const { User, Profile } = require('./schema');
+const { User } = require('./schema');
 const Plan = require('./models/Plan');
 const Subscription = require('./models/Subscription');
 const TradingAccount = require('./models/TradingAccount');
@@ -87,7 +87,7 @@ router.post('/subscription/purchase', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,

@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const { User, Profile } = require('./schema');
+const { User } = require('./schema');
 const Plan = require('./models/Plan');
 const SupportTicket = require('./models/SupportTicket');
 
@@ -58,7 +58,7 @@ router.get('/check-phone/:phone', async (req, res) => {
     const { phone } = req.params;
 
     // Check if phone number exists in any profile
-    const existingProfile = await Profile.findOne({ 'personalInfo.phone': phone });
+    const existingProfile = await User.findOne({ 'profile.personalInfo.phone': phone });
     
     res.json({
       success: true,
@@ -81,7 +81,7 @@ router.get('/check-pan/:panNumber', async (req, res) => {
     const { panNumber } = req.params;
 
     // Check if PAN number exists in any profile
-    const existingProfile = await Profile.findOne({ 'kyc.panCardNumber': panNumber });
+    const existingProfile = await User.findOne({ 'profile.kyc.panCardNumber': panNumber });
     
     res.json({
       success: true,
@@ -371,7 +371,7 @@ router.post('/create-with-profile', async (req, res) => {
     }
 
     // Check if phone number already exists
-    const existingPhone = await Profile.findOne({ phone });
+    const existingPhone = await User.findOne({ 'profile.personalInfo.phone': phone });
     if (existingPhone) {
       return res.status(400).json({
         success: false,
@@ -397,10 +397,10 @@ router.post('/create-with-profile', async (req, res) => {
     
     // If referral code provided, validate it
     if (referredBy) {
-      const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
-      if (referrerProfile) {
+      const referrerUser = await User.findOne({ 'myReferralCode': referredBy });
+      if (referrerUser) {
         // Check if user is not referring themselves
-        if (referrerProfile.userId.toString() === user._id.toString()) {
+        if (referrerUser._id.toString() === user._id.toString()) {
           referredBy = null; // Can't refer yourself
         }
       } else {
@@ -408,9 +408,8 @@ router.post('/create-with-profile', async (req, res) => {
       }
     }
 
-    // Create profile with new schema structure
-    const profile = new Profile({
-      userId: user._id,
+    // Update user with profile information
+    user.profile = {
       personalInfo: {
         firstName,
         lastName,
@@ -428,9 +427,6 @@ router.post('/create-with-profile', async (req, res) => {
       kyc: {
         status: 'not_applied'
       },
-      referral: {
-        referredBy: referredBy
-      },
       wallet: {
         walletBalance: 0,
         referralBalance: 0,
@@ -438,7 +434,7 @@ router.post('/create-with-profile', async (req, res) => {
         totalWithdrawals: 0,
         currency: 'INR'
       }
-    });
+    };
 
     // MANDATORY: Initialize referral code for new user
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -462,8 +458,7 @@ router.post('/create-with-profile', async (req, res) => {
     }
     
     if (!isUnique) {
-      // Delete the user and profile we just created since referral code generation failed
-      await Profile.findByIdAndDelete(profile._id);
+      // Delete the user we just created since referral code generation failed
       await User.findByIdAndDelete(user._id);
       return res.status(500).json({
         success: false,
@@ -482,11 +477,7 @@ router.post('/create-with-profile', async (req, res) => {
     user.totalReferralsBy = 0;
     user.referredByCode = referredBy || null;
     
-    // Store referral code in profile as well
-    profile.myReferralCode = profileReferralCode;
-    
     await user.save();
-    await profile.save();
     
     console.log('✅ User created with referral code:', profileReferralCode);
 
@@ -558,7 +549,7 @@ router.get('/profile/:uid', async (req, res) => {
     }
 
     // Find profile
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     
     res.json({
       success: true,
@@ -634,7 +625,7 @@ router.post('/profile-setup', async (req, res) => {
 
     // Save both user and profile
     await user.save();
-    await profile.save();
+    await user.save();
     
     console.log('✅ Profile data stored successfully');
 
@@ -678,24 +669,15 @@ router.put('/profile/:uid', async (req, res) => {
       });
     }
 
-    // Find and update profile
-    const profile = await Profile.findOneAndUpdate(
-      { userId: user._id },
-      { ...updateData, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Profile not found'
-      });
-    }
+    // Update user profile
+    Object.assign(user.profile, updateData);
+    user.updatedAt = new Date();
+    await user.save();
 
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      profile
+      profile: user.profile
     });
   } catch (error) {
     console.error('Error updating profile:', error);
@@ -712,8 +694,8 @@ router.get('/referral/:code', async (req, res) => {
   try {
     const { code } = req.params;
 
-    const profile = await Profile.findOne({ referralCode: code });
-    if (!profile) {
+    const user = await User.findOne({ myReferralCode: code });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Referral code not found'
@@ -723,9 +705,9 @@ router.get('/referral/:code', async (req, res) => {
     res.json({
       success: true,
       profile: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        referralCode: profile.referralCode
+        firstName: user.profile?.personalInfo?.firstName,
+        lastName: user.profile?.personalInfo?.lastName,
+        referralCode: user.myReferralCode
       }
     });
   } catch (error) {
@@ -759,31 +741,22 @@ router.put('/update-email-verification/:uid', async (req, res) => {
     }
 
     // If user has a profile, also update the profile's email verification status
-    const profile = await Profile.findOne({ userId: user._id });
-    if (profile) {
-      const updateData = {};
-      
+    if (user.profile) {
       // Update KYC details
-      if (profile.profileCompletion?.kycDetails) {
-        updateData['profileCompletion.kycDetails.emailVerified'] = emailVerified;
+      if (user.profile.kyc) {
+        user.profile.kyc.emailVerified = emailVerified;
       }
 
       // Update completed fields if email is now verified
-      if (emailVerified && profile.profileCompletion?.completedFields) {
-        const completedFields = [...profile.profileCompletion.completedFields];
+      if (emailVerified && user.profile.status?.completedFields) {
+        const completedFields = [...user.profile.status.completedFields];
         if (!completedFields.includes('emailVerified')) {
           completedFields.push('emailVerified');
         }
-        updateData['profileCompletion.completedFields'] = completedFields;
+        user.profile.status.completedFields = completedFields;
       }
 
-      if (Object.keys(updateData).length > 0) {
-        await Profile.findOneAndUpdate(
-          { userId: user._id },
-          updateData,
-          { new: true }
-        );
-      }
+      await user.save();
     }
 
     res.json({
@@ -821,7 +794,7 @@ router.post('/referral/:uid', async (req, res) => {
     }
 
     // Find profile
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -830,7 +803,7 @@ router.post('/referral/:uid', async (req, res) => {
     }
 
     // Find referrer
-    const referrer = await Profile.findOne({ referralCode });
+    const referrer = await User.findOne({ myReferralCode: referralCode });
     if (!referrer) {
       return res.status(404).json({
         success: false,
@@ -839,7 +812,7 @@ router.post('/referral/:uid', async (req, res) => {
     }
 
     // Check if user is trying to refer themselves
-    if (referrer.userId.toString() === user._id.toString()) {
+    if (referrer._id.toString() === user._id.toString()) {
       return res.status(400).json({
         success: false,
         message: 'Cannot refer yourself'
@@ -848,7 +821,7 @@ router.post('/referral/:uid', async (req, res) => {
 
     // Update profile with referral
     profile.referredBy = referralCode;
-    await profile.save();
+    await user.save();
 
     // Add to referrer's referrals list
     referrer.referrals.push(profile.referralCode);
@@ -904,7 +877,7 @@ router.post('/kyc-verification/:uid', upload.fields([
     }
 
     // Find profile
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -914,12 +887,12 @@ router.post('/kyc-verification/:uid', upload.fields([
 
     // Check if PAN card number already exists in another profile (only if provided)
     if (panCardNumber) {
-      const existingPanCardProfile = await Profile.findOne({ 
-        'kyc.panCardNumber': panCardNumber,
-        _id: { $ne: profile._id } // Exclude current profile
+      const existingPanCardUser = await User.findOne({ 
+        'profile.kyc.panCardNumber': panCardNumber,
+        _id: { $ne: user._id } // Exclude current user
       });
       
-      if (existingPanCardProfile) {
+      if (existingPanCardUser) {
         return res.status(400).json({
           success: false,
           message: 'This PAN card number is already registered with another account. Please use a different PAN card or contact support if this is an error.'
@@ -1000,28 +973,19 @@ router.post('/kyc-verification/:uid', upload.fields([
       completedFields: completedFields
     };
 
-    const updatedProfile = await Profile.findOneAndUpdate(
-      { userId: user._id },
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    // Keep User.myProfilePercent in sync with Profile.status.completionPercentage
-    try {
-      user.myProfilePercent = Math.round(updatedProfile.status.completionPercentage || 0);
-      await user.save();
-    } catch (syncError) {
-      console.warn('Warning: failed to sync user.myProfilePercent on KYC apply:', syncError?.message);
-    }
+    // Update user profile
+    Object.assign(user.profile, updateData);
+    user.myProfilePercent = Math.round(user.profile.status.completionPercentage || 0);
+    await user.save();
 
     res.json({
       success: true,
       message: 'KYC verification updated successfully',
       profile: {
-        firstName: updatedProfile.personalInfo.firstName,
-        lastName: updatedProfile.personalInfo.lastName,
-        status: updatedProfile.status,
-        kyc: updatedProfile.kyc
+        firstName: user.profile.personalInfo.firstName,
+        lastName: user.profile.personalInfo.lastName,
+        status: user.profile.status,
+        kyc: user.profile.kyc
       }
     });
   } catch (error) {
@@ -1050,7 +1014,7 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
     }
 
     // Find profile
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -1096,7 +1060,7 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
       status: 'approved'
     };
 
-    await profile.save();
+    await user.save();
 
     res.json({
       success: true,
@@ -1134,7 +1098,7 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
     }
 
     // Find profile
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -1164,7 +1128,7 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
       status: 'rejected'
     };
 
-    await profile.save();
+    await user.save();
 
     res.json({
       success: true,
@@ -1189,21 +1153,21 @@ router.put('/admin/kyc-reject/:uid', async (req, res) => {
 // Admin: Get all KYC pending users
 router.get('/admin/kyc-pending', async (req, res) => {
   try {
-    const profiles = await Profile.find({
-      'kyc.status': 'applied'
-    }).populate('userId', 'uid email emailVerified');
+    const users = await User.find({
+      'profile.kyc.status': 'applied'
+    }).select('uid email emailVerified profile.personalInfo profile.kyc createdAt');
 
     res.json({
       success: true,
-      count: profiles.length,
-      profiles: profiles.map(profile => ({
-        uid: profile.userId.uid,
-        email: profile.userId.email,
-        firstName: profile.personalInfo.firstName,
-        lastName: profile.personalInfo.lastName,
-        phone: profile.personalInfo.phone,
-        kyc: profile.kyc,
-        status: profile.status
+      count: users.length,
+      profiles: users.map(user => ({
+        uid: user.uid,
+        email: user.email,
+        firstName: user.profile?.personalInfo?.firstName,
+        lastName: user.profile?.personalInfo?.lastName,
+        phone: user.profile?.personalInfo?.phone,
+        kyc: user.profile?.kyc,
+        status: user.profile?.status
       }))
     });
   } catch (error) {
@@ -1219,11 +1183,11 @@ router.get('/admin/kyc-pending', async (req, res) => {
 // Admin: Get KYC statistics
 router.get('/admin/kyc-stats', async (req, res) => {
   try {
-    const totalProfiles = await Profile.countDocuments();
-    const notAppliedKYC = await Profile.countDocuments({ 'kyc.status': 'not_applied' });
-    const appliedKYC = await Profile.countDocuments({ 'kyc.status': 'applied' });
-    const approvedKYC = await Profile.countDocuments({ 'kyc.status': 'approved' });
-    const rejectedKYC = await Profile.countDocuments({ 'kyc.status': 'rejected' });
+    const totalProfiles = await User.countDocuments({ 'profile': { $exists: true } });
+    const notAppliedKYC = await User.countDocuments({ 'profile.kyc.status': 'not_applied' });
+    const appliedKYC = await User.countDocuments({ 'profile.kyc.status': 'applied' });
+    const approvedKYC = await User.countDocuments({ 'profile.kyc.status': 'approved' });
+    const rejectedKYC = await User.countDocuments({ 'profile.kyc.status': 'rejected' });
 
     res.json({
       success: true,
@@ -1276,10 +1240,7 @@ router.delete('/:uid', async (req, res) => {
       });
     }
 
-    // Delete profile if exists
-    await Profile.findOneAndDelete({ userId: user._id });
-
-    // Delete user
+    // Delete user (profile is embedded, so it gets deleted with user)
     await User.findByIdAndDelete(user._id);
 
     res.json({
@@ -1303,23 +1264,20 @@ router.get('/referral/validate/:code', async (req, res) => {
   try {
     const { code } = req.params;
 
-    // Find profile with this referral code
-    const referrerProfile = await Profile.findOne({ 'referral.code': code });
+    // Find user with this referral code
+    const referrerUser = await User.findOne({ 'myReferralCode': code });
     
-    if (!referrerProfile) {
+    if (!referrerUser) {
       return res.status(404).json({
         success: false,
         message: 'Invalid referral code'
       });
     }
 
-    // Get referrer user details
-    const referrerUser = await User.findById(referrerProfile.userId);
-    
     res.json({
       success: true,
       message: 'Valid referral code',
-      referrerName: `${referrerProfile.personalInfo?.firstName || ''} ${referrerProfile.personalInfo?.lastName || ''}`.trim(),
+      referrerName: `${referrerUser.profile?.personalInfo?.firstName || ''} ${referrerUser.profile?.personalInfo?.lastName || ''}`.trim(),
       referrerEmail: referrerUser?.email
     });
   } catch (error) {
@@ -1346,25 +1304,24 @@ router.get('/referral/stats', async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const profile = await Profile.findOne({ userId: user._id });
 
-    if (!profile) {
+    if (!user || !user.profile) {
       return res.status(404).json({
         success: false,
         message: 'Profile not found'
       });
     }
 
-    // Get all profiles referred by this user
-    const referredProfiles = await Profile.find({ 'referral.referredBy': profile.referral.code });
+    // Get all users referred by this user
+    const referredUsers = await User.find({ 'referredByCode': user.myReferralCode });
     
     // Calculate stats
-    const totalReferrals = referredProfiles.length;
-    const activeReferrals = referredProfiles.filter(p => p.status.completionPercentage >= 100).length;
+    const totalReferrals = referredUsers.length;
+    const activeReferrals = referredUsers.filter(u => u.profile?.status?.completionPercentage >= 100).length;
     
     // Calculate earnings (₹200 per completed referral)
-    const completedReferrals = referredProfiles.filter(p => 
-      p.status.completionPercentage >= 100 && p.wallet?.totalDeposits > 0
+    const completedReferrals = referredUsers.filter(u => 
+      u.profile?.status?.completionPercentage >= 100 && u.profile?.wallet?.totalDeposits > 0
     );
     const totalEarnings = completedReferrals.length * 200;
     
@@ -1373,21 +1330,21 @@ router.get('/referral/stats', async (req, res) => {
     thisMonth.setDate(1);
     thisMonth.setHours(0, 0, 0, 0);
     
-    const thisMonthReferrals = completedReferrals.filter(p => 
-      p.updatedAt >= thisMonth
+    const thisMonthReferrals = completedReferrals.filter(u => 
+      u.updatedAt >= thisMonth
     );
     const thisMonthEarnings = thisMonthReferrals.length * 200;
 
     // Get detailed referral list
-    const referrals = referredProfiles.map(p => ({
-      id: p._id,
-      name: `${p.personalInfo?.firstName || ''} ${p.personalInfo?.lastName || ''}`.trim() || 'N/A',
-      email: p.personalInfo?.email || 'N/A',
-      joinedDate: p.createdAt,
-      status: p.status.completionPercentage >= 100 ? 'active' : 'pending',
-      profileCompletion: p.status.completionPercentage,
-      depositMade: (p.wallet?.totalDeposits || 0) > 0,
-      earnings: p.status.completionPercentage >= 100 && (p.wallet?.totalDeposits || 0) > 0 ? 200 : 0
+    const referrals = referredUsers.map(u => ({
+      id: u._id,
+      name: `${u.profile?.personalInfo?.firstName || ''} ${u.profile?.personalInfo?.lastName || ''}`.trim() || 'N/A',
+      email: u.email || 'N/A',
+      joinedDate: u.createdAt,
+      status: u.profile?.status?.completionPercentage >= 100 ? 'active' : 'pending',
+      profileCompletion: u.profile?.status?.completionPercentage || 0,
+      depositMade: (u.profile?.wallet?.totalDeposits || 0) > 0,
+      earnings: u.profile?.status?.completionPercentage >= 100 && (u.profile?.wallet?.totalDeposits || 0) > 0 ? 200 : 0
     }));
 
     res.json({
@@ -1424,7 +1381,7 @@ router.get('/wallet/balance', async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
 
     if (!profile) {
       return res.status(404).json({
@@ -1441,7 +1398,7 @@ router.get('/wallet/balance', async (req, res) => {
         totalDeposits: 0,
         totalWithdrawals: 0
       };
-      await profile.save();
+      await user.save();
     }
 
     res.json({
@@ -1572,7 +1529,7 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -1597,13 +1554,13 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
     profile.wallet.totalDeposits += depositAmount;
 
     // Check if this is the first deposit and user has a referrer
-    if (profile.referral.referredBy && profile.wallet.totalDeposits === depositAmount) {
+    if (user.referredByCode && profile.wallet.totalDeposits === depositAmount) {
       // Find referrer and credit referral bonus
-      const referrerProfile = await Profile.findOne({ 'referral.code': profile.referral.referredBy });
+      const referrerUser = await User.findOne({ 'myReferralCode': user.referredByCode });
       
-      if (referrerProfile) {
-        if (!referrerProfile.wallet) {
-          referrerProfile.wallet = {
+      if (referrerUser && referrerUser.profile) {
+        if (!referrerUser.profile.wallet) {
+          referrerUser.profile.wallet = {
             walletBalance: 0,
             referralBalance: 0,
             totalDeposits: 0,
@@ -1611,12 +1568,12 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
           };
         }
         
-        referrerProfile.wallet.referralBalance += 200; // ₹200 referral bonus
-        await referrerProfile.save();
+        referrerUser.profile.wallet.referralBalance += 200; // ₹200 referral bonus
+        await referrerUser.save();
       }
     }
 
-    await profile.save();
+    await user.save();
 
     res.json({
       success: true,
@@ -1657,7 +1614,7 @@ router.post('/wallet/withdraw', async (req, res) => {
     }
 
     const user = await User.findById(userId);
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
 
     if (!profile) {
       return res.status(404).json({
@@ -1706,7 +1663,7 @@ router.post('/wallet/withdraw', async (req, res) => {
     }
     
     profile.wallet.totalWithdrawals += amount;
-    await profile.save();
+    await user.save();
 
     res.json({
       success: true,
@@ -2068,7 +2025,7 @@ router.get('/referral/validate/:code', async (req, res) => {
     }
 
     // Get profile for additional info
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     
     res.json({
       success: true,
@@ -2109,15 +2066,10 @@ router.get('/referral/stats/:uid', async (req, res) => {
     // Build referral stats by querying users who used this user's code
     const referredUsers = await User.find({ referredByCode: user.myReferralCode });
 
-    // Optionally hydrate basic profile info
-    const { Profile } = require('./schema');
-    const referredProfiles = await Profile.find({ userId: { $in: referredUsers.map(u => u._id) } });
-    const userIdToProfile = new Map(referredProfiles.map(p => [p.userId.toString(), p]));
-
+    // Map referral data
     const referralsList = referredUsers.map(ru => {
-      const prof = userIdToProfile.get(ru._id.toString());
-      const name = prof ? `${prof.personalInfo?.firstName || ''} ${prof.personalInfo?.lastName || ''}`.trim() : '';
-      const phone = prof?.personalInfo?.phone || 'N/A';
+      const name = ru.profile ? `${ru.profile.personalInfo?.firstName || ''} ${ru.profile.personalInfo?.lastName || ''}`.trim() : '';
+      const phone = ru.profile?.personalInfo?.phone || 'N/A';
       const joinedAt = ru.createdAt || new Date();
       const completionPercentage = typeof ru.myProfilePercent === 'number' ? ru.myProfilePercent : 0;
       const hasDeposited = !!ru.myFirstPayment;
@@ -2185,7 +2137,7 @@ router.get('/wallet/balance/:uid', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -2247,7 +2199,7 @@ router.post('/wallet/deposit', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -2258,7 +2210,7 @@ router.post('/wallet/deposit', async (req, res) => {
     // Update wallet balance
     profile.wallet.walletBalance += amount;
     profile.wallet.totalDeposits += amount;
-    await profile.save();
+    await user.save();
 
     // Create transaction record
     const Transaction = require('./models/Transaction');
@@ -2302,7 +2254,7 @@ router.get('/debug/user/:uid', async (req, res) => {
       });
     }
     
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     
     res.json({
       success: true,
@@ -2354,7 +2306,7 @@ router.post('/wallet/withdraw', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
+    const profile = user.profile;
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -2393,7 +2345,7 @@ router.post('/wallet/withdraw', async (req, res) => {
       profile.wallet.referralBalance -= amount;
     }
     profile.wallet.totalWithdrawals += amount;
-    await profile.save();
+    await user.save();
 
     // Create transaction record
     const Transaction = require('./models/Transaction');
@@ -2462,21 +2414,20 @@ router.get('/profile/referral', async (req, res) => {
     const detailedReferrals = [];
     for (const referral of user.referrals) {
       try {
-        const referredUser = await User.findById(referral.user).populate('userId');
-        const referredProfile = await Profile.findOne({ userId: referral.user });
+        const referredUser = await User.findById(referral.user);
         
-        if (referredUser && referredProfile) {
+        if (referredUser) {
           detailedReferrals.push({
             userId: referral.user,
-            userName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
+            userName: `${referredUser.profile?.personalInfo?.firstName || 'User'} ${referredUser.profile?.personalInfo?.lastName || ''}`.trim(),
             email: referredUser.email,
-            phone: referredProfile.personalInfo?.phone || 'Not provided',
+            phone: referredUser.profile?.personalInfo?.phone || 'Not provided',
             joinedAt: referral.joinedAt,
             profileCompletion: referral.profileComplete,
             hasFirstDeposit: referredUser.myFirstPayment,
             hasActivePlan: referredUser.myFirstPlan,
-            planName: referredProfile.subscription?.planName || null,
-            planPrice: referredProfile.subscription?.planPrice || 0,
+            planName: referredUser.profile?.subscription?.planName || null,
+            planPrice: referredUser.profile?.subscription?.planPrice || 0,
             firstPaymentAmount: referral.firstPaymentAmount,
             firstPaymentDate: referral.firstPaymentDate,
             bonusEarned: referral.bonusAmount,

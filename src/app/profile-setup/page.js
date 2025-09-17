@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
-import Image from 'next/image';
 import { userApi } from '../../services/api';
 
 const ProfileSetup = () => {
@@ -12,6 +11,7 @@ const ProfileSetup = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -24,71 +24,89 @@ const ProfileSetup = () => {
     phone: ''
   });
 
+  const [referralCode, setReferralCode] = useState('');
+
+  // Check if user already has a profile
+  useEffect(() => {
+    if (profile) {
+      router.push('/dashboard');
+    }
+  }, [profile, router]);
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+    
+    // Clear phone error when user starts typing
+    if (name === 'phone') {
+      setPhoneError('');
+    }
   };
 
+  const validatePhone = async (phone) => {
+    try {
+      const response = await userApi.checkPhone(phone);
+      if (response.exists) {
+        setPhoneError('This phone number is already registered');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Phone validation error:', error);
+      return true; // Allow submission if validation fails
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     setSuccess('');
+    setPhoneError('');
 
     try {
-      // First, ensure user has a referral code by calling create user endpoint
-      console.log('Creating/updating user first...');
-      const userResponse = await fetch('https://0fare.com/api/api/users/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          isGoogleUser: false
-        }),
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Failed to create/update user');
+      // Validate phone number
+      const isPhoneValid = await validatePhone(formData.phone);
+      if (!isPhoneValid) {
+        setSubmitting(false);
+        return;
       }
 
-      console.log('User created/updated, now creating profile...');
-
-      // Now create the profile
-      const response = await fetch('https://0fare.com/api/api/users/profile-setup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          gender: formData.gender,
-          dateOfBirth: formData.dateOfBirth,
-          country: formData.country,
-          city: formData.city,
-          phone: formData.phone
-        }),
+      // Create profile for existing user
+      console.log('Creating profile for existing user...');
+      const response = await userApi.profileSetup({
+        uid: user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        country: formData.country,
+        city: formData.city,
+        phone: formData.phone,
+        referralCode: referralCode || null
       });
 
-      console.log('Response status:', response.status);
-      const data = await response.json();
-      console.log('Response data:', data);
+      console.log('Response status:', response.success);
+      console.log('Response data:', response);
       
-      if (data.success) {
+      if (response.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');
         await refreshProfile();
         setTimeout(() => router.push('/dashboard'), 2000);
       } else {
-        setError(data.message || 'Failed to create profile');
+        setError(response.message || 'Failed to create profile');
       }
     } catch (error) {
       console.error('Profile setup error:', error);
@@ -142,6 +160,24 @@ const ProfileSetup = () => {
                 )}
 
                 <form onSubmit={handleSubmit}>
+                  {/* Referral Code Section */}
+                  {referralCode && (
+                    <div className="alert alert-info rounded-4 mb-4" style={{
+                      background: 'rgba(13, 202, 240, 0.1)',
+                      border: '1px solid rgba(13, 202, 240, 0.3)',
+                      color: '#6bd4ff'
+                    }}>
+                      <div className="d-flex align-items-center">
+                        <i className="bi bi-gift me-2"></i>
+                        <div>
+                          <strong>Referral Code Applied!</strong>
+                          <br />
+                          <small>You're joining with referral code: <strong>{referralCode}</strong></small>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="row">
                     <div className="col-md-6 mb-3">
                       <label htmlFor="firstName" className="form-label text-white">First Name *</label>
@@ -271,7 +307,7 @@ const ProfileSetup = () => {
                     <label htmlFor="phone" className="form-label text-white">Phone Number *</label>
                     <input
                       type="tel"
-                      className="form-control rounded-4"
+                      className={`form-control rounded-4 ${phoneError ? 'is-invalid' : ''}`}
                       id="phone"
                       name="phone"
                       value={formData.phone}
@@ -285,6 +321,11 @@ const ProfileSetup = () => {
                         color: 'white'
                       }}
                     />
+                    {phoneError && (
+                      <div className="invalid-feedback text-danger">
+                        {phoneError}
+                      </div>
+                    )}
                   </div>
 
                   <div className="alert alert-info rounded-4 mb-3" style={{

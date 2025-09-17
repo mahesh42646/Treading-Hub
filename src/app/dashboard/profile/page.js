@@ -23,7 +23,7 @@ const ProfilePage = () => {
       setFormData({
         firstName: profile.personalInfo?.firstName || profile.firstName || '',
         lastName: profile.personalInfo?.lastName || profile.lastName || '',
-        phoneNumber: profile.personalInfo?.phoneNumber || '',
+        phoneNumber: profile.personalInfo?.phone || '',
         dateOfBirth: profile.personalInfo?.dateOfBirth || '',
         gender: profile.personalInfo?.gender || '',
         city: profile.personalInfo?.city || ''
@@ -45,14 +45,21 @@ const ProfilePage = () => {
     setMessage('');
 
     try {
-      const response = await fetch(buildApiUrl('/profile/update'), {
+      const response = await fetch(buildApiUrl(`/users/profile/${user.uid}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user.getIdToken()}`
+          // No auth header needed for current backend; using uid param
         },
         body: JSON.stringify({
-          personalInfo: formData
+          personalInfo: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phoneNumber,
+            dateOfBirth: formData.dateOfBirth,
+            gender: formData.gender,
+            city: formData.city
+          }
         })
       });
 
@@ -327,7 +334,7 @@ const ProfilePage = () => {
                   <div className="mb-3">
                     <label className="form-label">Total Referrals</label>
                     <div className="d-flex align-items-center">
-                      <span className="h4 mb-0 me-2">{profile.referral?.totalReferrals || 0}</span>
+                      <span className="h4 mb-0 me-2">{profile.totalReferralsBy || 0}</span>
                       <span className="text-muted">users referred</span>
                     </div>
                   </div>

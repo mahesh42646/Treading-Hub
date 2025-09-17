@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardHeader from '../../user/components/DashboardHeader';
+import { userApi } from '../../../services/api';
 
 export default function DashboardReferral() {
   const { user } = useAuth();
@@ -13,21 +14,17 @@ export default function DashboardReferral() {
   const fetchReferralData = async () => {
     try {
       if (!user?.uid) return;
-      
-      const response = await fetch('/api/profile/referral', {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.uid}`
-        }
+      const data = await userApi.getReferralStats(user.uid);
+      setReferralData({
+        referralCode: data.stats?.referralCode || data.stats?.myReferralCode,
+        stats: {
+          totalReferrals: data.stats?.totalReferrals || 0,
+          completedReferrals: data.stats?.completedReferrals || 0,
+          pendingReferrals: data.stats?.pendingReferrals || 0,
+          totalEarnings: data.stats?.totalEarnings || 0
+        },
+        referrals: data.referrals || []
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Referral data received:', data);
-        setReferralData(data);
-      } else {
-        console.error('Failed to fetch referral data:', response.status);
-      }
     } catch (error) {
       console.error('Error fetching referral data:', error);
     } finally {

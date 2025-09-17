@@ -253,7 +253,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="text-muted mb-1">Referral Code</h6>
-                  <h4 className="fw-bold mb-0">{profile?.referral?.code || 'N/A'}</h4>
+                  <h4 className="fw-bold mb-0">{profile?.myReferralCode || 'N/A'}</h4>
                   <small className="text-muted">0 referrals</small>
                 </div>
                   </div>

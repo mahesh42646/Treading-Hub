@@ -87,6 +87,14 @@ export const userApi = {
       method: 'POST',
       body: formData, // FormData for file uploads
     }),
+
+  // Referral: validate code
+  validateReferralCode: (code) => 
+    apiRequest(getApiEndpoint('REFERRAL_CODE', code)),
+
+  // Referral: stats for a user
+  getReferralStats: (uid) =>
+    apiRequest(getApiEndpoint('REFERRAL_STATS', uid)),
 };
 
 // Admin API Service

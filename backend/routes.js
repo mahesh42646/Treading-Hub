@@ -993,6 +993,14 @@ router.post('/kyc-verification/:uid', upload.fields([
       { new: true, runValidators: true }
     );
 
+    // Keep User.myProfilePercent in sync with Profile.status.completionPercentage
+    try {
+      user.myProfilePercent = Math.round(updatedProfile.status.completionPercentage || 0);
+      await user.save();
+    } catch (syncError) {
+      console.warn('Warning: failed to sync user.myProfilePercent on KYC apply:', syncError?.message);
+    }
+
     res.json({
       success: true,
       message: 'KYC verification updated successfully',
@@ -1050,7 +1058,23 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
     profile.kyc.approvedAt = new Date();
     profile.kyc.approvedBy = 'admin'; // You can pass admin ID here
 
-    // Update profile completion
+    // Update profile completion (set to 100% on approval)
+    profile.status.completionPercentage = 100;
+    profile.status.isActive = true;
+    if (Array.isArray(profile.status.completedFields)) {
+      const totalFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone', 'emailVerified', 'panCardNumber', 'panHolderName', 'panCardImage', 'profilePhoto'];
+      profile.status.completedFields = Array.from(new Set([...(profile.status.completedFields || []), ...totalFields]));
+    }
+
+    // Sync user.myProfilePercent to 100 as well
+    try {
+      user.myProfilePercent = 100;
+      await user.save();
+    } catch (syncError) {
+      console.warn('Warning: failed to sync user.myProfilePercent on KYC approve:', syncError?.message);
+    }
+
+    // Update profile completion details
     profile.profileCompletion.kycDetails.adminApproval = {
       approvedAt: new Date(),
       adminNotes: adminNotes || 'KYC verification approved',

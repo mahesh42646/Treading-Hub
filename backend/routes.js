@@ -588,6 +588,23 @@ router.post('/profile-setup', async (req, res) => {
       });
     }
 
+    // Validate phone number format (10 digits)
+    if (!phone || !/^\d{10}$/.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number must be exactly 10 digits'
+      });
+    }
+
+    // Check if phone number is already registered
+    const existingUser = await User.findOne({ 'profile.personalInfo.phone': phone });
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is already registered'
+      });
+    }
+
     // Generate referral code if missing
     if (!user.myReferralCode) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -598,10 +615,8 @@ router.post('/profile-setup', async (req, res) => {
       user.myReferralCode = code;
     }
 
-    // Create and save Profile document with actual data
-    const profile = new Profile({
-      userId: user._id,
-      myReferralCode: user.myReferralCode,
+    // Update user's embedded profile with actual data
+    user.profile = {
       personalInfo: { 
         firstName, 
         lastName, 
@@ -616,15 +631,28 @@ router.post('/profile-setup', async (req, res) => {
         completionPercentage: 75, 
         completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] 
       },
-      kyc: { status: 'not_applied' }
-    });
+      kyc: { status: 'not_applied' },
+      wallet: {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        currency: 'INR'
+      },
+      transactions: [],
+      tradingStats: {
+        totalTrades: 0,
+        winningTrades: 0,
+        totalProfit: 0,
+        winRate: 0
+      }
+    };
 
     // Update user completion to 75%
     user.myProfilePercent = 75;
     user.emailVerified = true;
 
-    // Save both user and profile
-    await user.save();
+    // Save user with embedded profile
     await user.save();
     
     console.log('✅ Profile data stored successfully');

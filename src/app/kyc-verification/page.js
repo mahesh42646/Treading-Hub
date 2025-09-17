@@ -426,15 +426,81 @@ const KYCVerification = () => {
   });
   const [panValidation, setPanValidation] = useState({ checking: false, available: null, message: '' });
 
+  // Validate PAN number
+  const validatePanNumber = async (panNumber) => {
+    if (!panNumber || panNumber.length !== 10) {
+      setPanValidation({ 
+        checking: false, 
+        available: null, 
+        message: 'PAN number must be 10 characters long' 
+      });
+      return false;
+    }
+
+    const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    if (!panPattern.test(panNumber)) {
+      setPanValidation({ 
+        checking: false, 
+        available: null, 
+        message: 'Invalid PAN number format' 
+      });
+      return false;
+    }
+
+    try {
+      setPanValidation({ checking: true, available: null, message: 'Checking PAN number...' });
+      
+      const response = await userApi.checkPan(panNumber);
+      if (response.exists) {
+        setPanValidation({ 
+          checking: false, 
+          available: false, 
+          message: 'This PAN number is already registered' 
+        });
+        return false;
+      } else {
+        setPanValidation({ 
+          checking: false, 
+          available: true, 
+          message: 'PAN number is available' 
+        });
+        return true;
+      }
+    } catch (error) {
+      console.error('PAN validation error:', error);
+      setPanValidation({ 
+        checking: false, 
+        available: null, 
+        message: 'Error checking PAN number availability' 
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (profile) {
-            // Get user's profile name for reference
+      // Check profile completion percentage
+      const completionPercentage = profile.status?.completionPercentage || 0;
+      
+      // If profile is not 75% complete, redirect to profile setup
+      if (completionPercentage < 75) {
+        router.push('/profile-setup');
+        return;
+      }
+      
+      // If profile and KYC are 100% complete, redirect to dashboard
+      if (completionPercentage >= 100) {
+        router.push('/dashboard');
+        return;
+      }
+
+      // Get user's profile name for reference
       const userFullName = `${profile.personalInfo?.firstName || profile.firstName} ${profile.personalInfo?.lastName || profile.lastName}`.trim();
-            setExtractedData(prev => ({
-              ...prev,
-              userProfileName: userFullName
-            }));
-            console.log('👤 User profile name for reference:', userFullName);
+      setExtractedData(prev => ({
+        ...prev,
+        userProfileName: userFullName
+      }));
+      console.log('👤 User profile name for reference:', userFullName);
 
       // Check KYC status and show appropriate message
       const kycStatus = profile.kyc?.status || 'not_applied';
@@ -445,8 +511,8 @@ const KYCVerification = () => {
         console.log('✅ User can apply for KYC. Status:', kycStatus);
       } else {
         console.log('❌ User cannot apply for KYC. Status:', kycStatus);
-            }
-          }
+      }
+    }
   }, [profile, router]);
 
   const handleChange = (e) => {
@@ -457,8 +523,8 @@ const KYCVerification = () => {
     }));
 
     // Check PAN number availability when PAN field changes
-    if (name === 'panCardNumber' && value.length >= 10) {
-      checkPanAvailability(value);
+    if (name === 'panCardNumber' && value.length === 10) {
+      validatePanNumber(value);
     } else if (name === 'panCardNumber') {
       setPanValidation({ checking: false, available: null, message: '' });
     }
@@ -560,6 +626,8 @@ const KYCVerification = () => {
               ...prev,
               panCardNumber: extractedDetails.panNumber
             }));
+            // Validate the auto-filled PAN number
+            await validatePanNumber(extractedDetails.panNumber);
           }
 
           // Auto-fill the PAN holder name field only if name was detected
@@ -582,83 +650,81 @@ const KYCVerification = () => {
     }
   };
 
+  // Validate form data
+  const validateForm = () => {
+    if (!formData.panCardNumber.trim()) {
+      setError('PAN card number is required');
+      return false;
+    }
+    if (!formData.panHolderName.trim()) {
+      setError('PAN holder name is required');
+      return false;
+    }
+    if (!formData.panCardImage) {
+      setError('PAN card image is required');
+      return false;
+    }
+    if (!formData.profilePhoto) {
+      setError('Profile photo is required');
+      return false;
+    }
+    if (panValidation.available === false) {
+      setError('PAN number is already registered');
+      return false;
+    }
+    return true;
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     setSuccess('');
 
-    // Validate required fields
-    if (!formData.panCardImage) {
-      setError('PAN card image is required');
-      setSubmitting(false);
-      return;
-    }
-
-    if (!formData.profilePhoto) {
-      setError('Profile photo is required');
-      setSubmitting(false);
-      return;
-    }
-
-    if (!formData.panCardNumber || formData.panCardNumber.trim() === '') {
-      setError('PAN card number is required. Please enter it manually if not auto-detected.');
-      setSubmitting(false);
-      return;
-    }
-
-    if (!formData.panHolderName || formData.panHolderName.trim() === '') {
-      setError('PAN holder name is required. Please enter it manually if not auto-detected.');
-      setSubmitting(false);
-      return;
-    }
-
-    // Validate PAN number availability
-    if (panValidation.available === false) {
-      setError('Please use a different PAN number. This one is already registered with another account.');
-      setSubmitting(false);
-      return;
-    }
-
     try {
-      const submitData = new FormData();
-      submitData.append('uid', user.uid);
-
-      if (formData.panCardNumber) {
-        submitData.append('panCardNumber', formData.panCardNumber);
-      }
-      if (formData.panHolderName) {
-        submitData.append('panHolderName', formData.panHolderName);
-      }
-      if (formData.panCardImage) {
-        submitData.append('panCardImage', formData.panCardImage);
-      }
-      if (formData.profilePhoto) {
-        submitData.append('profilePhoto', formData.profilePhoto);
+      // Validate form
+      if (!validateForm()) {
+        setSubmitting(false);
+        return;
       }
 
-      const data = await userApi.kycVerification(user.uid, submitData);
+      // Final PAN validation
+      const panValid = await validatePanNumber(formData.panCardNumber);
+      if (!panValid) {
+        setSubmitting(false);
+        return;
+      }
 
-      if (data.success) {
-        setSuccess('KYC verification submitted successfully! Redirecting to dashboard...');
-        
-        // Refresh profile in auth context
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('panCardNumber', formData.panCardNumber.trim());
+      formDataToSend.append('panHolderName', formData.panHolderName.trim());
+      formDataToSend.append('panCardImage', formData.panCardImage);
+      formDataToSend.append('profilePhoto', formData.profilePhoto);
+
+      console.log('Submitting KYC application...');
+      const response = await userApi.kycVerification(user.uid, formDataToSend);
+
+      console.log('KYC Response:', response);
+      
+      if (response.success) {
+        setSuccess('KYC application submitted successfully! Redirecting to dashboard...');
         await refreshProfile();
-        
         setTimeout(() => router.push('/dashboard'), 2000);
       } else {
-        setError(data.message || 'Failed to submit KYC verification');
+        setError(response.message || 'Failed to submit KYC application');
       }
     } catch (error) {
-      setError('An error occurred. Please try again.');
-      console.error('KYC verification error:', error);
+      console.error('KYC submission error:', error);
+      setError(`Error: ${error.message}`);
     } finally {
       setSubmitting(false);
     }
   };
 
     return (
-    <RouteGuard requireAuth={true} requireProfile={true}>
+    <RouteGuard requireAuth={true} requireProfile={false}>
     <div style={{
       background: 'linear-gradient(135deg,rgb(0, 17, 48) 0%,rgb(34, 15, 96) 100%)',
       minHeight: '100vh'

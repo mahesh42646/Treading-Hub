@@ -14,6 +14,12 @@ const ProfileSetup = () => {
   const [phoneError, setPhoneError] = useState('');
   const router = useRouter();
 
+  // Debug logging
+  console.log('ProfileSetup component - user:', !!user, 'profile:', !!profile);
+  if (profile) {
+    console.log('ProfileSetup - completion percentage:', profile.status?.completionPercentage || 0);
+  }
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -26,11 +32,23 @@ const ProfileSetup = () => {
 
   const [referralCode, setReferralCode] = useState('');
 
-  // Check if user already has a profile
+  // Check if user already has a profile based on completion percentage
   useEffect(() => {
-    if (profile) {
-      router.push('/dashboard');
-    }
+    // Only check after a small delay to ensure profile is loaded
+    const timer = setTimeout(() => {
+      if (profile) {
+        const completionPercentage = profile.status?.completionPercentage || 0;
+        console.log('Profile setup page - completion percentage:', completionPercentage);
+        if (completionPercentage >= 75) {
+          console.log('Redirecting to dashboard - profile already 75%+ complete');
+          router.push('/dashboard');
+        }
+      } else {
+        console.log('No profile found - allowing access to profile setup');
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [profile, router]);
 
   // Check for referral code in URL
@@ -44,14 +62,20 @@ const ProfileSetup = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
     
-    // Clear phone error when user starts typing
+    // For phone number, only allow digits and limit to 10
     if (name === 'phone') {
+      const phoneValue = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [name]: phoneValue
+      }));
       setPhoneError('');
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
@@ -69,6 +93,43 @@ const ProfileSetup = () => {
     }
   };
 
+  const validateForm = () => {
+    if (!formData.firstName.trim()) {
+      setError('First name is required');
+      return false;
+    }
+    if (!formData.lastName.trim()) {
+      setError('Last name is required');
+      return false;
+    }
+    if (!formData.gender) {
+      setError('Gender is required');
+      return false;
+    }
+    if (!formData.dateOfBirth) {
+      setError('Date of birth is required');
+      return false;
+    }
+    if (!formData.country.trim()) {
+      setError('Country is required');
+      return false;
+    }
+    if (!formData.city.trim()) {
+      setError('City is required');
+      return false;
+    }
+    if (!formData.phone.trim()) {
+      setError('Phone number is required');
+      return false;
+    }
+    // Validate phone number format (10 digits)
+    if (!/^\d{10}$/.test(formData.phone.trim())) {
+      setError('Phone number must be exactly 10 digits');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -77,6 +138,12 @@ const ProfileSetup = () => {
     setPhoneError('');
 
     try {
+      // Validate form fields
+      if (!validateForm()) {
+        setSubmitting(false);
+        return;
+      }
+
       // Validate phone number
       const isPhoneValid = await validatePhone(formData.phone);
       if (!isPhoneValid) {
@@ -88,13 +155,13 @@ const ProfileSetup = () => {
       console.log('Creating profile for existing user...');
       const response = await userApi.profileSetup({
         uid: user.uid,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         gender: formData.gender,
         dateOfBirth: formData.dateOfBirth,
-        country: formData.country,
-        city: formData.city,
-        phone: formData.phone,
+        country: formData.country.trim(),
+        city: formData.city.trim(),
+        phone: formData.phone.trim(),
         referralCode: referralCode || null
       });
 
@@ -313,7 +380,8 @@ const ProfileSetup = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       required
-                      placeholder="Enter your phone number"
+                      maxLength="10"
+                      placeholder="Enter 10-digit phone number"
                       style={{
                         background: 'rgba(60, 58, 58, 0.03)',
                         border: '1px solid rgba(124, 124, 124, 0.39)',

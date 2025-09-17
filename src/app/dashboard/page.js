@@ -24,8 +24,10 @@ const Dashboard = () => {
     }
   };
 
-  // Check if user has profile data
-  const hasProfile = profile && profile.personalInfo && profile.personalInfo.firstName;
+  // Check if user has profile data based on completion percentage
+  const completionPercentage = profile?.status?.completionPercentage || 0;
+  const hasProfile = completionPercentage >= 75;
+  const hasCompleteProfile = completionPercentage >= 100;
 
   // Handle resend email verification
   const handleResendEmail = async () => {
@@ -159,7 +161,7 @@ const Dashboard = () => {
               )}
               
           {/* KYC Status Alerts */}
-          {hasProfile && kycStatusInfo && shouldShowAlert('kyc-status') && (
+          {hasProfile && !hasCompleteProfile && kycStatusInfo && shouldShowAlert('kyc-status') && (
             <div className={`alert alert-${kycStatusInfo.badge === 'bg-warning' ? 'warning' : kycStatusInfo.badge === 'bg-info' ? 'info' : kycStatusInfo.badge === 'bg-success' ? 'success' : kycStatusInfo.badge === 'bg-danger' ? 'danger' : 'secondary'} alert-dismissible fade show rounded-3 mb-3`} role="alert">
                   <div className="d-flex align-items-start">
                 <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`}></i>
@@ -311,7 +313,7 @@ const Dashboard = () => {
                     Complete Profile
                   </button>
                 )}
-                {profile && kycStatusInfo?.badge === 'bg-warning' && (
+                {hasProfile && !hasCompleteProfile && (
                   <button 
                     className="btn btn-warning"
                     onClick={() => router.push('/kyc-verification')}

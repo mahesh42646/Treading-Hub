@@ -33,14 +33,22 @@ const RouteGuard = ({ children, requireAuth = true, requireProfile = false, redi
 
       // If user has profile, handle KYC workflow access control
       if (user && profile) {
-        // Let individual pages handle their own KYC logic
-        // No redirects from RouteGuard - let KYC page show status messages
+        const completionPercentage = profile.status?.completionPercentage || 0;
         
-        // If user has profile (even without KYC), redirect away from profile setup
-        if (window.location.pathname === '/profile-setup') {
-          console.log('✅ User already has profile, redirecting to dashboard');
+        // If user has profile setup complete (75%+), redirect away from profile setup
+        if (window.location.pathname === '/profile-setup' && completionPercentage >= 75) {
+          console.log('✅ User profile setup complete, redirecting to dashboard');
           router.push('/dashboard');
           return;
+        }
+        
+        // If user has complete profile (100%), redirect away from setup pages
+        if (completionPercentage >= 100) {
+          if (window.location.pathname === '/profile-setup' || window.location.pathname === '/kyc-verification') {
+            console.log('✅ User profile complete, redirecting to dashboard');
+            router.push('/dashboard');
+            return;
+          }
         }
       }
     }

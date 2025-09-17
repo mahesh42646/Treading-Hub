@@ -87,24 +87,27 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Check if user has complete profile data
-    const hasCompleteProfile = userProfile && userProfile.personalInfo && userProfile.personalInfo.firstName;
+    // Get profile completion percentage
+    const completionPercentage = userProfile?.status?.completionPercentage || 0;
 
     // User is authenticated
-    if (!hasCompleteProfile) {
-      // No complete profile, but user can access dashboard and other pages
-      // Only redirect to profile setup if they're trying to access KYC
+    if (completionPercentage === 0) {
+      // No profile setup - redirect to profile setup if trying to access KYC
       if (pathname === '/kyc-verification') {
         router.push('/profile-setup');
         return;
       }
-      // Don't redirect away from profile setup - let user complete it if they want
-    } else {
-      // User has complete profile - let KYC page handle status display
-      // No redirects from AuthContext - let individual pages handle their own logic
-      
-      // If user has complete profile (even without KYC), redirect away from profile setup
+      // Allow access to profile setup page - don't redirect away
+    } else if (completionPercentage >= 75 && completionPercentage < 100) {
+      // Profile setup complete (75%) but KYC not complete - can access KYC
       if (pathname === '/profile-setup') {
+        router.push('/dashboard');
+        return;
+      }
+      // Don't redirect away from KYC - let user complete it
+    } else if (completionPercentage >= 100) {
+      // Profile and KYC complete (100%) - redirect away from setup pages
+      if (pathname === '/profile-setup' || pathname === '/kyc-verification') {
         router.push('/dashboard');
         return;
       }

@@ -630,8 +630,19 @@ router.post('/profile-setup', async (req, res) => {
 
     // Update referrer's referral progress to 75% if applicable
     try {
-      const { updateProfileCompletion } = require('./utils/simpleReferralUtils');
-      await updateProfileCompletion(user._id, 75);
+      if (user.referredByCode) {
+        const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+        if (referrer) {
+          const referralIndex = referrer.referrals.findIndex(
+            ref => ref.user.toString() === user._id.toString()
+          );
+          if (referralIndex !== -1) {
+            referrer.referrals[referralIndex].profileComplete = 75;
+            await referrer.save();
+            console.log('✅ Updated referrer referral progress to 75%');
+          }
+        }
+      }
     } catch (upErr) {
       console.warn('Warning: failed to update referrer referral progress to 75%:', upErr?.message);
     }

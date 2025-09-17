@@ -265,19 +265,19 @@ router.post('/create', async (req, res) => {
 
     // MANDATORY: Initialize referral code for new user
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let referralCode = '';
+    let userReferralCode = '';
     let isUnique = false;
     let attempts = 0;
     
     // Generate unique referral code (max 10 attempts)
     while (!isUnique && attempts < 10) {
-      referralCode = '';
+      userReferralCode = '';
       for (let i = 0; i < 10; i++) {
-        referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        userReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       
       // Check if code is unique
-      const existingUser = await User.findOne({ myReferralCode: referralCode });
+      const existingUser = await User.findOne({ myReferralCode: userReferralCode });
       if (!existingUser) {
         isUnique = true;
       }
@@ -294,7 +294,7 @@ router.post('/create', async (req, res) => {
     }
     
     // Initialize all required referral fields
-    user.myReferralCode = referralCode;
+    user.myReferralCode = userReferralCode;
     user.myProfilePercent = 0;
     user.myFirstPayment = false;
     user.myFirstPlan = false;
@@ -305,7 +305,7 @@ router.post('/create', async (req, res) => {
     user.referredByCode = validReferralCode || null;
     
     await user.save();
-    console.log('✅ User created with referral code:', referralCode);
+    console.log('✅ User created with referral code:', userReferralCode);
 
     // If user was referred, add referral record
     if (validReferralCode) {
@@ -454,19 +454,19 @@ router.post('/create-with-profile', async (req, res) => {
 
     // MANDATORY: Initialize referral code for new user
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let referralCode = '';
+    let profileReferralCode = '';
     let isUnique = false;
     let attempts = 0;
     
     // Generate unique referral code (max 10 attempts)
     while (!isUnique && attempts < 10) {
-      referralCode = '';
+      profileReferralCode = '';
       for (let i = 0; i < 10; i++) {
-        referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        profileReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       
       // Check if code is unique
-      const existingUser = await User.findOne({ myReferralCode: referralCode });
+      const existingUser = await User.findOne({ myReferralCode: profileReferralCode });
       if (!existingUser) {
         isUnique = true;
       }
@@ -484,7 +484,7 @@ router.post('/create-with-profile', async (req, res) => {
     }
     
     // Initialize all required referral fields
-    user.myReferralCode = referralCode;
+    user.myReferralCode = profileReferralCode;
     user.myProfilePercent = completionPercentage;
     user.myFirstPayment = false;
     user.myFirstPlan = false;
@@ -495,7 +495,7 @@ router.post('/create-with-profile', async (req, res) => {
     user.referredByCode = referredBy || null;
     
     await user.save();
-    console.log('✅ User created with referral code:', referralCode);
+    console.log('✅ User created with referral code:', profileReferralCode);
 
     // If user was referred, add referral record
     if (referredBy) {
@@ -671,19 +671,19 @@ router.post('/profile-setup', async (req, res) => {
     // MANDATORY: Generate referral code - profile creation depends on this
     if (!user.myReferralCode) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let referralCode = '';
+      let setupReferralCode = '';
       let isUnique = false;
       let attempts = 0;
       
       // Generate unique referral code (max 10 attempts)
       while (!isUnique && attempts < 10) {
-        referralCode = '';
+        setupReferralCode = '';
         for (let i = 0; i < 10; i++) {
-          referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+          setupReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         
         // Check if code is unique
-        const existingUser = await User.findOne({ myReferralCode: referralCode });
+        const existingUser = await User.findOne({ myReferralCode: setupReferralCode });
         if (!existingUser) {
           isUnique = true;
         }
@@ -700,7 +700,7 @@ router.post('/profile-setup', async (req, res) => {
       }
       
       // Initialize all required referral fields
-      user.myReferralCode = referralCode;
+      user.myReferralCode = setupReferralCode;
       user.myProfilePercent = completionPercentage;
       user.myFirstPayment = false;
       user.myFirstPlan = false;
@@ -711,7 +711,7 @@ router.post('/profile-setup', async (req, res) => {
       user.referredByCode = user.referredByCode || null;
       
       await user.save();
-      console.log('✅ Referral code CREATED for user:', user._id, 'Code:', referralCode);
+      console.log('✅ Referral code CREATED for user:', user._id, 'Code:', setupReferralCode);
     }
 
     await profile.save();

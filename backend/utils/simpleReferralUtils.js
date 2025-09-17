@@ -144,6 +144,22 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
       if (referrer) {
         const bonusAmount = Math.round(amount * 0.20); // 20% bonus
         
+        // Initialize referrer's wallet if not exists
+        if (!referrer.profile) {
+          referrer.profile = {};
+        }
+        if (!referrer.profile.wallet) {
+          referrer.profile.wallet = {
+            walletBalance: 0,
+            referralBalance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0
+          };
+        }
+        
+        // Credit referral bonus to referrer's wallet
+        referrer.profile.wallet.referralBalance += bonusAmount;
+        
         // Update referrer's referral record
         const referralIndex = referrer.referrals.findIndex(
           ref => ref.user.toString() === userId.toString()

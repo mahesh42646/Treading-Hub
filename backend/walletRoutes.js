@@ -169,78 +169,8 @@ router.post('/razorpay-verify', async (req, res) => {
     });
     await depositTransaction.save();
 
-    // Check if this is the first deposit and user has a referrer
-    if (user.referredByCode && profile.wallet.totalDeposits === depositAmount) {
-      // Find referrer and credit referral bonus
-      const referrerUser = await User.findOne({ 'myReferralCode': user.referredByCode });
-      
-      if (referrerUser && referrerUser.profile) {
-        if (!referrerUser.profile.wallet) {
-          referrerUser.profile.wallet = {
-            walletBalance: 0,
-            referralBalance: 0,
-            totalDeposits: 0,
-            totalWithdrawals: 0
-          };
-        }
-        
-        const referralBonus = depositAmount * 0.2; // 20% of first deposit
-        referrerUser.profile.wallet.referralBalance += referralBonus;
-        
-        // Update referrer's referrals array
-        if (Array.isArray(referrerUser.referrals)) {
-          const referralIndex = referrerUser.referrals.findIndex(
-            ref => ref.user.toString() === user._id.toString()
-          );
-          
-          if (referralIndex !== -1) {
-            // Update existing referral record
-            referrerUser.referrals[referralIndex].refState = 'completed';
-            referrerUser.referrals[referralIndex].firstPayment = true;
-            referrerUser.referrals[referralIndex].firstPaymentAmount = depositAmount;
-            referrerUser.referrals[referralIndex].firstPaymentDate = new Date();
-            referrerUser.referrals[referralIndex].bonusCredited = true;
-            referrerUser.referrals[referralIndex].bonusAmount = referralBonus;
-            console.log('✅ Updated referral record for first payment');
-          } else {
-            // Add new referral record if not found
-            referrerUser.referrals.push({
-              user: user._id,
-              refState: 'completed',
-              firstPayment: true,
-              firstPlan: false,
-              firstPaymentAmount: depositAmount,
-              firstPaymentDate: new Date(),
-              bonusCredited: true,
-              bonusAmount: referralBonus,
-              profileComplete: user.myProfilePercent || 0,
-              joinedAt: user.createdAt || new Date()
-            });
-            console.log('✅ Added new referral record for first payment');
-          }
-        }
-        
-        // Create referral bonus transaction for referrer
-        const referralTransaction = new Transaction({
-          userId: referrerUser._id,
-          type: 'referral_bonus',
-          amount: referralBonus,
-          description: `Referral bonus from ${profile.personalInfo?.firstName || 'User'}'s first deposit`,
-          status: 'completed',
-          metadata: {
-            referredUserId: user._id,
-            referredUserUid: uid,
-            referredUserName: `${profile.personalInfo?.firstName || ''} ${profile.personalInfo?.lastName || ''}`.trim(),
-            depositAmount: depositAmount
-          },
-          processedAt: new Date()
-        });
-        await referralTransaction.save();
-        await referrerUser.save();
-        
-        console.log('✅ Referral bonus processed and referrals array updated');
-      }
-    }
+    // Note: Referral completion and bonus will be handled when user purchases a plan, not on deposit
+    console.log('💳 Deposit processed - referral completion will happen on plan purchase');
 
     await user.save();
 

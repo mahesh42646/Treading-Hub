@@ -18,10 +18,10 @@ export default function DashboardReferral() {
       setReferralData({
         referralCode: data.stats?.referralCode || data.stats?.myReferralCode,
         stats: {
-          totalReferrals: data.totalReferrals || 0,
-          completedReferrals: data.activeReferrals || 0,
-          pendingReferrals: (data.totalReferrals || 0) - (data.activeReferrals || 0),
-          totalEarnings: data.totalEarnings || 0
+          totalReferrals: data.stats?.totalReferrals || 0,
+          completedReferrals: data.stats?.completedReferrals || 0,
+          pendingReferrals: data.stats?.pendingReferrals || 0,
+          totalEarnings: data.stats?.totalEarnings || 0
         },
         referrals: data.referrals || []
       });
@@ -234,27 +234,27 @@ export default function DashboardReferral() {
                             <div className="progress flex-grow-1 me-2" style={{ height: '8px' }}>
                               <div 
                                 className="progress-bar" 
-                                style={{ width: `${referral.profileCompletion || 0}%` }}
+                                style={{ width: `${referral.completionPercentage || 0}%` }}
                               ></div>
                             </div>
-                            <small className={getCompletionColor(referral.profileCompletion || 0)}>
-                              {referral.profileCompletion || 0}%
+                            <small className={getCompletionColor(referral.completionPercentage || 0)}>
+                              {referral.completionPercentage || 0}%
                             </small>
                           </div>
                         </td>
                         <td>
-                          {referral.hasFirstDeposit ? (
+                          {referral.hasDeposited ? (
                             <span className="badge bg-success">✓ True</span>
                           ) : (
                             <span className="badge bg-secondary">✗ False</span>
                           )}
                         </td>
                         <td>
-                          {referral.hasActivePlan ? (
+                          {referral.hasFirstPlan ? (
                             <div>
-                              <span className="badge bg-success">✓ {referral.planName}</span>
+                              <span className="badge bg-success">✓ Plan Purchased</span>
                               <br />
-                              <small className="text-muted">₹{referral.planPrice}</small>
+                              <small className="text-muted">₹{referral.firstPaymentAmount || 0}</small>
                             </div>
                           ) : (
                             <span className="badge bg-secondary">No Plan</span>
@@ -267,11 +267,11 @@ export default function DashboardReferral() {
                         </td>
                         <td>
                           <strong className="text-success">₹{referral.bonusEarned || 0}</strong>
-                          {referral.bonusCreditedAt && (
+                          {referral.firstPaymentDate && (
                             <>
                               <br />
                               <small className="text-muted">
-                                {new Date(referral.bonusCreditedAt).toLocaleDateString()}
+                                {new Date(referral.firstPaymentDate).toLocaleDateString()}
                               </small>
                             </>
                           )}

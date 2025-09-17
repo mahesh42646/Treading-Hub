@@ -176,26 +176,63 @@ router.post('/subscription/purchase', async (req, res) => {
     // No separate Subscription model/profile badge needed; plans are stored on user
 
     // Process referral bonus for first plan purchase
-    try {
-      const { processFirstPayment } = require('./utils/simpleReferralUtils');
-      
-      console.log('Processing referral for user:', {
-        userId: user._id,
-        isFirstPlan,
-        referredByCode: user.referredByCode,
-        planPrice: plan.price
-      });
-      
-      if (isFirstPlan) {
+    if (isFirstPlan && user.referredByCode) {
+      try {
+        const { processFirstPayment } = require('./utils/simpleReferralUtils');
+        
+        console.log('Processing referral for user:', {
+          userId: user._id,
+          isFirstPlan,
+          referredByCode: user.referredByCode,
+          planPrice: plan.price
+        });
+        
         await processFirstPayment(user._id, plan.price, 'plan');
         console.log('🎉 First plan purchase processed - referral bonus credited if applicable');
-      } else {
-        console.log('ℹ️ Not first plan purchase - no referral bonus');
+      } catch (rbErr) {
+        console.error('Referral bonus on plan purchase failed:', rbErr);
+        // If referral processing fails, we should still try to complete the referral manually
+        try {
+          const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+          if (referrer) {
+            const referralIndex = referrer.referrals.findIndex(
+              ref => ref.user.toString() === user._id.toString()
+            );
+            
+            if (referralIndex !== -1) {
+              const referralRecord = referrer.referrals[referralIndex];
+              referralRecord.firstPayment = true;
+              referralRecord.firstPlan = true;
+              referralRecord.refState = 'completed';
+              
+              const bonusAmount = Math.round(plan.price * 0.20);
+              referralRecord.bonusCredited = true;
+              referralRecord.bonusAmount = bonusAmount;
+              
+              // Add bonus to referrer's wallet
+              if (!referrer.profile) {
+                referrer.profile = {};
+              }
+              if (!referrer.profile.wallet) {
+                referrer.profile.wallet = {
+                  walletBalance: 0,
+                  referralBalance: 0
+                };
+              }
+              referrer.profile.wallet.referralBalance += bonusAmount;
+              
+              await referrer.save();
+              console.log('✅ Referral processing completed manually after initial failure');
+            }
+          }
+        } catch (manualErr) {
+          console.error('Manual referral processing also failed:', manualErr);
+        }
       }
-    } catch (rbErr) {
-      console.error('Referral bonus on plan purchase failed:', rbErr);
-      // Don't fail the entire transaction if referral processing fails
-      // The plan purchase should still succeed
+    } else if (isFirstPlan) {
+      console.log('ℹ️ First plan purchase but user was not referred - no referral bonus');
+    } else {
+      console.log('ℹ️ Not first plan purchase - no referral bonus');
     }
 
     // Create transaction record
@@ -228,6 +265,50 @@ router.post('/subscription/purchase', async (req, res) => {
       userPlansCount: user.plans.length,
       myFirstPlan: user.myFirstPlan
     });
+    
+    // Final verification: Ensure referral was processed correctly
+    if (isFirstPlan && user.referredByCode) {
+      try {
+        const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+        if (referrer) {
+          const referralIndex = referrer.referrals.findIndex(
+            ref => ref.user.toString() === user._id.toString()
+          );
+          
+          if (referralIndex !== -1) {
+            const referralRecord = referrer.referrals[referralIndex];
+            if (referralRecord.refState !== 'completed') {
+              console.log('⚠️ Referral not completed, fixing now...');
+              referralRecord.firstPayment = true;
+              referralRecord.firstPlan = true;
+              referralRecord.refState = 'completed';
+              
+              if (!referralRecord.bonusCredited) {
+                const bonusAmount = Math.round(plan.price * 0.20);
+                referralRecord.bonusCredited = true;
+                referralRecord.bonusAmount = bonusAmount;
+                
+                if (!referrer.profile) {
+                  referrer.profile = {};
+                }
+                if (!referrer.profile.wallet) {
+                  referrer.profile.wallet = {
+                    walletBalance: 0,
+                    referralBalance: 0
+                  };
+                }
+                referrer.profile.wallet.referralBalance += bonusAmount;
+              }
+              
+              await referrer.save();
+              console.log('✅ Referral completion verified and fixed');
+            }
+          }
+        }
+      } catch (verifyErr) {
+        console.error('Error verifying referral completion:', verifyErr);
+      }
+    }
     
     res.json({ 
       success: true, 

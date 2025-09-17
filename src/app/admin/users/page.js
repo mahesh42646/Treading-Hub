@@ -566,69 +566,6 @@ const AdminUsers = () => {
                   <FaWallet className="me-2" />
                   {walletEditMode ? 'Cancel Edit' : 'Edit Wallet'}
                 </button>
-                <button 
-                  className="btn btn-outline-success"
-                  onClick={async () => {
-                    if (confirm('Fix user flags for this user?')) {
-                      try {
-                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/fix-user-flags/${selectedUser.uid}`, {
-                          method: 'POST',
-                          credentials: 'include'
-                        });
-                        const result = await response.json();
-                        alert(result.message);
-                        fetchUserDetails(selectedUser.uid);
-                      } catch (error) {
-                        console.error('Error fixing user flags:', error);
-                        alert('Failed to fix user flags');
-                      }
-                    }
-                  }}
-                >
-                  <FaCheck className="me-2" />
-                  Fix Flags
-                </button>
-                <button 
-                  className="btn btn-outline-info"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/debug-referral/${selectedUser.uid}`, {
-                        credentials: 'include'
-                      });
-                      const result = await response.json();
-                      console.log('Debug referral data:', result);
-                      alert(`Debug data logged to console. Referrer: ${result.referrer?.email || 'Not found'}`);
-                    } catch (error) {
-                      console.error('Error debugging referral:', error);
-                      alert('Failed to debug referral');
-                    }
-                  }}
-                >
-                  <FaEye className="me-2" />
-                  Debug Referral
-                </button>
-                <button 
-                  className="btn btn-outline-warning"
-                  onClick={async () => {
-                    if (confirm('Force referral processing for this user?')) {
-                      try {
-                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/force-referral-processing/${selectedUser.uid}`, {
-                          method: 'POST',
-                          credentials: 'include'
-                        });
-                        const result = await response.json();
-                        alert(result.message);
-                        fetchUserDetails(selectedUser.uid);
-                      } catch (error) {
-                        console.error('Error forcing referral processing:', error);
-                        alert('Failed to force referral processing');
-                      }
-                    }
-                  }}
-                >
-                  <FaSync className="me-2" />
-                  Force Referral
-                </button>
               </div>
             )}
           </div>
@@ -847,28 +784,6 @@ const AdminUsers = () => {
                   >
                     <FaSync className="me-1" />
                     Refresh Referral Counts
-                  </button>
-                  <button 
-                    className="btn btn-outline-warning btn-sm"
-                    onClick={async () => {
-                      if (confirm('This will fix user flags for all users with plans. Continue?')) {
-                        try {
-                          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/fix-all-user-flags`, {
-                            method: 'POST',
-                            credentials: 'include'
-                          });
-                          const result = await response.json();
-                          alert(result.message);
-                          fetchUsers();
-                        } catch (error) {
-                          console.error('Error fixing user flags:', error);
-                          alert('Failed to fix user flags');
-                        }
-                      }
-                    }}
-                  >
-                    <FaCheck className="me-1" />
-                    Fix User Flags
                   </button>
                 </div>
               </div>

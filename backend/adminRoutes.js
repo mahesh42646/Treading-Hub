@@ -1828,4 +1828,29 @@ router.get('/referrals/detailed', verifyAdminAuth, async (req, res) => {
   }
 });
 
+// Migration endpoint for new referral system
+router.post('/migrate-referral-system', verifyAdminAuth, async (req, res) => {
+  try {
+    const { migrateUsersToNewReferralSystem } = require('./utils/migrationUtils');
+    const result = await migrateUsersToNewReferralSystem();
+    
+    res.json({
+      success: result.success,
+      message: result.success 
+        ? `Migration completed. ${result.migratedCount} users migrated.`
+        : 'Migration failed',
+      migratedCount: result.migratedCount || 0,
+      error: result.error || null
+    });
+
+  } catch (error) {
+    console.error('Migration endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Migration failed',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

@@ -545,6 +545,17 @@ router.post('/profile-setup', async (req, res) => {
 
     await profile.save();
 
+    // Update user profile completion and initialize referral data
+    const { initializeUserReferral, updateProfileCompletion } = require('./utils/simpleReferralUtils');
+    
+    // Initialize referral code if not already set
+    if (!user.myReferralCode) {
+      await initializeUserReferral(user._id);
+    }
+    
+    // Update profile completion percentage in user document
+    await updateProfileCompletion(user._id, completionPercentage);
+
     // Update user email verification status if needed
     if (!user.emailVerified) {
       user.emailVerified = true;
@@ -2288,9 +2299,22 @@ router.get('/profile/referral', async (req, res) => {
       return res.status(401).json({ error: 'No user ID provided' });
     }
 
-    const user = await User.findOne({ uid }).populate('referrals.user', 'email');
+    const user = await User.findOne({ uid });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Initialize referral fields if not present (for existing users)
+    if (!user.myReferralCode) {
+      const { initializeUserReferral } = require('./utils/simpleReferralUtils');
+      await initializeUserReferral(user._id);
+      // Refetch user with updated data
+      const updatedUser = await User.findOne({ uid });
+      if (updatedUser) {
+        user.myReferralCode = updatedUser.myReferralCode;
+        user.referrals = updatedUser.referrals || [];
+        user.totalReferralsBy = updatedUser.totalReferralsBy || 0;
+      }
     }
 
     const { getUserReferralStats } = require('./utils/simpleReferralUtils');

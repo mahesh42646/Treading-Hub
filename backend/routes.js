@@ -617,13 +617,16 @@ router.post('/profile-setup', async (req, res) => {
     }
 
     // Find user
+    console.log('🔍 Looking for user with uid:', uid);
     const user = await User.findOne({ uid });
     if (!user) {
+      console.log('❌ User not found for uid:', uid);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
+    console.log('✅ User found:', user._id, 'Email:', user.email);
 
     // Initialize referral fields if missing (for existing users)
     if (!user.myReferralCode) {
@@ -689,6 +692,7 @@ router.post('/profile-setup', async (req, res) => {
     });
 
     // SIMPLE: Just copy referral code from user to profile (with fallback)
+    console.log('📝 Setting profile referral code:', user.myReferralCode);
     profile.myReferralCode = user.myReferralCode || null;
     
     // Update profile completion percentage (initialize if needed)
@@ -696,9 +700,12 @@ router.post('/profile-setup', async (req, res) => {
       user.myProfilePercent = 0;
     }
     user.myProfilePercent = completionPercentage;
+    console.log('💾 Saving user...');
     await user.save();
     
+    console.log('💾 Saving profile...');
     await profile.save();
+    console.log('✅ Profile saved successfully');
 
     // Update user email verification status if needed
     if (!user.emailVerified) {
@@ -724,10 +731,13 @@ router.post('/profile-setup', async (req, res) => {
   } catch (error) {
     console.error('❌ Error creating profile:', error);
     console.error('Error stack:', error.stack);
+    console.error('Request body:', req.body);
+    console.error('User data:', user ? {id: user._id, uid: user.uid, referralCode: user.myReferralCode} : 'null');
     res.status(500).json({
       success: false,
       message: 'Failed to create profile',
-      error: error.message
+      error: error.message,
+      details: error.stack
     });
   }
 });

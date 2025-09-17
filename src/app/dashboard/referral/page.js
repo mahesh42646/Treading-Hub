@@ -23,7 +23,10 @@ export default function DashboardReferral() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Referral data received:', data);
         setReferralData(data);
+      } else {
+        console.error('Failed to fetch referral data:', response.status);
       }
     } catch (error) {
       console.error('Error fetching referral data:', error);
@@ -77,8 +80,8 @@ export default function DashboardReferral() {
     );
   }
 
-  const referralCode = referralData?.referralCode || 'Loading...';
-  const referralLink = `${window.location.origin}/ref/${referralCode}`;
+  const referralCode = referralData?.referralCode || '';
+  const referralLink = referralCode ? `${window.location.origin}/register?ref=${referralCode}` : 'Loading...';
   const stats = referralData?.stats || {
     totalReferrals: 0,
     completedReferrals: 0,

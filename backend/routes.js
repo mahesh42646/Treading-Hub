@@ -2381,15 +2381,22 @@ router.get('/profile/referral', async (req, res) => {
       }
     }
 
+    // Calculate real-time stats from the detailed referrals
+    const realTimeStats = {
+      totalReferrals: detailedReferrals.length,
+      completedReferrals: detailedReferrals.filter(r => r.referralComplete).length,
+      pendingReferrals: detailedReferrals.filter(r => !r.referralComplete).length
+    };
+
     // Get wallet balance for referral earnings
     const referralBalance = profile.wallet?.referralBalance || 0;
 
     const responseData = {
       referralCode: profile.referral.code,
       stats: {
-        totalReferrals: profile.referral.totalReferrals || 0,
-        completedReferrals: profile.referral.completedReferrals || 0,
-        pendingReferrals: profile.referral.pendingReferrals || 0,
+        totalReferrals: realTimeStats.totalReferrals,
+        completedReferrals: realTimeStats.completedReferrals,
+        pendingReferrals: realTimeStats.pendingReferrals,
         totalEarnings: referralBalance
       },
       referrals: detailedReferrals

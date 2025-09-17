@@ -9,10 +9,6 @@ const AdminContacts = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
   const fetchContacts = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/contacts`, {
@@ -29,6 +25,10 @@ const AdminContacts = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
 
   const handleStatusUpdate = async (id, status) => {
     try {

@@ -15,11 +15,11 @@ export const API_CONFIG = {
     USER_CHECK_PAN: (panNumber) => `/users/check-pan/${panNumber}`,
     USER_CHECK_EMAIL: (email) => `/users/check-email/${email}`,
     
-    // Referral System endpoints
-    REFERRAL_CODE: (code) => `/referral/validate/${code}`,
-    REFERRAL_STATS: '/referral/stats',
-    REFERRAL_HISTORY: '/referral/history',
-    REFERRAL_ADD: '/referral/add',
+    // Referral System endpoints (mounted under /api/users)
+    REFERRAL_CODE: (code) => `/users/referral/validate/${code}`,
+    REFERRAL_STATS: (uid) => `/users/referral/stats/${uid}`,
+    REFERRAL_HISTORY: (uid) => `/users/referral/history/${uid}`,
+    REFERRAL_ADD: (uid) => `/users/referral/${uid}`,
     REFERRAL_LINK: (code) => `/ref/${code}`,
     
     // Wallet System endpoints

@@ -85,6 +85,15 @@ const ProfileSetup = () => {
     setError('');
     setSuccess('');
 
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.gender || 
+        !formData.dateOfBirth || !formData.country || !formData.city || 
+        !formData.phone) {
+      setError('Please fill in all required fields');
+      setSubmitting(false);
+      return;
+    }
+
     // Validate phone number availability
     if (phoneValidation.available === false) {
       setError('Please use a different phone number. This one is already registered.');
@@ -93,16 +102,6 @@ const ProfileSetup = () => {
     }
 
     try {
-      // Validate required fields
-      if (!formData.firstName || !formData.lastName || !formData.gender || 
-          !formData.dateOfBirth || !formData.country || !formData.city || 
-          !formData.phone) {
-        setError('Please fill in all required fields');
-        setSubmitting(false);
-        return;
-      }
-
-      // Create profile data
       const profileData = {
         uid: user.uid,
         firstName: formData.firstName,
@@ -118,19 +117,14 @@ const ProfileSetup = () => {
 
       if (data.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');
-        
-        // Refresh profile in auth context
         await refreshProfile();
-        
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
+        setTimeout(() => router.push('/dashboard'), 2000);
       } else {
         setError(data.message || 'Failed to create profile');
       }
     } catch (error) {
+      console.error('Profile setup error:', error.message);
       setError('An error occurred. Please try again.');
-      console.error('Profile setup error:', error);
     } finally {
       setSubmitting(false);
     }

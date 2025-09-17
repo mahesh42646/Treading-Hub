@@ -2,6 +2,83 @@ const mongoose = require('mongoose');
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  // Referral System - Simple unified approach
+  referredByCode: {
+    type: String,
+    default: null
+  },
+  myReferralCode: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  myFirstPayment: {
+    type: Boolean,
+    default: false
+  },
+  myFirstPlan: {
+    type: Boolean,
+    default: false
+  },
+  myFirstPaymentDate: {
+    type: Date,
+    default: null
+  },
+  myFirstPaymentAmount: {
+    type: Number,
+    default: 0
+  },
+  myProfilePercent: {
+    type: Number,
+    default: 0
+  },
+  referrals: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    refState: {
+      type: String,
+      enum: ['pending', 'completed'],
+      default: 'pending'
+    },
+    firstPayment: {
+      type: Boolean,
+      default: false
+    },
+    firstPlan: {
+      type: Boolean,
+      default: false
+    },
+    firstPaymentAmount: {
+      type: Number,
+      default: 0
+    },
+    firstPaymentDate: {
+      type: Date,
+      default: null
+    },
+    bonusCredited: {
+      type: Boolean,
+      default: false
+    },
+    bonusAmount: {
+      type: Number,
+      default: 0
+    },
+    profileComplete: {
+      type: Number,
+      default: 0
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  totalReferralsBy: {
+    type: Number,
+    default: 0
+  },
   uid: {
     type: String,
     required: true,
@@ -25,10 +102,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin', 'moderator'],
     default: 'user'
-  },
-  referredBy: {
-    type: String,
-    default: null
   }
 }, {
   timestamps: true
@@ -124,57 +197,10 @@ const profileSchema = new mongoose.Schema({
     }
   },
 
-  // Referral System
-  referral: {
-    code: {
-      type: String,
-      unique: true,
-      length: 10
-    },
-    referredBy: {
-      type: String,
-      default: null
-    },
-    totalReferrals: {
-      type: Number,
-      default: 0
-    },
-    completedReferrals: {
-      type: Number,
-      default: 0
-    },
-    pendingReferrals: {
-      type: Number,
-      default: 0
-    },
-    totalEarnings: {
-      type: Number,
-      default: 0
-    },
-    referrals: [{
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      },
-      userName: String,
-      phone: String,
-      joinedAt: {
-        type: Date,
-        default: Date.now
-      },
-      completionPercentage: {
-        type: Number,
-        default: 0
-      },
-      hasDeposited: {
-        type: Boolean,
-        default: false
-      },
-      bonusEarned: {
-        type: Number,
-        default: 0
-      }
-    }]
+
+  // Referral Code (copied from User schema for easy access)
+  myReferralCode: {
+    type: String
   },
 
   // Profile Status
@@ -274,22 +300,9 @@ const profileSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate referral code function
-profileSchema.pre('save', function(next) {
-  if (!this.referral.code) {
-    this.referral.code = generateReferralCode();
-  }
-  next();
-});
-
-function generateReferralCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 10; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
+// Note: Referral code is managed on the User model and copied into
+// Profile as `myReferralCode` during profile creation. No pre-save
+// hook is needed here.
 
 // Create models
 const User = mongoose.model('User', userSchema);

@@ -4,7 +4,6 @@ import { getApiEndpoint, buildApiUrl } from '../utils/config';
 const apiRequest = async (endpoint, options = {}) => {
   const url = typeof endpoint === 'string' ? buildApiUrl(endpoint) : endpoint;
   
-  // Don't set Content-Type for FormData (browser will set it automatically with boundary)
   const defaultOptions = {
     headers: {
       ...options.headers,
@@ -88,6 +87,14 @@ export const userApi = {
       method: 'POST',
       body: formData, // FormData for file uploads
     }),
+
+  // Referral: validate code
+  validateReferralCode: (code) => 
+    apiRequest(getApiEndpoint('REFERRAL_CODE', code)),
+
+  // Referral: stats for a user
+  getReferralStats: (uid) =>
+    apiRequest(getApiEndpoint('REFERRAL_STATS', uid)),
 };
 
 // Admin API Service

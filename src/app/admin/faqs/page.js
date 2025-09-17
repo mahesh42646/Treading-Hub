@@ -16,10 +16,6 @@ const AdminFAQs = () => {
     priority: 1
   });
 
-  useEffect(() => {
-    fetchFAQs();
-  }, []);
-
   const fetchFAQs = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/faqs`, {
@@ -36,6 +32,10 @@ const AdminFAQs = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

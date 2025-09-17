@@ -19,10 +19,6 @@ const AdminTeam = () => {
     priority: 1
   });
 
-  useEffect(() => {
-    fetchTeam();
-  }, []);
-
   const fetchTeam = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/team`, {
@@ -39,6 +35,10 @@ const AdminTeam = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTeam();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

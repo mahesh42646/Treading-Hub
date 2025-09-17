@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function AdminWithdrawals() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,16 +15,6 @@ export default function AdminWithdrawals() {
     status: '',
     type: ''
   });
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      fetchWithdrawals();
-    }
-  }, [filters, isAuthenticated, authLoading]);
 
   const checkAuth = async () => {
     try {
@@ -45,7 +35,7 @@ export default function AdminWithdrawals() {
     }
   };
 
-  const fetchWithdrawals = async () => {
+  const fetchWithdrawals = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
@@ -65,7 +55,17 @@ export default function AdminWithdrawals() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      fetchWithdrawals();
+    }
+  }, [filters, isAuthenticated, authLoading, fetchWithdrawals]);
 
   const handleAction = async (withdrawalId, action) => {
     try {

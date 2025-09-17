@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const { verifyAdminAuth, adminLogin } = require('./adminAuth');
 const multer = require('multer');
@@ -173,10 +174,14 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       query.status = status;
     }
 
-    const users = await User.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    let usersQuery = User.find(query).sort({ createdAt: -1 });
+    
+    // Only apply pagination if limit is provided and less than 1000
+    if (limit && parseInt(limit) < 1000) {
+      usersQuery = usersQuery.skip(skip).limit(parseInt(limit));
+    }
+    
+    const users = await usersQuery;
 
     // Get profiles for these users
     const userIds = users.map(user => user._id);
@@ -188,45 +193,52 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
       profileMap[profile.userId.toString()] = profile;
     });
 
-    // Get referral counts for each user
-    const referralCounts = await Profile.aggregate([
-      {
-        $match: {
-          'referral.referredBy': { $exists: true, $ne: null }
-        }
-      },
-      {
-        $group: {
-          _id: '$referral.referredBy',
-          totalCount: { $sum: 1 },
-          completedCount: {
-            $sum: {
-              $cond: [
-                { $gt: ['$wallet.totalDeposits', 0] },
-                1,
-                0
-              ]
-            }
-          }
-        }
-      }
-    ]);
-
-    // Create a map of referral code to counts
+    // Get referral counts for each user using the same approach as user dashboard
     const referralCountMap = {};
-    referralCounts.forEach(item => {
-      referralCountMap[item._id] = {
-        total: item.totalCount,
-        completed: item.completedCount,
-        pending: item.totalCount - item.completedCount
-      };
-    });
+    
+    // For each user, calculate their referral counts
+    for (const user of users) {
+      const userProfile = profileMap[user._id.toString()];
+      if (userProfile && userProfile.referral && userProfile.referral.code) {
+        // Find all profiles that were referred by this user's code
+        const referredProfiles = await Profile.find({ 
+          'referral.referredBy': userProfile.referral.code 
+        });
+        
+        const totalReferrals = referredProfiles.length;
+        const completedReferrals = referredProfiles.filter(p => p.wallet?.totalDeposits > 0).length;
+        const pendingReferrals = totalReferrals - completedReferrals;
+        
+        referralCountMap[userProfile.referral.code] = {
+          total: totalReferrals,
+          completed: completedReferrals,
+          pending: pendingReferrals
+        };
+      }
+    }
 
     // Attach profiles and referral counts to users
     const usersWithProfiles = users.map(user => {
       const userObj = user.toObject();
       const profile = profileMap[user._id.toString()] || null;
       userObj.profile = profile;
+      
+      // Initialize referral object safely
+      if (!userObj.profile) {
+        userObj.profile = {
+          referral: {
+            totalReferred: 0,
+            completedReferrals: 0,
+            pendingReferrals: 0
+          }
+        };
+      } else if (!userObj.profile.referral) {
+        userObj.profile.referral = {
+          totalReferred: 0,
+          completedReferrals: 0,
+          pendingReferrals: 0
+        };
+      }
       
       // Add referral counts if user has a referral code
       if (profile && profile.referral && profile.referral.code) {
@@ -235,7 +247,6 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
         userObj.profile.referral.completedReferrals = counts.completed;
         userObj.profile.referral.pendingReferrals = counts.pending;
       } else {
-        userObj.profile.referral = userObj.profile.referral || {};
         userObj.profile.referral.totalReferred = 0;
         userObj.profile.referral.completedReferrals = 0;
         userObj.profile.referral.pendingReferrals = 0;
@@ -246,17 +257,23 @@ router.get('/users', verifyAdminAuth, async (req, res) => {
 
     const total = await User.countDocuments(query);
 
-    res.json({
+    const response = {
       success: true,
       users: usersWithProfiles,
       pagination: {
-        current: parseInt(page),
-        total: Math.ceil(total / limit),
-        totalUsers: total
+        current: 1,
+        total: 1,
+        totalUsers: usersWithProfiles.length
       }
-    });
+    };
+
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error in users endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message
+    });
   }
 });
 
@@ -1131,7 +1148,7 @@ router.post('/trading-accounts', verifyAdminAuth, async (req, res) => {
       leverage: leverage || '1:100',
       currency: currency || 'USD',
       notes,
-      createdBy: req.admin._id // Assuming admin ID is available in req.admin
+      createdBy: req.admin?._id || new mongoose.Types.ObjectId() // Fallback if admin ID not available
     });
 
     await tradingAccount.save();
@@ -1363,35 +1380,72 @@ router.put('/update-transaction-status', verifyAdminAuth, async (req, res) => {
 // Recalculate all referral counts
 router.post('/recalculate-referral-counts', verifyAdminAuth, async (req, res) => {
   try {
-    // Get all profiles with referral codes
-    const profilesWithCodes = await Profile.find({
-      'referral.code': { $exists: true, $ne: null }
-    });
+    // Find all profiles that have a referral code
+    const profilesWithCodes = await Profile.find({ 'referral.code': { $exists: true, $ne: null } });
 
-    for (const profile of profilesWithCodes) {
-      // Count total referrals
-      const totalReferrals = await Profile.countDocuments({
-        'referral.referredBy': profile.referral.code
+    let updatedProfiles = 0;
+
+    for (const referrerProfile of profilesWithCodes) {
+      const code = referrerProfile.referral.code;
+      if (!code) continue;
+
+      // Collect referred profiles from BOTH sources:
+      // 1) Profiles that already recorded referredBy on the profile
+      const viaProfile = await Profile.find({ 'referral.referredBy': code })
+        .populate('userId', 'email')
+        .select('userId personalInfo wallet.totalDeposits createdAt status referral');
+
+      // 2) Users that have referredBy on the user doc, backfill their profile if missing
+      const usersViaUser = await User.find({ referredBy: code }).select('_id email');
+      const viaUserProfiles = await Profile.find({ userId: { $in: usersViaUser.map(u => u._id) } })
+        .populate('userId', 'email')
+        .select('userId personalInfo wallet.totalDeposits createdAt status referral');
+
+      // Backfill: if a profile is missing referral.referredBy, set it to the code
+      for (const p of viaUserProfiles) {
+        if (!p.referral) p.referral = {};
+        if (!p.referral.referredBy) {
+          p.referral.referredBy = code;
+          await p.save();
+        }
+      }
+
+      // Merge unique referred profiles by userId
+      const mapByUser = new Map();
+      [...viaProfile, ...viaUserProfiles].forEach(p => {
+        const key = p.userId?._id?.toString();
+        if (key) mapByUser.set(key, p);
       });
+      const referredProfiles = Array.from(mapByUser.values());
 
-      // Count completed referrals (those who have made deposits)
-      const completedReferrals = await Profile.countDocuments({
-        'referral.referredBy': profile.referral.code,
-        'wallet.totalDeposits': { $gt: 0 }
-      });
+      // Build referrals detail
+      const referrals = referredProfiles.map(ref => ({
+        userId: ref.userId._id,
+        userName: `${ref.personalInfo?.firstName || 'User'} ${ref.personalInfo?.lastName || ''}`.trim(),
+        phone: ref.personalInfo?.phone || 'Not provided',
+        joinedAt: ref.createdAt || new Date(),
+        completionPercentage: ref.status?.completionPercentage || 0,
+        hasDeposited: (ref.wallet?.totalDeposits || 0) > 0,
+        bonusEarned: 0
+      }));
 
-      // Update the profile
-      profile.referral.totalReferrals = totalReferrals;
-      profile.referral.completedReferrals = completedReferrals;
-      profile.referral.pendingReferrals = totalReferrals - completedReferrals;
-      
-      await profile.save();
+      const totalReferrals = referrals.length;
+      const completedReferrals = referrals.filter(r => r.hasDeposited).length;
+
+      if (!referrerProfile.referral) referrerProfile.referral = {};
+      referrerProfile.referral.totalReferrals = totalReferrals;
+      referrerProfile.referral.completedReferrals = completedReferrals;
+      referrerProfile.referral.pendingReferrals = Math.max(0, totalReferrals - completedReferrals);
+      referrerProfile.referral.referrals = referrals;
+
+      await referrerProfile.save();
+      updatedProfiles++;
     }
 
     res.json({
       success: true,
       message: 'Referral counts recalculated successfully',
-      updatedProfiles: profilesWithCodes.length
+      updatedProfiles
     });
   } catch (error) {
     console.error('Error recalculating referral counts:', error);
@@ -1665,6 +1719,135 @@ router.put('/user-wallet/:uid', verifyAdminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update wallet balance',
+      error: error.message
+    });
+  }
+});
+
+// Get all referrals with detailed information for admin
+router.get('/referrals/detailed', verifyAdminAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Get all profiles that have referrals
+    const profilesWithReferrals = await Profile.find({
+      'referral.referrals.0': { $exists: true }
+    }).populate('userId', 'email createdAt');
+
+    const allReferrals = [];
+
+    for (const profile of profilesWithReferrals) {
+      const referrer = {
+        referrerId: profile.userId._id,
+        referrerEmail: profile.userId.email,
+        referrerName: `${profile.personalInfo?.firstName || 'User'} ${profile.personalInfo?.lastName || ''}`.trim(),
+        referralCode: profile.referral?.code
+      };
+
+      for (const referral of profile.referral.referrals || []) {
+        try {
+          // Get referred user details
+          const referredUser = await User.findById(referral.userId);
+          const referredProfile = await Profile.findOne({ userId: referral.userId });
+
+          if (referredUser && referredProfile) {
+            const hasFirstDeposit = (referredProfile.wallet?.totalDeposits || 0) > 0;
+            const hasActivePlan = referredProfile.subscription?.status === 'active';
+            const profileCompletion = referredProfile.status?.completionPercentage || 0;
+            const hasCompletedFirstPayment = referredProfile.referral?.hasCompletedFirstPayment || false;
+
+            allReferrals.push({
+              ...referrer,
+              referredUserId: referral.userId,
+              referredUserEmail: referredUser.email,
+              referredUserName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
+              referredUserPhone: referredProfile.personalInfo?.phone || 'Not provided',
+              joinedAt: referredProfile.createdAt || referral.joinedAt,
+              profileCompletion: profileCompletion,
+              hasFirstDeposit: hasFirstDeposit,
+              hasActivePlan: hasActivePlan,
+              planName: referredProfile.subscription?.planName || null,
+              planPrice: referredProfile.subscription?.planPrice || 0,
+              planExpiryDate: referredProfile.subscription?.expiryDate || null,
+              firstPaymentAmount: referredProfile.referral?.firstPaymentAmount || 0,
+              firstPaymentDate: referredProfile.referral?.firstPaymentDate || null,
+              bonusEarned: referral.bonusEarned || 0,
+              bonusCreditedAt: referral.bonusCreditedAt || null,
+              status: hasCompletedFirstPayment || hasActivePlan ? 'completed' : 'pending',
+              referralComplete: hasCompletedFirstPayment || hasActivePlan,
+              kycStatus: referredProfile.kyc?.status || 'not_started',
+              walletBalance: referredProfile.wallet?.walletBalance || 0,
+              referralBalance: referredProfile.wallet?.referralBalance || 0
+            });
+          }
+        } catch (err) {
+          console.error('Error processing referral for admin:', err);
+        }
+      }
+    }
+
+    // Sort by joinedAt (newest first)
+    allReferrals.sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt));
+
+    // Paginate
+    const paginatedReferrals = allReferrals.slice(skip, skip + limit);
+    const totalPages = Math.ceil(allReferrals.length / limit);
+
+    // Calculate stats
+    const stats = {
+      totalReferrals: allReferrals.length,
+      completedReferrals: allReferrals.filter(r => r.status === 'completed').length,
+      pendingReferrals: allReferrals.filter(r => r.status === 'pending').length,
+      totalBonusPaid: allReferrals.reduce((sum, r) => sum + (r.bonusEarned || 0), 0),
+      averageProfileCompletion: allReferrals.length > 0 
+        ? allReferrals.reduce((sum, r) => sum + r.profileCompletion, 0) / allReferrals.length 
+        : 0
+    };
+
+    res.json({
+      success: true,
+      referrals: paginatedReferrals,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: allReferrals.length,
+        itemsPerPage: limit
+      },
+      stats: stats
+    });
+
+  } catch (error) {
+    console.error('Error fetching detailed referrals for admin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referral details',
+      error: error.message
+    });
+  }
+});
+
+// Migration endpoint for new referral system
+router.post('/migrate-referral-system', verifyAdminAuth, async (req, res) => {
+  try {
+    const { migrateUsersToNewReferralSystem } = require('./utils/migrationUtils');
+    const result = await migrateUsersToNewReferralSystem();
+    
+    res.json({
+      success: result.success,
+      message: result.success 
+        ? `Migration completed. ${result.migratedCount} users migrated.`
+        : 'Migration failed',
+      migratedCount: result.migratedCount || 0,
+      error: result.error || null
+    });
+
+  } catch (error) {
+    console.error('Migration endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Migration failed',
       error: error.message
     });
   }

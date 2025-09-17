@@ -28,10 +28,6 @@ const AdminPlans = () => {
     isActive: true
   });
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
   const fetchPlans = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
@@ -48,6 +44,10 @@ const AdminPlans = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
 
   const resetForm = () => {
     setFormData({

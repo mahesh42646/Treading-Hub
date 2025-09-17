@@ -20,10 +20,6 @@ const AdminNews = () => {
     isPublished: true
   });
 
-  useEffect(() => {
-    fetchNews();
-  }, []);
-
   const fetchNews = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/news`, {
@@ -40,6 +36,10 @@ const AdminNews = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

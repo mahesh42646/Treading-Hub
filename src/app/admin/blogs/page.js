@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaBlog } from 'react-icons/fa';
 
 const AdminBlogs = () => {
@@ -24,11 +24,7 @@ const AdminBlogs = () => {
   });
   const [imagePreview, setImagePreview] = useState('');
 
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
-
-  const fetchBlogs = async () => {
+  const fetchBlogs = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/blogs`, {
         credentials: 'include'
@@ -43,7 +39,11 @@ const AdminBlogs = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBlogs();
+  }, [fetchBlogs]);
 
   const generateSlug = (title) => {
     return title

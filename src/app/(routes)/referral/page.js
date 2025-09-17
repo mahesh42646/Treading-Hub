@@ -1,59 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuthContext } from '../../contexts/AuthContext';
 import Header from '../../user/components/Header';
 import Footer from '../../user/components/Footer';
 import Sidebar from '../../user/components/Sidebar';
 
 export default function Referral() {
-  const [referralCode, setReferralCode] = useState('TH123456');
-  const [referralLink, setReferralLink] = useState('https://treadinghub.com/ref/TH123456');
+  const { user } = useAuthContext();
+  const [loading, setLoading] = useState(true);
+  const [referralData, setReferralData] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const referralStats = {
-    totalReferrals: 12,
-    activeReferrals: 8,
-    totalEarnings: 450,
-    pendingEarnings: 75
+  const fetchReferralData = async () => {
+    try {
+      if (!user?.uid) return;
+      
+      const response = await fetch('/api/profile/referral', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.uid}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setReferralData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching referral data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  const referrals = [
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      date: '2024-01-15',
-      status: 'active',
-      plan: 'Professional',
-      earnings: 50
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      date: '2024-01-12',
-      status: 'active',
-      plan: 'Starter',
-      earnings: 25
-    },
-    {
-      id: 3,
-      name: 'Mike Davis',
-      email: 'mike.davis@example.com',
-      date: '2024-01-10',
-      status: 'pending',
-      plan: 'Elite',
-      earnings: 0
-    },
-    {
-      id: 4,
-      name: 'Emily Wilson',
-      email: 'emily.w@example.com',
-      date: '2024-01-08',
-      status: 'active',
-      plan: 'Professional',
-      earnings: 50
-    }
-  ];
+  useEffect(() => {
+    fetchReferralData();
+  }, [user]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchReferralData();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-vh-100 d-flex">
+        <Sidebar />
+        <div className="flex-grow-1">
+          <Header />
+          <div className="container-fluid py-4">
+            <div className="text-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const referralCode = referralData?.referralCode || 'Loading...';
+  const referralLink = `${window.location.origin}/ref/${referralCode}`;
+  const stats = referralData?.stats || {
+    totalReferrals: 0,
+    completedReferrals: 0,
+    pendingReferrals: 0,
+    totalEarnings: 0
+  };
+  const referrals = referralData?.referrals || [];
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -123,7 +140,7 @@ export default function Referral() {
                         </div>
                         <div>
                           <h6 className="mb-1">Total Referrals</h6>
-                          <h4 className="mb-0 text-primary">{referralStats.totalReferrals}</h4>
+                          <h4 className="mb-0 text-primary">{stats.totalReferrals}</h4>
                         </div>
                       </div>
                     </div>
@@ -138,8 +155,8 @@ export default function Referral() {
                           <i className="bi bi-check-circle text-success fs-4"></i>
                         </div>
                         <div>
-                          <h6 className="mb-1">Active Referrals</h6>
-                          <h4 className="mb-0 text-success">{referralStats.activeReferrals}</h4>
+                          <h6 className="mb-1">Completed Referrals</h6>
+                          <h4 className="mb-0 text-success">{stats.completedReferrals}</h4>
                         </div>
                       </div>
                     </div>
@@ -151,11 +168,11 @@ export default function Referral() {
                     <div className="card-body">
                       <div className="d-flex align-items-center">
                         <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                          <i className="bi bi-currency-dollar text-warning fs-4"></i>
+                          <i className="bi bi-hourglass text-warning fs-4"></i>
                         </div>
                         <div>
-                          <h6 className="mb-1">Total Earnings</h6>
-                          <h4 className="mb-0 text-warning">${referralStats.totalEarnings}</h4>
+                          <h6 className="mb-1">Pending Referrals</h6>
+                          <h4 className="mb-0 text-warning">{stats.pendingReferrals}</h4>
                         </div>
                       </div>
                     </div>
@@ -167,11 +184,11 @@ export default function Referral() {
                     <div className="card-body">
                       <div className="d-flex align-items-center">
                         <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                          <i className="bi bi-clock text-info fs-4"></i>
+                          <i className="bi bi-currency-rupee text-info fs-4"></i>
                         </div>
                         <div>
-                          <h6 className="mb-1">Pending Earnings</h6>
-                          <h4 className="mb-0 text-info">${referralStats.pendingEarnings}</h4>
+                          <h6 className="mb-1">Total Earnings</h6>
+                          <h4 className="mb-0 text-info">₹{stats.totalEarnings}</h4>
                         </div>
                       </div>
                     </div>
@@ -184,7 +201,21 @@ export default function Referral() {
                   {/* Referral Link Section */}
                   <div className="card border-0 shadow-sm mb-4">
                     <div className="card-body p-4">
-                      <h5 className="mb-3">Your Referral Link</h5>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h5 className="mb-0">Your Referral Link</h5>
+                        <button 
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={handleRefresh}
+                          disabled={refreshing}
+                        >
+                          {refreshing ? (
+                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                          ) : (
+                            <i className="bi bi-arrow-clockwise me-2"></i>
+                          )}
+                          Refresh
+                        </button>
+                      </div>
                       <div className="input-group mb-3">
                         <input
                           type="text"
@@ -222,7 +253,7 @@ export default function Referral() {
                         <div className="col-md-6 mb-3">
                           <label className="form-label">Commission Rate</label>
                           <div className="form-control-plaintext">
-                            <span className="badge bg-success fs-6">10% of plan fee</span>
+                            <span className="badge bg-success fs-6">20% of first plan purchase</span>
                           </div>
                         </div>
                       </div>
@@ -238,30 +269,42 @@ export default function Referral() {
                           <thead>
                             <tr>
                               <th>Name</th>
-                              <th>Email</th>
+                              <th>Phone</th>
                               <th>Date Joined</th>
-                              <th>Plan</th>
                               <th>Status</th>
-                              <th>Earnings</th>
+                              <th>Plan Purchase</th>
+                              <th>Bonus Earned</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {referrals.map((referral) => (
-                              <tr key={referral.id}>
-                                <td>{referral.name}</td>
-                                <td>{referral.email}</td>
-                                <td>{referral.date}</td>
-                                <td>{referral.plan}</td>
+                            {referrals.length > 0 ? referrals.map((referral, index) => (
+                              <tr key={referral.userId || index}>
+                                <td>{referral.userName || 'N/A'}</td>
+                                <td>{referral.phone || 'N/A'}</td>
+                                <td>{new Date(referral.joinedAt).toLocaleDateString()}</td>
                                 <td>
-                                  <span className={getStatusBadge(referral.status)}>
-                                    {referral.status}
+                                  <span className={getStatusBadge(referral.hasDeposited ? 'completed' : 'pending')}>
+                                    {referral.hasDeposited ? 'Completed' : 'Pending'}
                                   </span>
                                 </td>
+                                <td>
+                                  {referral.hasDeposited ? (
+                                    <span className="text-success">₹{referral.firstPaymentAmount || 0}</span>
+                                  ) : (
+                                    <span className="text-muted">No plan yet</span>
+                                  )}
+                                </td>
                                 <td className="text-success fw-bold">
-                                  ${referral.earnings}
+                                  ₹{referral.bonusEarned || 0}
                                 </td>
                               </tr>
-                            ))}
+                            )) : (
+                              <tr>
+                                <td colspan="6" className="text-center text-muted py-4">
+                                  No referrals yet. Share your referral link to start earning!
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
@@ -275,7 +318,7 @@ export default function Referral() {
                     <div className="card-body p-4">
                       <h5 className="mb-3">Share & Earn</h5>
                       <p className="text-muted mb-3">
-                        Share your referral link with friends and earn 10% commission on their plan purchases.
+                        Share your referral link with friends and earn 20% bonus when they purchase their first plan.
                       </p>
                       
                       <div className="d-grid gap-2">
@@ -344,7 +387,7 @@ export default function Referral() {
                         </div>
                         <div>
                           <h6 className="mb-1">You Earn</h6>
-                          <p className="text-muted small mb-0">Earn 10% commission on their plan purchases</p>
+                          <p className="text-muted small mb-0">Earn 20% bonus when they purchase their first plan</p>
                         </div>
                       </div>
                     </div>

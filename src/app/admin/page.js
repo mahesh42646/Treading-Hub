@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaUsers, FaUserCheck, FaClock, FaDollarSign, FaChartLine, FaPlus, FaEye, FaEdit, FaEnvelope } from 'react-icons/fa';
 
 const AdminDashboard = () => {
@@ -19,11 +19,7 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, {
         credentials: 'include'
@@ -38,7 +34,11 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const handleRecalculateReferrals = async () => {
     if (!confirm('This will recalculate all referral counts. Continue?')) return;
@@ -77,6 +77,13 @@ const AdminDashboard = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">Dashboard</h1>
         <div className="d-flex gap-2">
+          <button 
+            className="btn btn-warning btn-sm"
+            onClick={handleRecalculateReferrals}
+          >
+            <FaChartLine className="me-1" />
+            Recalculate Referrals
+          </button>
           <button className="btn btn-primary btn-sm">
             <FaPlus className="me-1" />
             Add User

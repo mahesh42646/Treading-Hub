@@ -261,24 +261,76 @@ router.post('/create', async (req, res) => {
 
     await user.save();
     
-    console.log('✅ User saved successfully with referredBy:', user.referredBy);
+    console.log('✅ User saved successfully');
 
-    // If user was referred, update referrer's pending count
+    // MANDATORY: Initialize referral code for new user
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let userReferralCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    
+    // Generate unique referral code (max 10 attempts)
+    while (!isUnique && attempts < 10) {
+      userReferralCode = '';
+      for (let i = 0; i < 10; i++) {
+        userReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Check if code is unique
+      const existingUser = await User.findOne({ myReferralCode: userReferralCode });
+      if (!existingUser) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+    
+    if (!isUnique) {
+      // Delete the user we just created since referral code generation failed
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate unique referral code. Please try again.'
+      });
+    }
+    
+    // Initialize all required referral fields
+    user.myReferralCode = userReferralCode;
+    user.myProfilePercent = 0;
+    user.myFirstPayment = false;
+    user.myFirstPlan = false;
+    user.myFirstPaymentDate = null;
+    user.myFirstPaymentAmount = 0;
+    user.referrals = [];
+    user.totalReferralsBy = 0;
+    user.referredByCode = validReferralCode || null;
+    
+    await user.save();
+    console.log('✅ User created with referral code:', userReferralCode);
+
+    // If user was referred, add referral record
     if (validReferralCode) {
       try {
-        const referrerProfile = await Profile.findOne({ 'referral.code': validReferralCode });
-        if (referrerProfile) {
-          referrerProfile.referral.totalReferrals += 1;
-          referrerProfile.referral.pendingReferrals += 1;
-          await referrerProfile.save();
-          console.log('📈 Updated referrer pending count:', {
-            referrer: referrerProfile.personalInfo.firstName,
-            totalReferrals: referrerProfile.referral.totalReferrals,
-            pendingReferrals: referrerProfile.referral.pendingReferrals
+        const referrer = await User.findOne({ myReferralCode: validReferralCode });
+        if (referrer) {
+          referrer.referrals.push({
+            user: user._id,
+            refState: 'pending',
+            firstPayment: false,
+            firstPlan: false,
+            firstPaymentAmount: 0,
+            firstPaymentDate: null,
+            bonusCredited: false,
+            bonusAmount: 0,
+            profileComplete: 0,
+            joinedAt: new Date()
           });
+          referrer.totalReferralsBy += 1;
+          await referrer.save();
+          console.log('✅ Added referral record to referrer:', referrer._id);
         }
-      } catch (error) {
-        console.error('❌ Error updating referrer stats:', error);
+      } catch (referralError) {
+        console.error('❌ Error adding referral record:', referralError);
+        // Continue - user is already created with referral code
       }
     }
 
@@ -398,44 +450,80 @@ router.post('/create-with-profile', async (req, res) => {
       }
     });
 
-    await profile.save();
-
-    // If user was referred, add them to referrer's list
-    if (referredBy) {
-      console.log('📝 Adding user to referrer\'s list:', { referredBy, userName: `${firstName} ${lastName}` });
+    // MANDATORY: Initialize referral code for new user
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let profileReferralCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    
+    // Generate unique referral code (max 10 attempts)
+    while (!isUnique && attempts < 10) {
+      profileReferralCode = '';
+      for (let i = 0; i < 10; i++) {
+        profileReferralCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
       
-      const referrerProfile = await Profile.findOne({ 'referral.code': referredBy });
-      if (referrerProfile) {
-        // Add referral record to referrer's list
-        const referralData = {
-          userId: user._id,
-          userName: `${firstName} ${lastName}`,
-          phone: phone,
-          joinedAt: new Date(),
-          completionPercentage: completionPercentage,
-          hasDeposited: false,
-          bonusEarned: 0
-        };
+      // Check if code is unique
+      const existingUser = await User.findOne({ myReferralCode: profileReferralCode });
+      if (!existingUser) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+    
+    if (!isUnique) {
+      // Delete the user and profile we just created since referral code generation failed
+      await Profile.findByIdAndDelete(profile._id);
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate unique referral code. Please try again.'
+      });
+    }
+    
+    // Initialize all required referral fields
+    user.myReferralCode = profileReferralCode;
+    user.myProfilePercent = completionPercentage;
+    user.myFirstPayment = false;
+    user.myFirstPlan = false;
+    user.myFirstPaymentDate = null;
+    user.myFirstPaymentAmount = 0;
+    user.referrals = [];
+    user.totalReferralsBy = 0;
+    user.referredByCode = referredBy || null;
+    
+    // Store referral code in profile as well
+    profile.myReferralCode = profileReferralCode;
+    
+    await user.save();
+    await profile.save();
+    
+    console.log('✅ User created with referral code:', profileReferralCode);
 
-        // Check if referral already exists
-        const existingReferralIndex = referrerProfile.referral.referrals.findIndex(
-          ref => ref.userId && ref.userId.toString() === user._id.toString()
-        );
-
-        if (existingReferralIndex === -1) {
-          // Add new referral
-          referrerProfile.referral.referrals.push(referralData);
-          console.log('✅ Added new referral to referrer\'s list');
-        } else {
-          // Update existing referral
-          referrerProfile.referral.referrals[existingReferralIndex] = {
-            ...referrerProfile.referral.referrals[existingReferralIndex],
-            ...referralData
-          };
-          console.log('✅ Updated existing referral in referrer\'s list');
+    // If user was referred, add referral record
+    if (referredBy) {
+      try {
+        const referrer = await User.findOne({ myReferralCode: referredBy });
+        if (referrer) {
+          referrer.referrals.push({
+            user: user._id,
+            refState: 'pending',
+            firstPayment: false,
+            firstPlan: false,
+            firstPaymentAmount: 0,
+            firstPaymentDate: null,
+            bonusCredited: false,
+            bonusAmount: 0,
+            profileComplete: completionPercentage,
+            joinedAt: new Date()
+          });
+          referrer.totalReferralsBy += 1;
+          await referrer.save();
+          console.log('✅ Added referral record to referrer:', referrer._id);
         }
-
-        await referrerProfile.save();
+      } catch (referralError) {
+        console.error('❌ Error adding referral record:', referralError);
+        // Continue - user is already created with referral code
       }
     }
 
@@ -506,113 +594,59 @@ router.get('/profile/:uid', async (req, res) => {
 // Profile setup (step 2) - basic profile without PAN card
 router.post('/profile-setup', async (req, res) => {
   try {
-    const {
-      uid,
-      firstName,
-      lastName,
-      gender,
-      dateOfBirth,
-      country,
-      city,
-      phone
-    } = req.body;
-
-    // Validate required fields
-    if (!uid || !firstName || !lastName || !gender || !dateOfBirth || 
-        !country || !city || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Required fields are missing'
-      });
-    }
+    const { uid, firstName, lastName, gender, dateOfBirth, country, city, phone } = req.body;
 
     // Find user
     const user = await User.findOne({ uid });
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     // Check if profile already exists
     const existingProfile = await Profile.findOne({ userId: user._id });
     if (existingProfile) {
-      return res.status(400).json({
-        success: false,
-        message: 'Profile already exists'
-      });
+      return res.status(400).json({ success: false, message: 'Profile already exists' });
     }
 
-    // Check if phone number already exists in another profile
-    const existingPhoneProfile = await Profile.findOne({ 
-      'personalInfo.phone': phone,
-      userId: { $ne: user._id } // Exclude current user
-    });
-    
-    if (existingPhoneProfile) {
-      return res.status(400).json({
-        success: false,
-        message: 'This phone number is already registered with another account. Please use a different phone number.'
-      });
+    // Initialize user referral fields if missing
+    if (!user.myReferralCode) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 10; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      user.myReferralCode = code;
+      user.myProfilePercent = 0;
+      user.myFirstPayment = false;
+      user.myFirstPlan = false;
+      user.referrals = [];
+      user.totalReferralsBy = 0;
     }
 
-    // Calculate profile completion percentage (75% for basic profile)
-    const completedFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'];
-    const completionPercentage = 75; // 75% complete without PAN card
-
-    // Create profile with new schema structure
+    // Create profile
     const profile = new Profile({
       userId: user._id,
-      personalInfo: {
-        firstName,
-        lastName,
-        gender,
-        dateOfBirth: new Date(dateOfBirth),
-        country,
-        city,
-        phone
-      },
-      status: {
-        isActive: completionPercentage >= 70,
-        completionPercentage: completionPercentage,
-        completedFields: completedFields
-      },
-      kyc: {
-        status: 'not_applied'
-      }
+      myReferralCode: user.myReferralCode,
+      personalInfo: { firstName, lastName, gender, dateOfBirth: new Date(dateOfBirth), country, city, phone },
+      status: { isActive: true, completionPercentage: 75, completedFields: ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone'] },
+      kyc: { status: 'not_applied' }
     });
 
+    // Save both
+    user.myProfilePercent = 75;
+    user.emailVerified = true;
+    await user.save();
     await profile.save();
-
-    // Update user email verification status if needed
-    if (!user.emailVerified) {
-      user.emailVerified = true;
-      await user.save();
-    }
 
     res.status(201).json({
       success: true,
       message: 'Profile created successfully',
-      profile: {
-        firstName: profile.personalInfo.firstName,
-        lastName: profile.personalInfo.lastName,
-        gender: profile.personalInfo.gender,
-        country: profile.personalInfo.country,
-        city: profile.personalInfo.city,
-        phone: profile.personalInfo.phone,
-        referralCode: profile.referral.code,
-        status: profile.status,
-        kyc: profile.kyc
-      }
+      profile: { firstName, lastName, gender, country, city, phone, referralCode: user.myReferralCode }
     });
+
   } catch (error) {
-    console.error('Error creating profile:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create profile',
-      error: error.message
-    });
+    console.error('Profile setup error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to create profile', error: error.message });
   }
 });
 
@@ -959,6 +993,14 @@ router.post('/kyc-verification/:uid', upload.fields([
       { new: true, runValidators: true }
     );
 
+    // Keep User.myProfilePercent in sync with Profile.status.completionPercentage
+    try {
+      user.myProfilePercent = Math.round(updatedProfile.status.completionPercentage || 0);
+      await user.save();
+    } catch (syncError) {
+      console.warn('Warning: failed to sync user.myProfilePercent on KYC apply:', syncError?.message);
+    }
+
     res.json({
       success: true,
       message: 'KYC verification updated successfully',
@@ -1016,7 +1058,23 @@ router.put('/admin/kyc-approve/:uid', async (req, res) => {
     profile.kyc.approvedAt = new Date();
     profile.kyc.approvedBy = 'admin'; // You can pass admin ID here
 
-    // Update profile completion
+    // Update profile completion (set to 100% on approval)
+    profile.status.completionPercentage = 100;
+    profile.status.isActive = true;
+    if (Array.isArray(profile.status.completedFields)) {
+      const totalFields = ['firstName', 'lastName', 'gender', 'dateOfBirth', 'country', 'city', 'phone', 'emailVerified', 'panCardNumber', 'panHolderName', 'panCardImage', 'profilePhoto'];
+      profile.status.completedFields = Array.from(new Set([...(profile.status.completedFields || []), ...totalFields]));
+    }
+
+    // Sync user.myProfilePercent to 100 as well
+    try {
+      user.myProfilePercent = 100;
+      await user.save();
+    } catch (syncError) {
+      console.warn('Warning: failed to sync user.myProfilePercent on KYC approve:', syncError?.message);
+    }
+
+    // Update profile completion details
     profile.profileCompletion.kycDetails.adminApproval = {
       approvedAt: new Date(),
       adminNotes: adminNotes || 'KYC verification approved',
@@ -1980,30 +2038,26 @@ router.put('/support/ticket/:ticketId/status', async (req, res) => {
   }
 });
 
-// Validate referral code
+// Validate referral code - NEW UNIFIED SYSTEM
 router.get('/referral/validate/:code', async (req, res) => {
   try {
     const { code } = req.params;
     
-    const profile = await Profile.findOne({ 'referral.code': code });
-    if (!profile) {
+    // Find user by referral code (new system)
+    const user = await User.findOne({ myReferralCode: code });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Invalid or expired referral code'
       });
     }
 
-    const user = await User.findById(profile.userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Referrer not found'
-      });
-    }
-
+    // Get profile for additional info
+    const profile = await Profile.findOne({ userId: user._id });
+    
     res.json({
       success: true,
-      referrerName: `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`,
+      referrerName: profile ? `${profile.personalInfo?.firstName || 'User'} ${profile.personalInfo?.lastName || ''}`.trim() : 'User',
       referrerId: user.uid,
       referralCode: code
     });
@@ -2030,31 +2084,47 @@ router.get('/referral/stats/:uid', async (req, res) => {
       });
     }
 
-    const profile = await Profile.findOne({ userId: user._id });
-    if (!profile) {
-      return res.status(404).json({
+    // Initialize referral fields if missing (for existing users)
+    if (!user.myReferralCode) {
+      const { initializeUserReferral } = require('./utils/simpleReferralUtils');
+      await initializeUserReferral(user._id);
+      // Refetch user with updated data
+      const updatedUser = await User.findOne({ uid });
+      if (updatedUser) {
+        user.myReferralCode = updatedUser.myReferralCode;
+        user.referrals = updatedUser.referrals || [];
+        user.totalReferralsBy = updatedUser.totalReferralsBy || 0;
+      }
+    }
+
+    // Use new referral system from User schema
+    const { getUserReferralStats } = require('./utils/simpleReferralUtils');
+    const referralData = await getUserReferralStats(user._id);
+
+    if (!referralData) {
+      return res.status(500).json({
         success: false,
-        message: 'Profile not found'
+        message: 'Failed to get referral data'
       });
     }
 
     res.json({
       success: true,
       stats: {
-        totalReferrals: profile.referral.totalReferrals,
-        completedReferrals: profile.referral.completedReferrals,
-        pendingReferrals: profile.referral.pendingReferrals,
-        totalEarnings: profile.referral.totalEarnings,
-        referralCode: profile.referral.code
+        totalReferrals: referralData.totalReferrals,
+        completedReferrals: referralData.completedReferrals,
+        pendingReferrals: referralData.pendingReferrals,
+        totalEarnings: referralData.totalEarnings,
+        referralCode: referralData.myReferralCode
       },
-      referrals: profile.referral.referrals.map(ref => ({
-        userId: ref.userId,
-        userName: ref.userName,
-        phone: ref.phone,
-        completionPercentage: ref.completionPercentage,
+      referrals: referralData.referrals.map(ref => ({
+        userId: ref.user,
+        userName: `User ${ref.user}`, // Will be populated with real name later
+        phone: 'N/A',
+        completionPercentage: ref.profileComplete,
         joinedAt: ref.joinedAt,
-        hasDeposited: ref.hasDeposited,
-        bonusEarned: ref.bonusEarned
+        hasDeposited: ref.firstPayment,
+        bonusEarned: ref.bonusAmount
       }))
     });
   } catch (error) {
@@ -2167,81 +2237,7 @@ router.post('/wallet/deposit', async (req, res) => {
     });
     await transaction.save();
 
-    // Check if this is first deposit and user was referred (ONLY first deposit gets bonus)
-    const referralCode = user.referredBy;
-    const isFirstDeposit = profile.wallet.totalDeposits === amount; // This means totalDeposits was 0 before this deposit
-    
-    if (referralCode && isFirstDeposit) {
-      console.log('💰 Processing referral bonus for FIRST deposit only...');
-      
-      // This is their first deposit, give 20% referral bonus to referrer
-      const referrerProfile = await Profile.findOne({ 'referral.code': referralCode });
-      if (referrerProfile) {
-        console.log('🎯 Found referrer profile:', referrerProfile.personalInfo.firstName);
-        
-        const referralBonus = Math.round(amount * 0.20); // 20% of deposit amount
-        referrerProfile.wallet.referralBalance += referralBonus;
-        referrerProfile.referral.totalEarnings += referralBonus;
-        
-        // Update referral stats (move from pending to completed)
-        referrerProfile.referral.completedReferrals += 1;
-        referrerProfile.referral.pendingReferrals = Math.max(0, referrerProfile.referral.pendingReferrals - 1);
-        
-        // Add or update referral record in referrer's list
-        let referralIndex = referrerProfile.referral.referrals.findIndex(
-          ref => ref.userId && ref.userId.toString() === user._id.toString()
-        );
-        
-        const referralData = {
-          userId: user._id,
-          userName: `${profile.personalInfo.firstName || 'User'} ${profile.personalInfo.lastName || ''}`.trim(),
-          phone: profile.personalInfo.phone || 'Not provided',
-          joinedAt: profile.createdAt || new Date(),
-          completionPercentage: profile.status.completionPercentage,
-          hasDeposited: true,
-          bonusEarned: referralBonus
-        };
-        
-        if (referralIndex === -1) {
-          // Add new referral record
-          referrerProfile.referral.referrals.push(referralData);
-          console.log('✅ Added new referral record to referrer\'s list');
-        } else {
-          // Update existing referral record
-          referrerProfile.referral.referrals[referralIndex] = {
-            ...referrerProfile.referral.referrals[referralIndex],
-            ...referralData
-          };
-          console.log('✅ Updated existing referral record');
-        }
-        
-        await referrerProfile.save();
-
-        // Create transaction for referrer
-        const referrerTransaction = new Transaction({
-          userId: referrerProfile.userId,
-          type: 'referral_bonus',
-          amount: referralBonus,
-          description: `Referral bonus (20%) from ${profile.personalInfo.firstName || 'User'} ${profile.personalInfo.lastName || ''} - First Deposit: ₹${amount}`,
-          status: 'completed',
-          metadata: { referredUserId: user._id, referralCode: referralCode, depositAmount: amount }
-        });
-        await referrerTransaction.save();
-        
-        console.log('🎉 Referral bonus processed successfully:', {
-          referrer: referrerProfile.personalInfo.firstName,
-          depositAmount: amount,
-          bonusAmount: referralBonus,
-          newBalance: referrerProfile.wallet.referralBalance
-        });
-      } else {
-        console.error('❌ Referrer profile not found for code:', referralCode);
-      }
-    } else if (referralCode && !isFirstDeposit) {
-      console.log('ℹ️ User was referred but this is NOT their first deposit - no bonus');
-    } else if (!referralCode) {
-      console.log('ℹ️ User was not referred');
-    }
+    console.log('ℹ️ Wallet deposit completed');
 
     res.json({
       success: true,
@@ -2391,6 +2387,88 @@ router.post('/wallet/withdraw', async (req, res) => {
       message: 'Failed to process withdrawal',
       error: error.message
     });
+  }
+});
+
+// Get user's referral data - Simple unified approach
+router.get('/profile/referral', async (req, res) => {
+  try {
+    const uid = req.headers['x-user-uid'];
+    if (!uid) {
+      return res.status(401).json({ error: 'No user ID provided' });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Initialize referral fields if not present (for existing users)
+    if (!user.myReferralCode) {
+      const { initializeUserReferral } = require('./utils/simpleReferralUtils');
+      await initializeUserReferral(user._id);
+      // Refetch user with updated data
+      const updatedUser = await User.findOne({ uid });
+      if (updatedUser) {
+        user.myReferralCode = updatedUser.myReferralCode;
+        user.referrals = updatedUser.referrals || [];
+        user.totalReferralsBy = updatedUser.totalReferralsBy || 0;
+      }
+    }
+
+    const { getUserReferralStats } = require('./utils/simpleReferralUtils');
+    const referralData = await getUserReferralStats(user._id);
+
+    if (!referralData) {
+      return res.status(500).json({ error: 'Failed to get referral data' });
+    }
+
+    // Get detailed referral info with profile data
+    const detailedReferrals = [];
+    for (const referral of user.referrals) {
+      try {
+        const referredUser = await User.findById(referral.user).populate('userId');
+        const referredProfile = await Profile.findOne({ userId: referral.user });
+        
+        if (referredUser && referredProfile) {
+          detailedReferrals.push({
+            userId: referral.user,
+            userName: `${referredProfile.personalInfo?.firstName || 'User'} ${referredProfile.personalInfo?.lastName || ''}`.trim(),
+            email: referredUser.email,
+            phone: referredProfile.personalInfo?.phone || 'Not provided',
+            joinedAt: referral.joinedAt,
+            profileCompletion: referral.profileComplete,
+            hasFirstDeposit: referredUser.myFirstPayment,
+            hasActivePlan: referredUser.myFirstPlan,
+            planName: referredProfile.subscription?.planName || null,
+            planPrice: referredProfile.subscription?.planPrice || 0,
+            firstPaymentAmount: referral.firstPaymentAmount,
+            firstPaymentDate: referral.firstPaymentDate,
+            bonusEarned: referral.bonusAmount,
+            bonusCreditedAt: referral.firstPaymentDate,
+            status: referral.refState,
+            referralComplete: referral.refState === 'completed'
+          });
+        }
+      } catch (err) {
+        console.error('Error processing referral:', err);
+      }
+    }
+
+    res.json({
+      referralCode: user.myReferralCode,
+      stats: {
+        totalReferrals: referralData.totalReferrals,
+        completedReferrals: referralData.completedReferrals,
+        pendingReferrals: referralData.pendingReferrals,
+        totalEarnings: referralData.totalEarnings
+      },
+      referrals: detailedReferrals
+    });
+
+  } catch (error) {
+    console.error('Error fetching referral data:', error);
+    res.status(500).json({ error: 'Failed to fetch referral data' });
   }
 });
 

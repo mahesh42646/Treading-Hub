@@ -484,7 +484,7 @@ const Dashboard = () => {
                 <div className="text-center py-4">
                   <i className="bi bi-bell-slash fs-1 text-muted mb-3"></i>
                   <p className="text-muted mb-0">No notifications yet</p>
-                  <small className="text-muted">You'll see notifications here when they arrive</small>
+                  <small className="text-muted">You&apos;ll see notifications here when they arrive</small>
                 </div>
               )}
             </div>

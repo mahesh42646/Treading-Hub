@@ -9,6 +9,7 @@ const NotificationDropdown = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
@@ -28,8 +29,11 @@ const NotificationDropdown = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Notifications data received:', data);
-        setNotifications(data.notifications || []);
+        // Only show unread notifications in the dropdown
+        const unreadNotifications = (data.notifications || []).filter(notif => !notif.isRead);
+        setNotifications(unreadNotifications);
         setUnreadCount(data.unreadCount || 0);
+        console.log(`Displaying ${unreadNotifications.length} unread notifications out of ${data.notifications?.length || 0} total`);
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch notifications:', response.status, errorText);
@@ -43,6 +47,7 @@ const NotificationDropdown = () => {
 
   const markAsRead = async (notificationId) => {
     try {
+      setProcessing(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
@@ -53,17 +58,23 @@ const NotificationDropdown = () => {
       });
       
       if (response.ok) {
-        // Remove notification from list locally
+        // Remove notification from list locally (since we only show unread notifications)
         setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
         setUnreadCount(prev => Math.max(0, prev - 1));
+        console.log('Notification marked as read and removed from list');
+      } else {
+        console.error('Failed to mark notification as read');
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    } finally {
+      setProcessing(false);
     }
   };
 
   const markAllAsRead = async () => {
     try {
+      setProcessing(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read-all`, {
         method: 'PUT',
         headers: {
@@ -77,9 +88,14 @@ const NotificationDropdown = () => {
         // Clear all notifications from list
         setNotifications([]);
         setUnreadCount(0);
+        console.log('All notifications marked as read and cleared from list');
+      } else {
+        console.error('Failed to mark all notifications as read');
       }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -213,8 +229,9 @@ const NotificationDropdown = () => {
                 <button 
                   className="btn btn-sm btn-outline-primary"
                   onClick={markAllAsRead}
+                  disabled={processing}
                 >
-                  Clear All
+                  {processing ? '...' : 'Clear All'}
                 </button>
               )}
             </div>
@@ -251,8 +268,15 @@ const NotificationDropdown = () => {
                         }}
                         style={{ width: '24px', height: '24px', padding: '2px' }}
                         title="Mark as read"
+                        disabled={processing}
                       >
-                        <i className="bi bi-x" style={{ fontSize: '12px' }}></i>
+                        {processing ? (
+                          <div className="spinner-border spinner-border-sm" role="status" style={{ width: '10px', height: '10px' }}>
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                        ) : (
+                          <i className="bi bi-x" style={{ fontSize: '12px' }}></i>
+                        )}
                       </button>
                     </div>
                     <p className="mb-1 text-muted small">{notification.message}</p>

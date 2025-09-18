@@ -232,14 +232,21 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
               userId: referrer._id,
               type: 'referral_bonus',
               amount: bonusAmount,
-              description: `Referral bonus: 20% of ₹${amount} from first ${type}`,
+              balanceAfter: referrer.profile.wallet.referralBalance,
+              description: `Referral bonus: 20% of ₹${amount} from ${user.email}`,
               status: 'completed',
+              source: 'referral',
+              category: 'bonus',
               metadata: {
                 referredUserId: userId,
+                referredUserEmail: user.email,
                 referralCode: user.referredByCode,
                 originalAmount: amount,
-                paymentType: type
-              }
+                paymentType: type,
+                bonusPercentage: 20
+              },
+              processedAt: new Date(),
+              processedBy: 'system'
             });
             
             await referralTransaction.save();

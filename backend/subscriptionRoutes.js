@@ -235,23 +235,31 @@ router.post('/subscription/purchase', async (req, res) => {
       console.log('ℹ️ Not first plan purchase - no referral bonus');
     }
 
-    // Create transaction record
+    // Create transaction record for plan purchase
     try {
       const transaction = new Transaction({
         userId: user._id,
-        type: 'subscription',
+        type: 'plan_purchase',
         amount: totalPayment,
-        description: `Subscription purchase: ${plan.name} plan`,
+        balanceAfter: profile.wallet.walletBalance + profile.wallet.referralBalance,
+        description: `Plan purchase: ${plan.name} (₹${plan.price})`,
         status: 'completed',
+        source: 'plan_purchase',
+        category: 'purchase',
         metadata: {
           planId: plan._id,
           planName: plan.name,
-          paymentMethod: paymentMethod
+          planPrice: plan.price,
+          paymentMethod: paymentMethod,
+          walletAmount: paymentMethod.walletAmount,
+          referralAmount: paymentMethod.referralAmount
         },
-        processedAt: new Date()
+        processedAt: new Date(),
+        processedBy: 'user'
       });
 
       await transaction.save();
+      console.log('✅ Plan purchase transaction recorded');
     } catch (txErr) {
       console.error('Transaction creation failed:', txErr);
       // Don't fail the entire purchase if transaction creation fails

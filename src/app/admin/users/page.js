@@ -17,7 +17,8 @@ import {
   FaCreditCard,
   FaArrowLeft,
   FaPlus,
-  FaSync
+  FaSync,
+  FaReceipt
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -59,6 +60,14 @@ const AdminUsers = () => {
     endDate: '',
     status: 'active',
     durationDays: 0
+  });
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [userTransactions, setUserTransactions] = useState([]);
+  const [transactionSummary, setTransactionSummary] = useState({
+    totalDeposits: 0,
+    totalWithdrawals: 0,
+    totalBonuses: 0,
+    totalPurchases: 0
   });
 
   const refreshReferralCounts = useCallback(async () => {
@@ -373,6 +382,26 @@ const AdminUsers = () => {
     }
   };
 
+  const fetchUserTransactions = async (uid) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${uid}?limit=50`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserTransactions(data.transactions || []);
+        setTransactionSummary(data.summary || {
+          totalDeposits: 0,
+          totalWithdrawals: 0,
+          totalBonuses: 0,
+          totalPurchases: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user transactions:', error);
+    }
+  };
+
   const removeUserPlan = async (uid, planEntryId) => {
     if (!confirm('Are you sure you want to remove this plan?')) return;
     
@@ -558,6 +587,16 @@ const AdminUsers = () => {
                 >
                   <FaEdit className="me-2" />
                   Manage Plans
+                </button>
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={() => {
+                    setShowTransactionsModal(true);
+                    fetchUserTransactions(selectedUser.uid);
+                  }}
+                >
+                  <FaReceipt className="me-2" />
+                  View Transactions
                 </button>
                 <button 
                   className="btn btn-outline-warning"
@@ -1674,6 +1713,185 @@ const AdminUsers = () => {
                   onClick={savePlanEdit}
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transactions Modal */}
+      {showTransactionsModal && selectedUser && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-xl">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Transaction History - {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowTransactionsModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {/* Transaction Summary */}
+                <div className="row mb-4">
+                  <div className="col-md-3 mb-3">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body text-center">
+                        <div className="text-success mb-2">
+                          <i className="bi bi-arrow-down-circle fs-1"></i>
+                        </div>
+                        <h4 className="text-success">₹{transactionSummary.totalDeposits.toFixed(2)}</h4>
+                        <small className="text-muted">Total Deposits</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3 mb-3">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body text-center">
+                        <div className="text-danger mb-2">
+                          <i className="bi bi-arrow-up-circle fs-1"></i>
+                        </div>
+                        <h4 className="text-danger">₹{transactionSummary.totalWithdrawals.toFixed(2)}</h4>
+                        <small className="text-muted">Total Withdrawals</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3 mb-3">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body text-center">
+                        <div className="text-warning mb-2">
+                          <i className="bi bi-gift fs-1"></i>
+                        </div>
+                        <h4 className="text-warning">₹{transactionSummary.totalBonuses.toFixed(2)}</h4>
+                        <small className="text-muted">Total Bonuses</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-3 mb-3">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body text-center">
+                        <div className="text-info mb-2">
+                          <i className="bi bi-bag fs-1"></i>
+                        </div>
+                        <h4 className="text-info">₹{transactionSummary.totalPurchases.toFixed(2)}</h4>
+                        <small className="text-muted">Total Purchases</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transactions Table */}
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Balance After</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userTransactions.map((transaction) => (
+                        <tr key={transaction._id}>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <span className="me-2">
+                                {transaction.type === 'deposit' && '💰'}
+                                {transaction.type === 'withdrawal' && '💸'}
+                                {transaction.type === 'withdrawal_rejected' && '↩️'}
+                                {transaction.type === 'plan_purchase' && '📦'}
+                                {transaction.type === 'referral_bonus' && '🎁'}
+                                {transaction.type === 'admin_credit' && '➕'}
+                                {transaction.type === 'admin_debit' && '➖'}
+                                {transaction.type === 'profit' && '📈'}
+                                {transaction.type === 'loss' && '📉'}
+                                {transaction.type === 'refund' && '🔄'}
+                                {transaction.type === 'fee' && '💳'}
+                              </span>
+                              <span className="text-capitalize">{transaction.type.replace('_', ' ')}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`fw-bold ${
+                              ['deposit', 'referral_bonus', 'admin_credit', 'profit', 'withdrawal_rejected', 'refund'].includes(transaction.type) 
+                                ? 'text-success' 
+                                : 'text-danger'
+                            }`}>
+                              {['deposit', 'referral_bonus', 'admin_credit', 'profit', 'withdrawal_rejected', 'refund'].includes(transaction.type) ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(2)}
+                            </span>
+                          </td>
+                          <td>
+                            <div>
+                              <div>{transaction.description}</div>
+                              {transaction.metadata?.planName && (
+                                <small className="text-muted">Plan: {transaction.metadata.planName}</small>
+                              )}
+                              {transaction.metadata?.referredUserEmail && (
+                                <small className="text-muted">From: {transaction.metadata.referredUserEmail}</small>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`badge ${
+                              transaction.source === 'razorpay' ? 'bg-primary' :
+                              transaction.source === 'wallet' ? 'bg-info' :
+                              transaction.source === 'referral' ? 'bg-success' :
+                              transaction.source === 'admin' ? 'bg-warning' :
+                              transaction.source === 'trading' ? 'bg-purple' :
+                              transaction.source === 'plan_purchase' ? 'bg-info' :
+                              transaction.source === 'withdrawal' ? 'bg-secondary' :
+                              transaction.source === 'system' ? 'bg-dark' : 'bg-secondary'
+                            }`}>
+                              {transaction.source}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`badge ${
+                              transaction.status === 'pending' ? 'bg-warning' :
+                              transaction.status === 'completed' ? 'bg-success' :
+                              transaction.status === 'failed' ? 'bg-danger' :
+                              transaction.status === 'cancelled' ? 'bg-secondary' :
+                              transaction.status === 'rejected' ? 'bg-danger' : 'bg-secondary'
+                            }`}>
+                              {transaction.status}
+                            </span>
+                          </td>
+                          <td>₹{transaction.balanceAfter?.toFixed(2) || 'N/A'}</td>
+                          <td>
+                            <div>
+                              <div>{new Date(transaction.createdAt).toLocaleDateString()}</div>
+                              <small className="text-muted">
+                                {new Date(transaction.createdAt).toLocaleTimeString()}
+                              </small>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {userTransactions.length === 0 && (
+                  <div className="text-center py-5">
+                    <i className="bi bi-receipt fs-1 text-muted mb-3"></i>
+                    <h5 className="text-muted">No transactions found</h5>
+                    <p className="text-muted">This user has no transaction history</p>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowTransactionsModal(false)}
+                >
+                  Close
                 </button>
               </div>
             </div>

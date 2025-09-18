@@ -32,6 +32,11 @@ const Sidebar = () => {
       href: '/dashboard/wallet',
     },
     {
+      title: 'Transactions',
+      icon: 'bi bi-receipt',
+      href: '/dashboard/transactions',
+    },
+    {
       title: 'Trading Account',
       icon: 'bi bi-graph-up',
       href: '/dashboard/trading-account',

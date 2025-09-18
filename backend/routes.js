@@ -2114,6 +2114,105 @@ router.get('/referral/validate/:code', async (req, res) => {
   }
 });
 
+// Get user transactions with detailed information
+router.get('/transactions/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { page = 1, limit = 20, type, status, category } = req.query;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Build query
+    const query = { userId: user._id };
+    if (type) query.type = type;
+    if (status) query.status = status;
+    if (category) query.category = category;
+
+    const transactions = await Transaction.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('-metadata.accountDetails'); // Hide sensitive data
+
+    const total = await Transaction.countDocuments(query);
+
+    // Calculate summary
+    const summary = await Transaction.aggregate([
+      { $match: { userId: user._id } },
+      {
+        $group: {
+          _id: null,
+          totalDeposits: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['deposit', 'admin_credit']] },
+                '$amount',
+                0
+              ]
+            }
+          },
+          totalWithdrawals: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['withdrawal', 'admin_debit']] },
+                '$amount',
+                0
+              ]
+            }
+          },
+          totalBonuses: {
+            $sum: {
+              $cond: [
+                { $eq: ['$type', 'referral_bonus'] },
+                '$amount',
+                0
+              ]
+            }
+          },
+          totalPurchases: {
+            $sum: {
+              $cond: [
+                { $eq: ['$type', 'plan_purchase'] },
+                '$amount',
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      transactions,
+      summary: summary[0] || {
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalBonuses: 0,
+        totalPurchases: 0
+      },
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch transactions',
+      error: error.message
+    });
+  }
+});
+
 // Get referral stats
 router.get('/referral/stats/:uid', async (req, res) => {
   try {

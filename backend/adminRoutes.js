@@ -1015,6 +1015,27 @@ router.put('/withdrawals/:id/reject', verifyAdminAuth, async (req, res) => {
       { status: 'rejected' }
     );
 
+    // Create credit transaction for rejected withdrawal
+    const creditTransaction = new Transaction({
+      userId: withdrawal.userId,
+      type: 'withdrawal_rejected',
+      amount: withdrawal.amount,
+      balanceAfter: withdrawal.type === 'wallet' ? user.profile.wallet.walletBalance : user.profile.wallet.referralBalance,
+      description: `Withdrawal rejected - Amount credited back to ${withdrawal.type} balance`,
+      status: 'completed',
+      source: 'admin',
+      category: 'adjustment',
+      metadata: {
+        originalWithdrawalId: withdrawal._id,
+        withdrawalType: withdrawal.type,
+        rejectionReason: rejectionReason,
+        adminId: req.admin.id
+      },
+      processedAt: new Date(),
+      processedBy: 'admin'
+    });
+    await creditTransaction.save();
+
     res.json({ 
       success: true, 
       message: 'Withdrawal request rejected and amount restored to user wallet' 

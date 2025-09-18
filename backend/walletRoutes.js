@@ -157,15 +157,20 @@ router.post('/razorpay-verify', async (req, res) => {
       userId: user._id,
       type: 'deposit',
       amount: depositAmount,
+      balanceAfter: profile.wallet.walletBalance,
       description: `Wallet deposit via Razorpay - Order: ${razorpay_order_id}`,
       status: 'completed',
+      source: 'razorpay',
+      category: 'deposit',
       metadata: {
         paymentId: razorpay_payment_id,
         orderId: razorpay_order_id,
         paymentMethod: 'razorpay',
-        currency: 'INR'
+        currency: 'INR',
+        gateway: 'razorpay'
       },
-      processedAt: new Date()
+      processedAt: new Date(),
+      processedBy: 'user'
     });
     await depositTransaction.save();
 
@@ -369,12 +374,17 @@ router.post('/withdraw', async (req, res) => {
       userId: user._id,
       type: 'withdrawal',
       amount: amount,
+      balanceAfter: type === 'wallet' ? profile.wallet.walletBalance : profile.wallet.referralBalance,
       description: `Withdrawal request from ${type} balance`,
       status: 'pending',
-      metadata: { 
+      source: 'withdrawal',
+      category: 'withdrawal',
+      metadata: {
         withdrawalId: withdrawal._id,
-        withdrawalType: type
-      }
+        withdrawalType: type,
+        accountDetails: accountDetails
+      },
+      processedBy: 'user'
     });
     await transaction.save();
 

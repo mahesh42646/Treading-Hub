@@ -54,6 +54,132 @@ app.use('/api', subscriptionRoutes);
 // Admin routes
 app.use('/api/admin', adminRoutes);
 
+// Notification routes (mounted directly)
+app.get('/api/notifications/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { limit = 10, skip = 0 } = req.query;
+    
+    console.log('Fetching notifications for UID:', uid);
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      console.log('User not found for UID:', uid);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    console.log('User found:', user.email, 'User ID:', user._id);
+
+    // Import Notification model directly
+    const Notification = require('./models/Notification');
+    
+    // Fetch notifications directly
+    const notifications = await Notification.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(parseInt(skip));
+
+    const unreadCount = await Notification.countDocuments({ 
+      userId: user._id, 
+      isRead: false 
+    });
+
+    console.log('Notifications found:', notifications.length, 'Unread:', unreadCount);
+    console.log('Sample notification:', notifications[0]);
+
+    res.json({
+      success: true,
+      notifications,
+      unreadCount
+    });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch notifications',
+      error: error.message
+    });
+  }
+});
+
+// Mark notification as read
+app.put('/api/notifications/:notificationId/read', async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const { uid } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const Notification = require('./models/Notification');
+    const result = await Notification.findOneAndUpdate(
+      { _id: notificationId, userId: user._id },
+      { isRead: true }
+    );
+
+    if (result) {
+      res.json({
+        success: true,
+        message: 'Notification marked as read'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to mark notification as read'
+      });
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark notification as read',
+      error: error.message
+    });
+  }
+});
+
+// Mark all notifications as read
+app.put('/api/notifications/read-all', async (req, res) => {
+  try {
+    const { uid } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const Notification = require('./models/Notification');
+    const result = await Notification.updateMany(
+      { userId: user._id, isRead: false },
+      { isRead: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'All notifications marked as read',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark all notifications as read',
+      error: error.message
+    });
+  }
+});
+
 // Contact form endpoint (public)
 app.post('/api/contact', async (req, res) => {
   try {

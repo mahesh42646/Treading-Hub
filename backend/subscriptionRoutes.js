@@ -266,6 +266,20 @@ router.post('/subscription/purchase', async (req, res) => {
       // The plan purchase should still succeed
     }
 
+    // Create notification for plan purchase
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyPlanPurchased(
+        user._id,
+        plan.name,
+        totalPayment
+      );
+      console.log('✅ Plan purchase notification sent');
+    } catch (notifErr) {
+      console.error('Error creating plan purchase notification:', notifErr);
+      // Don't fail the entire purchase if notification creation fails
+    }
+
     console.log('Plan purchase successful:', {
       userId: user._id,
       planName: plan.name,

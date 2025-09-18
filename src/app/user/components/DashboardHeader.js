@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getUserDisplayInfo, getUserAvatar } from '../../utils/userDisplay';
+import NotificationDropdown from '../../components/NotificationDropdown';
 
 const DashboardHeader = () => {
   const { user, profile, logout } = useAuth();
@@ -39,16 +40,8 @@ const DashboardHeader = () => {
               {/* Right Section */}
               <div className="d-flex align-items-center gap-3">
                 {/* Notifications */}
-                <div className="dropdown d-none d-sm-block">
-                  <button
-                    className="btn btn-link text-dark position-relative"
-                    onClick={() => setShowNotifications(!showNotifications)}
-                  >
-                    <i className="bi bi-bell fs-5"></i>
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem' }}>
-                      3
-                    </span>
-                  </button>
+                <div className="d-none d-sm-block">
+                  <NotificationDropdown />
                 </div>
 
                 {/* User Menu */}

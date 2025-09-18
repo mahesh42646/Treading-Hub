@@ -2213,6 +2213,117 @@ router.get('/transactions/:uid', async (req, res) => {
   }
 });
 
+// Get user notifications
+router.get('/notifications/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { limit = 10, skip = 0 } = req.query;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const NotificationService = require('./utils/notificationService');
+    const { notifications, unreadCount } = await NotificationService.getUserNotifications(
+      user._id, 
+      parseInt(limit), 
+      parseInt(skip)
+    );
+
+    res.json({
+      success: true,
+      notifications,
+      unreadCount
+    });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch notifications',
+      error: error.message
+    });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:notificationId/read', async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const { uid } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const NotificationService = require('./utils/notificationService');
+    const success = await NotificationService.markAsRead(notificationId, user._id);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Notification marked as read'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to mark notification as read'
+      });
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark notification as read',
+      error: error.message
+    });
+  }
+});
+
+// Mark all notifications as read
+router.put('/notifications/read-all', async (req, res) => {
+  try {
+    const { uid } = req.body;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const NotificationService = require('./utils/notificationService');
+    const success = await NotificationService.markAllAsRead(user._id);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: 'All notifications marked as read'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to mark all notifications as read'
+      });
+    }
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark all notifications as read',
+      error: error.message
+    });
+  }
+});
+
 // Get referral stats
 router.get('/referral/stats/:uid', async (req, res) => {
   try {

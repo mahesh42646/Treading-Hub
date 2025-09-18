@@ -958,6 +958,20 @@ router.put('/withdrawals/:id/approve', verifyAdminAuth, async (req, res) => {
       { status: 'approved' }
     );
 
+    // Create notification for withdrawal approval
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyWithdrawalApproved(
+        withdrawal.userId,
+        withdrawal.amount,
+        withdrawal.type
+      );
+      console.log('✅ Withdrawal approval notification sent');
+    } catch (notifErr) {
+      console.error('Error creating withdrawal approval notification:', notifErr);
+      // Don't fail the entire approval if notification creation fails
+    }
+
     res.json({ 
       success: true, 
       message: 'Withdrawal request approved successfully' 
@@ -1035,6 +1049,21 @@ router.put('/withdrawals/:id/reject', verifyAdminAuth, async (req, res) => {
       processedBy: 'admin'
     });
     await creditTransaction.save();
+
+    // Create notification for withdrawal rejection
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyWithdrawalRejected(
+        withdrawal.userId,
+        withdrawal.amount,
+        withdrawal.type,
+        rejectionReason
+      );
+      console.log('✅ Withdrawal rejection notification sent');
+    } catch (notifErr) {
+      console.error('Error creating withdrawal rejection notification:', notifErr);
+      // Don't fail the entire rejection if notification creation fails
+    }
 
     res.json({ 
       success: true, 
@@ -1204,6 +1233,20 @@ router.post('/assign-plan', verifyAdminAuth, async (req, res) => {
 
     await user.save();
 
+    // Create notification for plan assignment
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyPlanAssigned(
+        user._id,
+        plan.name,
+        req.admin.email
+      );
+      console.log('✅ Plan assignment notification sent');
+    } catch (notifErr) {
+      console.error('Error creating plan assignment notification:', notifErr);
+      // Don't fail the entire assignment if notification creation fails
+    }
+
     res.json({
       success: true,
       message: 'Plan assigned successfully',
@@ -1298,6 +1341,48 @@ router.post('/fix-user-flags/:uid', verifyAdminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fix user flags',
+      error: error.message
+    });
+  }
+});
+
+// Create custom notification for user
+router.post('/notifications/create', verifyAdminAuth, async (req, res) => {
+  try {
+    const { userId, title, message, priority = 'medium' } = req.body;
+    
+    if (!userId || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID, title, and message are required'
+      });
+    }
+
+    const NotificationService = require('./utils/notificationService');
+    const notification = await NotificationService.notifyCustom(
+      userId,
+      title,
+      message,
+      priority
+    );
+
+    if (notification) {
+      res.json({
+        success: true,
+        message: 'Custom notification created successfully',
+        notification
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create notification'
+      });
+    }
+  } catch (error) {
+    console.error('Error creating custom notification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create custom notification',
       error: error.message
     });
   }

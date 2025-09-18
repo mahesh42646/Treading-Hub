@@ -254,6 +254,20 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
             console.error('❌ Error creating referral transaction:', txnError);
             // Continue without failing the whole process
           }
+
+          // Create notification for referrer
+          try {
+            const NotificationService = require('./notificationService');
+            await NotificationService.notifyReferralCompleted(
+              referrer._id, 
+              user.email, 
+              bonusAmount
+            );
+            console.log('✅ Referral completion notification sent');
+          } catch (notifError) {
+            console.error('❌ Error creating referral notification:', notifError);
+            // Continue without failing the whole process
+          }
           console.log('✅ Referral bonus credited:', bonusAmount, 'to', referrer._id);
         }
       }

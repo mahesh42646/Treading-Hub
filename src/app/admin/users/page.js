@@ -18,7 +18,8 @@ import {
   FaArrowLeft,
   FaPlus,
   FaSync,
-  FaReceipt
+  FaReceipt,
+  FaBell
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -68,6 +69,12 @@ const AdminUsers = () => {
     totalWithdrawals: 0,
     totalBonuses: 0,
     totalPurchases: 0
+  });
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationData, setNotificationData] = useState({
+    title: '',
+    message: '',
+    priority: 'medium'
   });
 
   const refreshReferralCounts = useCallback(async () => {
@@ -402,6 +409,41 @@ const AdminUsers = () => {
     }
   };
 
+  const createCustomNotification = async () => {
+    if (!selectedUser || !notificationData.title || !notificationData.message) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: selectedUser._id,
+          title: notificationData.title,
+          message: notificationData.message,
+          priority: notificationData.priority
+        })
+      });
+
+      if (response.ok) {
+        alert('Custom notification sent successfully!');
+        setShowNotificationModal(false);
+        setNotificationData({ title: '', message: '', priority: 'medium' });
+      } else {
+        const error = await response.json();
+        alert(`Failed to send notification: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Error creating custom notification:', error);
+      alert('Failed to send notification');
+    }
+  };
+
   const removeUserPlan = async (uid, planEntryId) => {
     if (!confirm('Are you sure you want to remove this plan?')) return;
     
@@ -597,6 +639,13 @@ const AdminUsers = () => {
                 >
                   <FaReceipt className="me-2" />
                   View Transactions
+                </button>
+                <button 
+                  className="btn btn-outline-success"
+                  onClick={() => setShowNotificationModal(true)}
+                >
+                  <FaBell className="me-2" />
+                  Send Notification
                 </button>
                 <button 
                   className="btn btn-outline-warning"
@@ -1892,6 +1941,75 @@ const AdminUsers = () => {
                   onClick={() => setShowTransactionsModal(false)}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {showNotificationModal && selectedUser && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Send Custom Notification to {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowNotificationModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Title</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={notificationData.title}
+                    onChange={(e) => setNotificationData({...notificationData, title: e.target.value})}
+                    placeholder="Enter notification title"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Message</label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    value={notificationData.message}
+                    onChange={(e) => setNotificationData({...notificationData, message: e.target.value})}
+                    placeholder="Enter notification message"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Priority</label>
+                  <select
+                    className="form-select"
+                    value={notificationData.priority}
+                    onChange={(e) => setNotificationData({...notificationData, priority: e.target.value})}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowNotificationModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={createCustomNotification}
+                >
+                  Send Notification
                 </button>
               </div>
             </div>

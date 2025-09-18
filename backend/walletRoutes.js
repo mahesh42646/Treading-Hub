@@ -174,6 +174,20 @@ router.post('/razorpay-verify', async (req, res) => {
     });
     await depositTransaction.save();
 
+    // Create notification for deposit
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyDeposit(
+        user._id,
+        depositAmount,
+        'Razorpay'
+      );
+      console.log('✅ Deposit notification sent');
+    } catch (notifErr) {
+      console.error('Error creating deposit notification:', notifErr);
+      // Don't fail the entire deposit if notification creation fails
+    }
+
     // Mark user's first deposit (does not complete referral; completion happens on first plan)
     if (!user.myFirstPayment) {
       user.myFirstPayment = true;
@@ -387,6 +401,20 @@ router.post('/withdraw', async (req, res) => {
       processedBy: 'user'
     });
     await transaction.save();
+
+    // Create notification for withdrawal submission
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyWithdrawalSubmitted(
+        user._id,
+        amount,
+        type
+      );
+      console.log('✅ Withdrawal submission notification sent');
+    } catch (notifErr) {
+      console.error('Error creating withdrawal notification:', notifErr);
+      // Don't fail the entire withdrawal if notification creation fails
+    }
 
     res.json({
       success: true,

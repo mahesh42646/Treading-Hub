@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const { User } = require('./schema');
 const Plan = require('./models/Plan');
 const SupportTicket = require('./models/SupportTicket');
-const Notification = require('./models/Notification');
 
 const router = express.Router();
 
@@ -2233,14 +2232,22 @@ router.get('/notifications/:uid', async (req, res) => {
 
     console.log('User found:', user.email, 'User ID:', user._id);
 
-    const NotificationService = require('./utils/notificationService');
-    const { notifications, unreadCount } = await NotificationService.getUserNotifications(
-      user._id, 
-      parseInt(limit), 
-      parseInt(skip)
-    );
+    // Import Notification model directly
+    const Notification = require('./models/Notification');
+    
+    // Fetch notifications directly
+    const notifications = await Notification.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(parseInt(skip));
+
+    const unreadCount = await Notification.countDocuments({ 
+      userId: user._id, 
+      isRead: false 
+    });
 
     console.log('Notifications found:', notifications.length, 'Unread:', unreadCount);
+    console.log('Sample notification:', notifications[0]);
 
     res.json({
       success: true,
@@ -2271,10 +2278,13 @@ router.put('/notifications/:notificationId/read', async (req, res) => {
       });
     }
 
-    const NotificationService = require('./utils/notificationService');
-    const success = await NotificationService.markAsRead(notificationId, user._id);
+    const Notification = require('./models/Notification');
+    const result = await Notification.findOneAndUpdate(
+      { _id: notificationId, userId: user._id },
+      { isRead: true }
+    );
 
-    if (success) {
+    if (result) {
       res.json({
         success: true,
         message: 'Notification marked as read'
@@ -2308,20 +2318,17 @@ router.put('/notifications/read-all', async (req, res) => {
       });
     }
 
-    const NotificationService = require('./utils/notificationService');
-    const success = await NotificationService.markAllAsRead(user._id);
+    const Notification = require('./models/Notification');
+    const result = await Notification.updateMany(
+      { userId: user._id, isRead: false },
+      { isRead: true }
+    );
 
-    if (success) {
-      res.json({
-        success: true,
-        message: 'All notifications marked as read'
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Failed to mark all notifications as read'
-      });
-    }
+    res.json({
+      success: true,
+      message: 'All notifications marked as read',
+      modifiedCount: result.modifiedCount
+    });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
     res.status(500).json({

@@ -207,7 +207,7 @@ export default function DashboardReferral() {
                   <thead className="table-light">
                     <tr>
                       <th>User</th>
-                      <th>Email</th>
+                      {/* <th>Email</th> */}
                       <th>Profile Complete</th>
                       <th>First Deposit</th>
                       <th>Plan</th>
@@ -226,9 +226,9 @@ export default function DashboardReferral() {
                             <small className="text-muted">{referral.phone || 'No phone'}</small>
                           </div>
                         </td>
-                        <td>
+                        {/* <td>
                           <small>{referral.email || 'N/A'}</small>
-                        </td>
+                        </td> */}
                         <td>
                           <div className="d-flex align-items-center">
                             <div className="progress flex-grow-1 me-2" style={{ height: '8px' }}>
@@ -244,17 +244,17 @@ export default function DashboardReferral() {
                         </td>
                         <td>
                           {referral.hasDeposited ? (
-                            <span className="badge bg-success">✓ True</span>
+                            <span className="badge bg-success">✓ Done</span>
                           ) : (
-                            <span className="badge bg-secondary">✗ False</span>
+                            <span className="badge bg-secondary">✗ Pending</span>
                           )}
                         </td>
                         <td>
                           {referral.hasFirstPlan ? (
                             <div>
-                              <span className="badge bg-success">✓ Plan Purchased</span>
-                              <br />
-                              <small className="text-muted">₹{referral.firstPaymentAmount || 0}</small>
+                              <span className="badge bg-success">✓ ₹{referral.firstPaymentAmount },  Purchased</span>
+                     
+                              <small className="text-muted"></small>
                             </div>
                           ) : (
                             <span className="badge bg-secondary">No Plan</span>

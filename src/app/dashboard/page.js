@@ -18,6 +18,8 @@ const Dashboard = () => {
     totalReferrals: 0,
     totalEarnings: 0
   });
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const router = useRouter();
   
   const displayInfo = getUserDisplayInfo(user, profile);
@@ -45,6 +47,34 @@ const Dashboard = () => {
 
     fetchReferralData();
   }, [user, profile]);
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        setNotificationsLoading(true);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=10`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Show all notifications (both read and unread) for dashboard
+          setNotifications(data.notifications || []);
+        } else {
+          console.error('Failed to fetch notifications:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -113,6 +143,75 @@ const Dashboard = () => {
   // Check if alert should be shown
   const shouldShowAlert = (alertId) => {
     return !dismissedAlerts.includes(alertId);
+  };
+
+  // Helper functions for notifications
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'referral_pending':
+        return '👥';
+      case 'referral_completed':
+        return '🎉';
+      case 'transaction_deposit':
+        return '💰';
+      case 'transaction_withdrawal':
+        return '💸';
+      case 'withdrawal_approved':
+        return '✅';
+      case 'withdrawal_rejected':
+        return '❌';
+      case 'plan_purchased':
+        return '📦';
+      case 'plan_assigned':
+        return '🎁';
+      case 'plan_expiring':
+        return '⏰';
+      case 'plan_expired':
+        return '⚠️';
+      case 'trading_account_assigned':
+        return '📊';
+      case 'custom':
+        return '📢';
+      case 'system':
+        return '⚙️';
+      default:
+        return '🔔';
+    }
+  };
+
+  const getNotificationColor = (type, isRead) => {
+    if (isRead) return 'text-muted';
+    
+    switch (type) {
+      case 'referral_completed':
+      case 'withdrawal_approved':
+      case 'plan_purchased':
+      case 'plan_assigned':
+      case 'trading_account_assigned':
+        return 'text-success';
+      case 'withdrawal_rejected':
+      case 'plan_expired':
+        return 'text-danger';
+      case 'plan_expiring':
+        return 'text-warning';
+      case 'referral_pending':
+      case 'transaction_deposit':
+      case 'transaction_withdrawal':
+        return 'text-info';
+      default:
+        return 'text-primary';
+    }
+  };
+
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return new Date(date).toLocaleDateString();
   };
 
   return (
@@ -196,7 +295,7 @@ const Dashboard = () => {
                   <div className="d-flex align-items-start">
                 <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`}></i>
                     <div className="flex-grow-1">
-                  <h6 className="alert-heading mb-2">KYC Status: {kycStatusInfo.text}</h6>
+                  {/* <h6 className="alert-heading mb-2">KYC Status: {kycStatusInfo.text}</h6> */}
                   <p className="mb-2">{kycStatusInfo.message}</p>
                   {kycStatusInfo.badge === 'bg-warning' && (
                           <button 
@@ -297,32 +396,97 @@ const Dashboard = () => {
             </div>
           </div>
 
-      {/* Recent Activity & Quick Actions */}
+      {/* Recent Notifications & Quick Actions */}
       <div className="row">
         <div className="col-lg-8 mb-4">
           <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-0">
-              <h5 className="mb-0">Recent Activity</h5>
+            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">Recent Notifications</h5>
+              <div className="d-flex align-items-center gap-2">
+                {/* <small className="text-muted">Last 10 notifications</small> */}
+                <button 
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => {
+                    if (!user?.uid) return;
+                    setNotificationsLoading(true);
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=10`, {
+                      credentials: 'include'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                      setNotifications(data.notifications || []);
+                    })
+                    .catch(error => console.error('Error refreshing notifications:', error))
+                    .finally(() => setNotificationsLoading(false));
+                  }}
+                  disabled={notificationsLoading}
+                  title="Refresh notifications"
+                >
+                  {notificationsLoading ? (
+                    <div className="spinner-border spinner-border-sm" role="status" style={{ width: '12px', height: '12px' }}>
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : (
+                    <i className="bi bi-arrow-clockwise"></i>
+                  )}
+                </button>
+              </div>
             </div>
             <div className="card-body">
-              <div className="timeline">
-                <div className="timeline-item d-flex mb-3">
-                  <div className="timeline-marker bg-primary rounded-circle me-3" style={{ width: '12px', height: '12px', marginTop: '6px' }}></div>
-                  <div className="flex-grow-1">
-                    <h6 className="mb-1">Profile Created</h6>
-                    <p className="text-muted mb-0 small">Your profile was successfully created</p>
-                    <small className="text-muted">2 hours ago</small>
+              {notificationsLoading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
                   </div>
+                  <p className="text-muted mt-2">Loading notifications...</p>
                 </div>
-                <div className="timeline-item d-flex mb-3">
-                  <div className="timeline-marker bg-info rounded-circle me-3" style={{ width: '12px', height: '12px', marginTop: '6px' }}></div>
-                  <div className="flex-grow-1">
-                    <h6 className="mb-1">Account Registered</h6>
-                    <p className="text-muted mb-0 small">Welcome to Trading Hub! Your account has been created</p>
-                    <small className="text-muted">1 day ago</small>
-                  </div>
+              ) : notifications.length > 0 ? (
+                <div className="notifications-list" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {notifications.map((notification, index) => (
+                    <div
+                      key={notification._id}
+                      className={`notification-item d-flex align-items-start mb-3 p-3 rounded ${
+                        !notification.isRead ? 'bg-light border-start border-primary border-3' : 'border-start border-light border-3'
+                      }`}
+                      style={{ 
+                        transition: 'all 0.2s ease',
+                        cursor: 'default'
+                      }}
+                    >
+                      <div className="me-3">
+                        <span className="fs-4">{getNotificationIcon(notification.type)}</span>
+                      </div>
+                      <div className="flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-start mb-1">
+                          <h6 className={`mb-1 ${getNotificationColor(notification.type, notification.isRead)}`}>
+                            {notification.title}
+                            {!notification.isRead && (
+                              <span className="badge bg-primary ms-2" style={{ fontSize: '0.6rem' }}>NEW</span>
+                            )}
+                          </h6>
+                        </div>
+                        <p className="mb-1 text-muted small">{notification.message}</p>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <small className="text-muted">{formatTimeAgo(notification.createdAt)}</small>
+                          <small className={`badge ${
+                            notification.priority === 'urgent' ? 'bg-danger' :
+                            notification.priority === 'high' ? 'bg-warning' :
+                            notification.priority === 'medium' ? 'bg-info' : 'bg-secondary'
+                          }`} style={{ fontSize: '0.6rem' }}>
+                            {notification.priority}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-4">
+                  <i className="bi bi-bell-slash fs-1 text-muted mb-3"></i>
+                  <p className="text-muted mb-0">No notifications yet</p>
+                  <small className="text-muted">You'll see notifications here when they arrive</small>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -334,6 +498,7 @@ const Dashboard = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
+                {/* Profile Setup Actions */}
                 {!hasProfile && (
                   <button 
                     className="btn btn-primary"
@@ -352,19 +517,54 @@ const Dashboard = () => {
                     Complete KYC
                   </button>
                 )}
+
+                {/* Dashboard Pages */}
                 <button 
                   className="btn btn-outline-primary"
                   onClick={() => router.push('/dashboard/wallet')}
                 >
                   <i className="bi bi-wallet2 me-2"></i>
-                  View Wallet
+                  Wallet
                 </button>
+                
                 <button 
-                  className="btn btn-outline-secondary"
+                  className="btn btn-outline-info"
+                  onClick={() => router.push('/dashboard/transactions')}
+                >
+                  <i className="bi bi-receipt me-2"></i>
+                  Transactions
+                </button>
+                
+                <button 
+                  className="btn btn-outline-success"
                   onClick={() => router.push('/dashboard/referral')}
                 >
                   <i className="bi bi-share me-2"></i>
                   Referral Program
+                </button>
+                
+                <button 
+                  className="btn btn-outline-warning"
+                  onClick={() => router.push('/dashboard/trading-account')}
+                >
+                  <i className="bi bi-graph-up me-2"></i>
+                  Trading Account
+                </button>
+                
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={() => router.push('/dashboard/profile')}
+                >
+                  <i className="bi bi-person-gear me-2"></i>
+                  Profile Settings
+                </button>
+                
+                <button 
+                  className="btn btn-outline-dark"
+                  onClick={() => router.push('/dashboard/support')}
+                >
+                  <i className="bi bi-headset me-2"></i>
+                  Support
                 </button>
               </div>
             </div>

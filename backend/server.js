@@ -180,6 +180,106 @@ app.put('/api/notifications/read-all', async (req, res) => {
   }
 });
 
+// Transaction routes (mounted directly)
+app.get('/api/transactions/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { page = 1, limit = 20, type, status, category } = req.query;
+    
+    console.log('Fetching transactions for UID:', uid);
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      console.log('User not found for UID:', uid);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    console.log('User found:', user.email, 'User ID:', user._id);
+
+    // Import Transaction model directly
+    const Transaction = require('./models/Transaction');
+    
+    // Build query
+    const query = { userId: user._id };
+    if (type) query.type = type;
+    if (status) query.status = status;
+    if (category) query.category = category;
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Fetch transactions with pagination
+    const transactions = await Transaction.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get total count for pagination
+    const total = await Transaction.countDocuments(query);
+    const totalPages = Math.ceil(total / parseInt(limit));
+
+    // Calculate summary
+    const summary = await Transaction.aggregate([
+      { $match: { userId: user._id } },
+      {
+        $group: {
+          _id: null,
+          totalDeposits: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'deposit'] }, '$amount', 0]
+            }
+          },
+          totalWithdrawals: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'withdrawal'] }, '$amount', 0]
+            }
+          },
+          totalBonuses: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'referral_bonus'] }, '$amount', 0]
+            }
+          },
+          totalPurchases: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'plan_purchase'] }, '$amount', 0]
+            }
+          }
+        }
+      }
+    ]);
+
+    const summaryData = summary[0] || {
+      totalDeposits: 0,
+      totalWithdrawals: 0,
+      totalBonuses: 0,
+      totalPurchases: 0
+    };
+
+    console.log('Transactions found:', transactions.length, 'Total:', total);
+
+    res.json({
+      success: true,
+      transactions,
+      summary: summaryData,
+      pagination: {
+        current: parseInt(page),
+        pages: totalPages,
+        total: total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch transactions',
+      error: error.message
+    });
+  }
+});
+
 // Contact form endpoint (public)
 app.post('/api/contact', async (req, res) => {
   try {

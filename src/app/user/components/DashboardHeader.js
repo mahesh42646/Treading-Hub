@@ -40,7 +40,7 @@ const DashboardHeader = () => {
               {/* Right Section */}
               <div className="d-flex align-items-center gap-3">
                 {/* Notifications */}
-                <div className="d-none d-sm-block">
+                <div className="position-relative">
                   <NotificationDropdown />
                 </div>
 

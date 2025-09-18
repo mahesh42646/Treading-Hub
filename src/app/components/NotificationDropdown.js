@@ -12,18 +12,27 @@ const NotificationDropdown = () => {
   const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
-    if (!user?.uid) return;
+    if (!user?.uid) {
+      console.log('No user UID available for notifications');
+      return;
+    }
     
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=5`, {
+      console.log('Fetching notifications for user:', user.uid);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=10`, {
         credentials: 'include'
       });
       
+      console.log('Notification response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Notifications data received:', data);
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch notifications:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -44,13 +53,8 @@ const NotificationDropdown = () => {
       });
       
       if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif._id === notificationId 
-              ? { ...notif, isRead: true }
-              : notif
-          )
-        );
+        // Remove notification from list locally
+        setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
@@ -70,9 +74,8 @@ const NotificationDropdown = () => {
       });
       
       if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notif => ({ ...notif, isRead: true }))
-        );
+        // Clear all notifications from list
+        setNotifications([]);
         setUnreadCount(0);
       }
     } catch (error) {
@@ -149,8 +152,8 @@ const NotificationDropdown = () => {
   useEffect(() => {
     fetchNotifications();
     
-    // Refresh notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Refresh notifications every 10 seconds for better real-time experience
+    const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -165,14 +168,18 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!user) return null;
+  if (!user) {
+    console.log('No user found, hiding notification dropdown');
+    return null;
+  }
 
   return (
     <div className="position-relative" ref={dropdownRef}>
       <button
-        className="btn btn-link text-light position-relative"
+        className="btn btn-link text-dark position-relative"
         onClick={() => setIsOpen(!isOpen)}
         style={{ padding: '8px' }}
+        title="Notifications"
       >
         <i className="bi bi-bell fs-5"></i>
         {unreadCount > 0 && (
@@ -194,14 +201,23 @@ const NotificationDropdown = () => {
         >
           <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
             <h6 className="mb-0 fw-bold">Notifications</h6>
-            {unreadCount > 0 && (
+            <div className="d-flex gap-2">
               <button 
-                className="btn btn-sm btn-outline-primary"
-                onClick={markAllAsRead}
+                className="btn btn-sm btn-outline-secondary"
+                onClick={fetchNotifications}
+                disabled={loading}
               >
-                Mark all read
+                {loading ? '...' : '↻'}
               </button>
-            )}
+              {unreadCount > 0 && (
+                <button 
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={markAllAsRead}
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -215,30 +231,32 @@ const NotificationDropdown = () => {
               notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`p-3 border-bottom cursor-pointer ${
+                  className={`p-3 border-bottom d-flex align-items-start ${
                     !notification.isRead ? 'bg-light' : ''
                   }`}
-                  onClick={() => !notification.isRead && markAsRead(notification._id)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="d-flex align-items-start">
-                    <div className="me-3">
-                      <span className="fs-5">{getNotificationIcon(notification.type)}</span>
+                  <div className="me-3">
+                    <span className="fs-5">{getNotificationIcon(notification.type)}</span>
+                  </div>
+                  <div className="flex-grow-1">
+                    <div className="d-flex justify-content-between align-items-start mb-1">
+                      <h6 className={`mb-1 ${getNotificationColor(notification.type)}`}>
+                        {notification.title}
+                      </h6>
+                      <button
+                        className="btn btn-sm btn-outline-danger p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification._id);
+                        }}
+                        style={{ width: '24px', height: '24px', padding: '2px' }}
+                        title="Mark as read"
+                      >
+                        <i className="bi bi-x" style={{ fontSize: '12px' }}></i>
+                      </button>
                     </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex justify-content-between align-items-start">
-                        <h6 className={`mb-1 ${getNotificationColor(notification.type)}`}>
-                          {notification.title}
-                        </h6>
-                        {!notification.isRead && (
-                          <span className="badge bg-primary rounded-pill" style={{ fontSize: '8px' }}>
-                            New
-                          </span>
-                        )}
-                      </div>
-                      <p className="mb-1 text-muted small">{notification.message}</p>
-                      <small className="text-muted">{formatTimeAgo(notification.createdAt)}</small>
-                    </div>
+                    <p className="mb-1 text-muted small">{notification.message}</p>
+                    <small className="text-muted">{formatTimeAgo(notification.createdAt)}</small>
                   </div>
                 </div>
               ))
@@ -249,14 +267,6 @@ const NotificationDropdown = () => {
               </div>
             )}
           </div>
-
-          {notifications.length > 0 && (
-            <div className="p-2 border-top text-center">
-              <a href="/dashboard/notifications" className="text-decoration-none">
-                View all notifications
-              </a>
-            </div>
-          )}
         </div>
       )}
     </div>

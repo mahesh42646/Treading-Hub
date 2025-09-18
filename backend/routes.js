@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { User } = require('./schema');
 const Plan = require('./models/Plan');
 const SupportTicket = require('./models/SupportTicket');
+const Notification = require('./models/Notification');
 
 const router = express.Router();
 
@@ -2219,13 +2220,18 @@ router.get('/notifications/:uid', async (req, res) => {
     const { uid } = req.params;
     const { limit = 10, skip = 0 } = req.query;
     
+    console.log('Fetching notifications for UID:', uid);
+    
     const user = await User.findOne({ uid });
     if (!user) {
+      console.log('User not found for UID:', uid);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
+
+    console.log('User found:', user.email, 'User ID:', user._id);
 
     const NotificationService = require('./utils/notificationService');
     const { notifications, unreadCount } = await NotificationService.getUserNotifications(
@@ -2233,6 +2239,8 @@ router.get('/notifications/:uid', async (req, res) => {
       parseInt(limit), 
       parseInt(skip)
     );
+
+    console.log('Notifications found:', notifications.length, 'Unread:', unreadCount);
 
     res.json({
       success: true,

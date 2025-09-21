@@ -14,7 +14,7 @@ export default function Home() {
 
       {/* Hero Section - Exact FUNDEDNEXT Style */}
       <section
-        className="hero-section hero--landing position-relative overflow-hidden py-lg-5"
+        className="hero-section hero--landing position-relative overflow-hidden pt-lg-5 pb-lg-0"
         style={{
           backgroundImage: "url('/hero-bg.jpg')",
           backgroundSize: 'cover',
@@ -32,14 +32,14 @@ export default function Home() {
           <div className="row align-items-center">
             <div className="col-lg-8 text-white">
             <h1 className="fw-bold mb-4 text-white hero-heading 
-                display-4 display-md-3 display-sm-5">
+                display-5 display-md-3 display-sm-5">
   Empowering Promising <br />
   <span className="text-white">Traders Worldwide</span>
 </h1>
 
 
               {/* Key Features - Exact FUNDEDNEXT Layout */}
-              <div className="row mb-1 hero-features">
+              <div className="row mb-1 hero-features py-lg-3">
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
                     <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
@@ -136,7 +136,7 @@ export default function Home() {
           {/* Bottom Statistics Panel */}
           <div className="row mt-4">
             <div className="col-12">
-              <div className=" rounded-4 p-4 hero-bottom-panel" style={{
+              <div className=" rounded-4 p-3 hero-bottom-panel" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
                 border: '1px solid rgba(124, 124, 124, 0.39)',
                 backdropFilter: 'blur(20px)', boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'

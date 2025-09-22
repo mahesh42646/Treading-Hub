@@ -47,7 +47,7 @@ export default function Home() {
                       <Image src="/images/90-percent.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
                     </div>
                     <div>
-                      <div className="h4 fw-bold text-white mb-0">Up to 90%</div>
+                      <div className="h4 fw-bold text-white mb-0">Up to 80%</div>
                       <div className="text-white small">Performance Reward</div>
                     </div>
                   </div>
@@ -789,7 +789,7 @@ export default function Home() {
         color: 'white'
       }}>
         <div className="container text-center">
-          <h2 className="display-4 display-md-3 display-sm-5 fw-bold mb-4 text-white">Ready to Start Your Trading Journey?</h2>
+          <h2 className="display-5 display-md-3 display-sm-5 fw-bold mb-4 text-white">Ready to Start Your Trading Journey?</h2>
           <p className="lead mb-4 text-white-50">
             Join thousands of successful traders and start earning from your skills today.
           </p>

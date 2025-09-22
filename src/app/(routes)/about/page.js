@@ -38,10 +38,10 @@ const AboutPage = () => {
       
       {/* Hero Section */}
       <section className="about-hero">
-        <div className="container">
+        <div className="container pt-lg-4">
           <div className="row justify-content-center text-center">
             <div className="col-lg-8 ">
-              <h1 className=" display-4 display-md-3 display-sm-5 fw-bold mb-4">
+              <h1 className=" display-5 display-md-3 display-sm-5 fw-bold mb-4">
                 Meet the Team Behind <span className="text-info"> <br/>Trading Hub</span>
               </h1>
               <p className="lead mb-5">
@@ -494,7 +494,7 @@ const AboutPage = () => {
         <div className="container">
           <div className="row justify-content-center text-center">
             <div className="col-lg-8">
-              <h2 className="display-4 fw-bold mb-4">
+              <h2 className="display-5 fw-bold mb-4">
                 Join the Global Community for the Traders, by the Traders
               </h2>
               <p className="lead mb-5">

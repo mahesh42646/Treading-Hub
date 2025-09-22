@@ -12,8 +12,8 @@ const CookiesPage = () => {
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-lg-8">
-            <div className="text-center mb-5 pt-lg-4">
-              <h1 className="display-4  display-md-3 display-sm-5 fw-bold text-primary mb-3">Cookie Policy</h1>
+            <div className="text-center mb-5 pt-lg-5">
+              <h1 className="display-5  display-md-3 display-sm-5 fw-bold text-primary mb-3">Cookie Policy</h1>
               <p className="lead text-muted">How we use cookies to improve your experience</p>
             </div>
 

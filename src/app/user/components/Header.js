@@ -74,6 +74,11 @@ export default function Header() {
                 Contact Us
               </Link>
             </li>
+            <li className="nav-item">
+              <Link href="/terms/terms-of-use" className="nav-link px-3" style={{ color: '#e2e8f0', fontWeight: '500' }}>
+                Terms of Use
+              </Link>
+            </li>
           </ul>
 
           {/* Auth Buttons & Language Selector */}

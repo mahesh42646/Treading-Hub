@@ -86,7 +86,7 @@ const FAQPage = () => {
       
       <div className="container py-5">
         <div className="text-center mb-5">
-          <h1 className=" display-4 mt-lg-5 display-md-3 display-sm-5 fw-bold text-primary mb-3">Help Center</h1>
+          <h1 className=" display-5 mt-lg-5 display-md-3 display-sm-5 fw-bold text-primary mb-3">Help Center</h1>
           <p className="lead text-muted">Find answers to your questions and get the support you need</p>
         </div>
 

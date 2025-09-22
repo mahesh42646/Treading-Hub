@@ -395,6 +395,134 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// Challenge routes (mounted directly)
+app.get('/api/challenges/configs', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenges = await Challenge.find({ isActive: true }).sort({ priority: 1 });
+    res.json({ success: true, challenges });
+  } catch (error) {
+    console.error('Error fetching challenges:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/challenges/purchase', async (req, res) => {
+  try {
+    const { uid, challengeId, accountSize, platform, paymentSource } = req.body;
+    
+    if (!uid || !challengeId || !accountSize || !platform || !paymentSource) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const Challenge = require('./models/Challenge');
+    const challenge = await Challenge.findById(challengeId);
+    if (!challenge || !challenge.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'Challenge not found or inactive'
+      });
+    }
+
+    const price = challenge.pricesByAccountSize.get(accountSize.toString());
+    if (!price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid account size for this challenge'
+      });
+    }
+
+    // Check balance
+    if (paymentSource === 'wallet' && user.walletBalance < price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient wallet balance'
+      });
+    }
+
+    if (paymentSource === 'referral' && user.referralBalance < price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient referral balance'
+      });
+    }
+
+    // Deduct balance
+    if (paymentSource === 'wallet') {
+      user.walletBalance -= price;
+    } else {
+      user.referralBalance -= price;
+    }
+
+    // Add challenge to user
+    const challengeEntry = {
+      challengeId: challenge._id,
+      name: challenge.name,
+      type: challenge.type,
+      model: challenge.model,
+      accountSize: accountSize,
+      profitTarget: challenge.profitTargets[0], // Use first profit target
+      platform: platform,
+      price: price,
+      status: 'active',
+      assignedBy: 'user'
+    };
+
+    user.challenges.push(challengeEntry);
+    await user.save();
+
+    // Create transaction
+    const Transaction = require('./models/Transaction');
+    const transaction = new Transaction({
+      userId: user._id,
+      type: 'challenge_purchase',
+      amount: price,
+      balanceAfter: paymentSource === 'wallet' ? user.walletBalance : user.referralBalance,
+      source: 'challenge',
+      category: 'purchase',
+      description: `Purchased ${challenge.name} - ${accountSize} account`,
+      status: 'completed',
+      processedBy: 'user'
+    });
+    await transaction.save();
+
+    // Create notification
+    const Notification = require('./models/Notification');
+    const notification = new Notification({
+      userId: user._id,
+      title: 'Challenge Purchased',
+      message: `You have successfully purchased ${challenge.name} with ${accountSize} account size`,
+      type: 'challenge_purchased',
+      priority: 'medium'
+    });
+    await notification.save();
+
+    res.json({
+      success: true,
+      message: 'Challenge purchased successfully',
+      challenge: challengeEntry
+    });
+  } catch (error) {
+    console.error('Error purchasing challenge:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to purchase challenge',
+      error: error.message
+    });
+  }
+});
+
 const PORT = process.env.PORT || 9988;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

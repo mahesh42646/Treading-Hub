@@ -19,7 +19,8 @@ import {
   FaPlus,
   FaSync,
   FaReceipt,
-  FaBell
+  FaBell,
+  FaTrophy
 } from 'react-icons/fa';
 
 const AdminUsers = () => {
@@ -61,6 +62,24 @@ const AdminUsers = () => {
     endDate: '',
     status: 'active',
     durationDays: 0
+  });
+  
+  // Challenge management state
+  const [showChallengeManagementModal, setShowChallengeManagementModal] = useState(false);
+  const [userChallenges, setUserChallenges] = useState([]);
+  const [challenges, setChallenges] = useState([]);
+  const [showChallengeAssignModal, setShowChallengeAssignModal] = useState(false);
+  const [challengeAssignData, setChallengeAssignData] = useState({
+    challengeId: '',
+    accountSize: '',
+    platform: '',
+    adminNote: ''
+  });
+  const [editingChallenge, setEditingChallenge] = useState(null);
+  const [showChallengeEditModal, setShowChallengeEditModal] = useState(false);
+  const [challengeEditData, setChallengeEditData] = useState({
+    status: 'active',
+    adminNote: ''
   });
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [userTransactions, setUserTransactions] = useState([]);
@@ -139,12 +158,27 @@ const AdminUsers = () => {
     }
   }, []);
 
+  const fetchChallenges = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChallenges(data.challenges || []);
+      }
+    } catch (error) {
+      console.error('Error fetching challenges:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUsers();
     fetchPlans();
+    fetchChallenges();
     // Refresh referral counts on page load
     refreshReferralCounts();
-  }, [fetchUsers, fetchPlans, refreshReferralCounts]);
+  }, [fetchUsers, fetchPlans, fetchChallenges, refreshReferralCounts]);
 
   // Reset to first page when search term changes
   useEffect(() => {
@@ -204,17 +238,24 @@ const AdminUsers = () => {
         credentials: 'include'
       });
 
-      const [userData, walletData, referralData, transactionData, plansData] = await Promise.all([
+      // Fetch user challenges
+      const challengesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, {
+        credentials: 'include'
+      });
+
+      const [userData, walletData, referralData, transactionData, plansData, challengesData] = await Promise.all([
         userResponse.json(),
         walletResponse.json(),
         referralResponse.json(),
         transactionResponse.json(),
-        plansResponse.json()
+        plansResponse.json(),
+        challengesResponse.json()
       ]);
 
       if (userData.success) {
         setSelectedUser(userData.user);
         setUserPlans(plansData.plans || []);
+        setUserChallenges(challengesData.challenges || []);
         setUserAnalytics({
           ...userData.user,
           wallet: walletData,
@@ -555,6 +596,106 @@ const AdminUsers = () => {
     }
   };
 
+  // Challenge management functions
+  const fetchUserChallenges = async (uid) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserChallenges(data.challenges || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user challenges:', error);
+    }
+  };
+
+  const assignChallenge = async () => {
+    if (!selectedUser || !challengeAssignData.challengeId || !challengeAssignData.accountSize || !challengeAssignData.platform) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: selectedUser._id,
+          challengeId: challengeAssignData.challengeId,
+          accountSize: parseInt(challengeAssignData.accountSize),
+          platform: challengeAssignData.platform,
+          adminNote: challengeAssignData.adminNote
+        })
+      });
+
+      if (response.ok) {
+        alert('Challenge assigned successfully');
+        setShowChallengeAssignModal(false);
+        setChallengeAssignData({
+          challengeId: '',
+          accountSize: '',
+          platform: '',
+          adminNote: ''
+        });
+        fetchUserChallenges(selectedUser.uid);
+        fetchUserDetails(selectedUser.uid);
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Failed to assign challenge');
+      }
+    } catch (error) {
+      console.error('Error assigning challenge:', error);
+      alert('Failed to assign challenge');
+    }
+  };
+
+  const openChallengeEditModal = (challenge) => {
+    setEditingChallenge(challenge);
+    setChallengeEditData({
+      status: challenge.status,
+      adminNote: challenge.adminNote || ''
+    });
+    setShowChallengeEditModal(true);
+  };
+
+  const saveChallengeEdit = async () => {
+    if (!selectedUser || !editingChallenge) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${selectedUser._id}/${editingChallenge._id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: challengeEditData.status,
+          adminNote: challengeEditData.adminNote
+        })
+      });
+
+      if (response.ok) {
+        alert('Challenge status updated successfully');
+        setShowChallengeEditModal(false);
+        setEditingChallenge(null);
+        fetchUserChallenges(selectedUser.uid);
+        fetchUserDetails(selectedUser.uid);
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Failed to update challenge status');
+      }
+    } catch (error) {
+      console.error('Error updating challenge status:', error);
+      alert('Failed to update challenge status');
+    }
+  };
+
   const getKycStatusBadge = (status) => {
     const statusConfig = {
       'pending': { class: 'bg-warning', text: 'Pending' },
@@ -629,6 +770,13 @@ const AdminUsers = () => {
                 >
                   <FaEdit className="me-2" />
                   Manage Plans
+                </button>
+                <button 
+                  className="btn btn-outline-warning"
+                  onClick={() => setShowChallengeManagementModal(true)}
+                >
+                  <FaTrophy className="me-2" />
+                  Manage Challenges
                 </button>
                 <button 
                   className="btn btn-outline-secondary"
@@ -1184,6 +1332,138 @@ const AdminUsers = () => {
                     >
                       <FaPlus className="me-2" />
                       Assign First Plan
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Challenges Management */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="card-title mb-0">
+                    <FaTrophy className="me-2" />
+                    Challenges Management
+                  </h5>
+                  <div className="d-flex gap-2">
+                    <button 
+                      className="btn btn-outline-warning"
+                      onClick={() => setShowChallengeManagementModal(true)}
+                    >
+                      <FaEdit className="me-1" />
+                      Manage All Challenges
+                    </button>
+                  </div>
+                </div>
+                
+                {userChallenges && userChallenges.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Challenge Name</th>
+                          <th>Type</th>
+                          <th>Account Size</th>
+                          <th>Platform</th>
+                          <th>Price</th>
+                          <th>Status</th>
+                          <th>Assigned By</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userChallenges.map((challenge, idx) => (
+                          <tr key={idx}>
+                            <td>
+                              <strong>{challenge.name}</strong>
+                            </td>
+                            <td>
+                              <span className="badge bg-info">{challenge.type}</span>
+                            </td>
+                            <td>${challenge.accountSize.toLocaleString()}</td>
+                            <td>{challenge.platform}</td>
+                            <td>₹{challenge.price}</td>
+                            <td>
+                              <span className={`badge ${
+                                challenge.status === 'active' ? 'bg-success' :
+                                challenge.status === 'passed' ? 'bg-primary' :
+                                challenge.status === 'failed' ? 'bg-danger' :
+                                challenge.status === 'expired' ? 'bg-secondary' :
+                                'bg-warning'
+                              }`}>
+                                {challenge.status}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge ${
+                                challenge.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
+                              }`}>
+                                {challenge.assignedBy}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button 
+                                  className="btn btn-outline-primary"
+                                  onClick={() => openChallengeEditModal(challenge)}
+                                  title="Edit Challenge"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <select 
+                                  className="form-select form-select-sm"
+                                  style={{ width: 'auto' }}
+                                  value={challenge.status}
+                                  onChange={(e) => {
+                                    const newStatus = e.target.value;
+                                    const adminNote = prompt('Enter admin note (optional):');
+                                    if (newStatus !== challenge.status) {
+                                      // Update challenge status
+                                      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${selectedUser._id}/${challenge._id}/status`, {
+                                        method: 'PUT',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                          status: newStatus,
+                                          adminNote: adminNote || ''
+                                        })
+                                      }).then(response => {
+                                        if (response.ok) {
+                                          fetchUserChallenges(selectedUser.uid);
+                                          fetchUserDetails(selectedUser.uid);
+                                        }
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="passed">Passed</option>
+                                  <option value="failed">Failed</option>
+                                  <option value="expired">Expired</option>
+                                  <option value="inactive">Inactive</option>
+                                  <option value="cancelled">Cancelled</option>
+                                </select>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted">No challenges assigned to this user</p>
+                    <button 
+                      className="btn btn-warning"
+                      onClick={() => setShowChallengeManagementModal(true)}
+                    >
+                      <FaPlus className="me-2" />
+                      Assign First Challenge
                     </button>
                   </div>
                 )}
@@ -2010,6 +2290,344 @@ const AdminUsers = () => {
                   onClick={createCustomNotification}
                 >
                   Send Notification
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Management Modal */}
+      {showChallengeManagementModal && selectedUser && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-xl">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Manage Challenges for {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowChallengeManagementModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6>Current Challenges ({userChallenges.length})</h6>
+                  <button 
+                    className="btn btn-warning btn-sm"
+                    onClick={() => setShowChallengeAssignModal(true)}
+                  >
+                    <FaPlus className="me-1" />
+                    Assign New Challenge
+                  </button>
+                </div>
+                
+                {userChallenges && userChallenges.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Challenge Name</th>
+                          <th>Type</th>
+                          <th>Account Size</th>
+                          <th>Platform</th>
+                          <th>Price</th>
+                          <th>Status</th>
+                          <th>Assigned By</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userChallenges.map((challenge, idx) => (
+                          <tr key={idx}>
+                            <td><strong>{challenge.name}</strong></td>
+                            <td>
+                              <span className="badge bg-info">{challenge.type}</span>
+                            </td>
+                            <td>${challenge.accountSize.toLocaleString()}</td>
+                            <td>{challenge.platform}</td>
+                            <td>₹{challenge.price}</td>
+                            <td>
+                              <span className={`badge ${
+                                challenge.status === 'active' ? 'bg-success' :
+                                challenge.status === 'passed' ? 'bg-primary' :
+                                challenge.status === 'failed' ? 'bg-danger' :
+                                challenge.status === 'expired' ? 'bg-secondary' :
+                                'bg-warning'
+                              }`}>
+                                {challenge.status}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge ${
+                                challenge.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
+                              }`}>
+                                {challenge.assignedBy}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button 
+                                  className="btn btn-outline-primary"
+                                  onClick={() => openChallengeEditModal(challenge)}
+                                  title="Edit Challenge"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <select 
+                                  className="form-select form-select-sm"
+                                  style={{ width: 'auto' }}
+                                  value={challenge.status}
+                                  onChange={(e) => {
+                                    const newStatus = e.target.value;
+                                    const adminNote = prompt('Enter admin note (optional):');
+                                    if (newStatus !== challenge.status) {
+                                      // Update challenge status
+                                      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${selectedUser._id}/${challenge._id}/status`, {
+                                        method: 'PUT',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                          status: newStatus,
+                                          adminNote: adminNote || ''
+                                        })
+                                      }).then(response => {
+                                        if (response.ok) {
+                                          fetchUserChallenges(selectedUser.uid);
+                                          fetchUserDetails(selectedUser.uid);
+                                        }
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="passed">Passed</option>
+                                  <option value="failed">Failed</option>
+                                  <option value="expired">Expired</option>
+                                  <option value="inactive">Inactive</option>
+                                  <option value="cancelled">Cancelled</option>
+                                </select>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted">No challenges assigned to this user</p>
+                    <button 
+                      className="btn btn-warning"
+                      onClick={() => setShowChallengeAssignModal(true)}
+                    >
+                      <FaPlus className="me-2" />
+                      Assign First Challenge
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowChallengeManagementModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Assign Modal */}
+      {showChallengeAssignModal && selectedUser && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Assign Challenge to {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowChallengeAssignModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Select Challenge</label>
+                  <select
+                    className="form-select"
+                    value={challengeAssignData.challengeId}
+                    onChange={(e) => setChallengeAssignData({
+                      ...challengeAssignData,
+                      challengeId: e.target.value
+                    })}
+                  >
+                    <option value="">Choose a challenge...</option>
+                    {challenges.filter(c => c.isActive).map(challenge => (
+                      <option key={challenge._id} value={challenge._id}>
+                        {challenge.name} - {challenge.type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {challengeAssignData.challengeId && (
+                  <>
+                    <div className="mb-3">
+                      <label className="form-label">Account Size</label>
+                      <select
+                        className="form-select"
+                        value={challengeAssignData.accountSize}
+                        onChange={(e) => setChallengeAssignData({
+                          ...challengeAssignData,
+                          accountSize: e.target.value
+                        })}
+                      >
+                        <option value="">Select account size...</option>
+                        {challenges.find(c => c._id === challengeAssignData.challengeId)?.accountSizes.map(size => (
+                          <option key={size} value={size}>
+                            ${size.toLocaleString()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Platform</label>
+                      <select
+                        className="form-select"
+                        value={challengeAssignData.platform}
+                        onChange={(e) => setChallengeAssignData({
+                          ...challengeAssignData,
+                          platform: e.target.value
+                        })}
+                      >
+                        <option value="">Select platform...</option>
+                        {challenges.find(c => c._id === challengeAssignData.challengeId)?.platforms.map(platform => (
+                          <option key={platform} value={platform}>
+                            {platform}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label">Admin Note (Optional)</label>
+                      <textarea
+                        className="form-control"
+                        value={challengeAssignData.adminNote}
+                        onChange={(e) => setChallengeAssignData({
+                          ...challengeAssignData,
+                          adminNote: e.target.value
+                        })}
+                        rows="3"
+                        placeholder="Enter any notes about this challenge assignment..."
+                      />
+                    </div>
+
+                    {challengeAssignData.challengeId && challengeAssignData.accountSize && (
+                      <div className="alert alert-info">
+                        <strong>Challenge Details:</strong><br/>
+                        Price: ₹{challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize.get(challengeAssignData.accountSize) || 'N/A'}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowChallengeAssignModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-warning"
+                  onClick={assignChallenge}
+                  disabled={!challengeAssignData.challengeId || !challengeAssignData.accountSize || !challengeAssignData.platform}
+                >
+                  Assign Challenge
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Edit Modal */}
+      {showChallengeEditModal && editingChallenge && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Challenge: {editingChallenge.name}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowChallengeEditModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Status</label>
+                  <select 
+                    className="form-select"
+                    value={challengeEditData.status}
+                    onChange={(e) => setChallengeEditData({
+                      ...challengeEditData,
+                      status: e.target.value
+                    })}
+                  >
+                    <option value="active">Active</option>
+                    <option value="passed">Passed</option>
+                    <option value="failed">Failed</option>
+                    <option value="expired">Expired</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Admin Note</label>
+                  <textarea
+                    className="form-control"
+                    value={challengeEditData.adminNote}
+                    onChange={(e) => setChallengeEditData({
+                      ...challengeEditData,
+                      adminNote: e.target.value
+                    })}
+                    rows="3"
+                    placeholder="Enter admin note..."
+                  />
+                </div>
+                <div className="alert alert-info">
+                  <strong>Current Challenge Details:</strong><br/>
+                  Name: {editingChallenge.name}<br/>
+                  Type: {editingChallenge.type}<br/>
+                  Account Size: ${editingChallenge.accountSize.toLocaleString()}<br/>
+                  Platform: {editingChallenge.platform}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowChallengeEditModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-warning"
+                  onClick={saveChallengeEdit}
+                >
+                  Save Changes
                 </button>
               </div>
             </div>

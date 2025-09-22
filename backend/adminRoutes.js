@@ -2278,4 +2278,245 @@ router.post('/migrate-referral-system', verifyAdminAuth, async (req, res) => {
   }
 });
 
+// Challenge Management Routes
+
+// Get all challenges
+router.get('/challenges', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenges = await Challenge.find().sort({ priority: 1, createdAt: -1 });
+    res.json({ success: true, challenges });
+  } catch (error) {
+    console.error('Error fetching challenges:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Create new challenge
+router.post('/challenges', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenge = new Challenge(req.body);
+    await challenge.save();
+    res.json({ success: true, challenge });
+  } catch (error) {
+    console.error('Error creating challenge:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update challenge
+router.put('/challenges/:id', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenge = await Challenge.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, updatedAt: new Date() },
+      { new: true }
+    );
+    if (!challenge) {
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
+    }
+    res.json({ success: true, challenge });
+  } catch (error) {
+    console.error('Error updating challenge:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Delete challenge
+router.delete('/challenges/:id', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenge = await Challenge.findByIdAndDelete(req.params.id);
+    if (!challenge) {
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
+    }
+    res.json({ success: true, message: 'Challenge deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting challenge:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Toggle challenge status
+router.put('/challenges/:id/toggle', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const challenge = await Challenge.findById(req.params.id);
+    if (!challenge) {
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
+    }
+    challenge.isActive = !challenge.isActive;
+    challenge.updatedAt = new Date();
+    await challenge.save();
+    res.json({ success: true, challenge });
+  } catch (error) {
+    console.error('Error toggling challenge status:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Assign challenge to user
+router.post('/challenges/assign', async (req, res) => {
+  try {
+    const { userId, challengeId, accountSize, platform, adminNote } = req.body;
+    
+    if (!userId || !challengeId || !accountSize || !platform) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const Challenge = require('./models/Challenge');
+    const challenge = await Challenge.findById(challengeId);
+    if (!challenge || !challenge.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'Challenge not found or inactive'
+      });
+    }
+
+    const price = challenge.pricesByAccountSize.get(accountSize.toString());
+    if (!price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid account size for this challenge'
+      });
+    }
+
+    // Add challenge to user
+    const challengeEntry = {
+      challengeId: challenge._id,
+      name: challenge.name,
+      type: challenge.type,
+      model: challenge.model,
+      accountSize: accountSize,
+      profitTarget: challenge.profitTargets[0],
+      platform: platform,
+      price: price,
+      status: 'active',
+      assignedBy: 'admin',
+      adminNote: adminNote || null
+    };
+
+    user.challenges.push(challengeEntry);
+    await user.save();
+
+    // Create notification
+    const Notification = require('./models/Notification');
+    const notification = new Notification({
+      userId: user._id,
+      title: 'Challenge Assigned',
+      message: `Admin has assigned you ${challenge.name} with ${accountSize} account size`,
+      type: 'challenge_status_update',
+      priority: 'medium'
+    });
+    await notification.save();
+
+    res.json({
+      success: true,
+      message: 'Challenge assigned successfully',
+      challenge: challengeEntry
+    });
+  } catch (error) {
+    console.error('Error assigning challenge:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign challenge',
+      error: error.message
+    });
+  }
+});
+
+// Update user challenge status
+router.put('/challenges/:userId/:challengeEntryId/status', async (req, res) => {
+  try {
+    const { userId, challengeEntryId } = req.params;
+    const { status, adminNote } = req.body;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const challengeEntry = user.challenges.id(challengeEntryId);
+    if (!challengeEntry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Challenge entry not found'
+      });
+    }
+
+    challengeEntry.status = status;
+    challengeEntry.adminNote = adminNote || challengeEntry.adminNote;
+    challengeEntry.endedAt = new Date();
+    
+    await user.save();
+
+    // Create notification
+    const Notification = require('./models/Notification');
+    const notification = new Notification({
+      userId: user._id,
+      title: 'Challenge Status Updated',
+      message: `Your ${challengeEntry.name} challenge status has been updated to ${status}`,
+      type: 'challenge_status_update',
+      priority: 'medium'
+    });
+    await notification.save();
+
+    res.json({
+      success: true,
+      message: 'Challenge status updated successfully',
+      challenge: challengeEntry
+    });
+  } catch (error) {
+    console.error('Error updating challenge status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update challenge status',
+      error: error.message
+    });
+  }
+});
+
+// Get user challenges
+router.get('/users/:uid/challenges', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      challenges: user.challenges || []
+    });
+  } catch (error) {
+    console.error('Error fetching user challenges:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user challenges',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

@@ -96,6 +96,32 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
   }],
 
+  // Challenges purchased/assigned to the user
+  challenges: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    challengeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Challenge'
+    },
+    name: { type: String },
+    type: { type: String },
+    model: { type: String },
+    profitTarget: { type: Number, default: 8 },
+    accountSize: { type: Number, required: true },
+    platform: { type: String },
+    price: { type: Number, default: 0 },
+    couponCode: { type: String, default: null },
+    status: { type: String, enum: ['active', 'inactive', 'expired', 'failed', 'passed'], default: 'active' },
+    adminNote: { type: String, default: '' },
+    assignedBy: { type: String, enum: ['user', 'admin'], default: 'user' },
+    startedAt: { type: Date, default: Date.now },
+    endedAt: { type: Date, default: null },
+    createdAt: { type: Date, default: Date.now }
+  }],
+
   // Trading accounts assigned to the user
   tradingAccounts: [{
     _id: {

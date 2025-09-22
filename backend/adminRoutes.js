@@ -8,6 +8,85 @@ const path = require('path');
 // Import models
 const { User } = require('./schema');
 const Plan = require('./models/Plan');
+const Challenge = require('./models/Challenge');
+const Transaction = require('./models/Transaction');
+const NotificationService = require('./utils/notificationService');
+// Admin: create or update a challenge config
+router.post('/challenges', verifyAdminAuth, async (req, res) => {
+  try {
+    const data = req.body;
+    const challenge = new Challenge(data);
+    await challenge.save();
+    res.json({ success: true, challenge });
+  } catch (error) {
+    console.error('Create challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create challenge' });
+  }
+});
+
+// Admin: list challenges
+router.get('/challenges', verifyAdminAuth, async (req, res) => {
+  try {
+    const items = await Challenge.find({}).sort({ createdAt: -1 });
+    res.json({ success: true, challenges: items });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to list challenges' });
+  }
+});
+
+// Admin: assign challenge to user
+router.post('/challenges/assign', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, challengeId, accountSize, profitTarget, platform, note } = req.body;
+    const user = await User.findOne({ uid });
+    const challenge = await Challenge.findById(challengeId);
+    if (!user || !challenge) return res.status(404).json({ success: false, message: 'Not found' });
+
+    user.challenges.push({
+      challengeId: challenge._id,
+      name: challenge.name,
+      type: challenge.type,
+      model: challenge.model,
+      profitTarget: profitTarget || (challenge.profitTargets?.[0] || 8),
+      accountSize: Number(accountSize),
+      platform: platform || (challenge.platforms?.[0] || 'MetaTrader 5'),
+      price: 0,
+      adminNote: note || '',
+      status: 'active',
+      assignedBy: 'admin'
+    });
+    await user.save();
+
+    await NotificationService.notifyChallengeStatus(user._id, challenge.name, 'active', 'Assigned by admin');
+    res.json({ success: true, message: 'Challenge assigned' });
+  } catch (error) {
+    console.error('Assign challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to assign challenge' });
+  }
+});
+
+// Admin: update user challenge status
+router.put('/challenges/:userId/:challengeEntryId/status', verifyAdminAuth, async (req, res) => {
+  try {
+    const { userId, challengeEntryId } = req.params;
+    const { status, adminNote } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const entry = user.challenges.id(challengeEntryId);
+    if (!entry) return res.status(404).json({ success: false, message: 'Challenge entry not found' });
+    entry.status = status;
+    entry.adminNote = adminNote || entry.adminNote;
+    entry.endedAt = ['expired', 'failed', 'passed', 'inactive'].includes(status) ? new Date() : entry.endedAt;
+    await user.save();
+
+    await NotificationService.notifyChallengeStatus(user._id, entry.name, status, adminNote || '');
+    res.json({ success: true, message: 'Challenge status updated' });
+  } catch (error) {
+    console.error('Update challenge status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update status' });
+  }
+});
+
 const FAQ = require('./models/FAQ');
 const Team = require('./models/Team');
 const Contact = require('./models/Contact');

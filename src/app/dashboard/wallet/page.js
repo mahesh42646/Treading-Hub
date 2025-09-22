@@ -30,7 +30,7 @@ export default function DashboardWallet() {
   const [loading, setLoading] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  
+
   // Bank details state
   const [bankDetails, setBankDetails] = useState({
     bankName: '',
@@ -49,18 +49,75 @@ export default function DashboardWallet() {
   const MIN_DEPOSIT_AMOUNT = 500;
   const MIN_WITHDRAWAL_AMOUNT = 500;
 
+  // Validation functions for withdrawal
+  const canWithdraw = () => {
+    // Check if profile is 100% complete
+    const completionPercentage = profile?.status?.completionPercentage || 0;
+    if (completionPercentage < 100) {
+      return {
+        canWithdraw: false,
+        message: 'Complete your profile to withdraw',
+        type: 'profile'
+      };
+    }
+
+    // Check KYC status
+    const kycStatus = profile?.kyc?.status || 'not_applied';
+    if (kycStatus !== 'approved') {
+      const statusText = getKYCStatusText(kycStatus);
+      return {
+        canWithdraw: false,
+        message: `Your KYC status is ${statusText}. Must wait for our team to approve it`,
+        type: 'kyc'
+      };
+    }
+
+    return { canWithdraw: true };
+  };
+
+  const getKYCStatusText = (status) => {
+    switch (status) {
+      case 'not_applied':
+        return 'Not Applied';
+      case 'pending':
+      case 'applied':
+        return 'Under Review';
+      case 'under_review':
+        return 'Under Review';
+      case 'approved':
+        return 'Approved';
+      case 'verified':
+        return 'Verified';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Not Applied';
+    }
+  };
+
+  const handleWithdrawClick = (type) => {
+    const validation = canWithdraw();
+    if (!validation.canWithdraw) {
+      alert(validation.message);
+      return;
+    }
+
+    setWithdrawType(type);
+    setShowWithdrawModal(true);
+  };
+
   useEffect(() => {
     fetchWalletData();
     fetchSavedBanks();
     fetchWithdrawals();
     fetchReferralData();
-    
+
     // Load Razorpay script
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
-    
+
     return () => {
       // Cleanup
       if (document.body.contains(script)) {
@@ -149,7 +206,7 @@ export default function DashboardWallet() {
 
     try {
       setLoading(true);
-      
+
       // Create Razorpay order
       const orderData = await api.post('/wallet/razorpay-order', {
         amount: parseFloat(depositAmount) * 100, // Convert to paise
@@ -173,7 +230,7 @@ export default function DashboardWallet() {
               razorpay_signature: response.razorpay_signature,
               uid: user.uid
             });
-            
+
             alert('Deposit successful!');
             setDepositAmount('');
             setShowDepositModal(false);
@@ -210,7 +267,7 @@ export default function DashboardWallet() {
     }
 
     const maxAmount = withdrawType === 'wallet' ? walletData.walletBalance : walletData.referralBalance;
-    
+
     if (parseFloat(withdrawAmount) > maxAmount) {
       alert(`Insufficient ${withdrawType} balance`);
       return;
@@ -237,9 +294,9 @@ export default function DashboardWallet() {
 
     try {
       setLoading(true);
-      
+
       let accountDetails = {};
-      
+
       if (withdrawType === 'wallet') {
         if (useNewBank) {
           accountDetails = bankDetails;
@@ -252,7 +309,7 @@ export default function DashboardWallet() {
           accountDetails = selectedBank;
         }
       }
-      
+
       await api.post('/wallet/withdraw', {
         uid: user.uid,
         amount: parseFloat(withdrawAmount),
@@ -337,40 +394,18 @@ export default function DashboardWallet() {
               <p className="text-muted mb-0 d-none d-md-block small">Manage your funds and view transaction history</p>
             </div>
             <div className="d-flex gap-1 gap-md-2 flex-wrap">
-              <button 
-                className="btn btn-primary btn-sm d-md-none px-3"
-                onClick={() => setShowDepositModal(true)}
-                disabled={loading}
-                title="Add Money"
-              >
-                <i className="bi bi-plus-circle me-1"></i>
-                Add
-              </button>
-              <button 
-                className="btn btn-primary d-none d-md-inline-flex"
-                onClick={() => setShowDepositModal(true)}
-                disabled={loading}
-              >
-                <i className="bi bi-plus-circle me-2"></i>
-                Deposit
-              </button>
-              <button 
-                className="btn btn-outline-primary btn-sm d-md-none px-3"
+            
+              
+              <button
+                className="btn btn-outline-primary btn-sm px-3"
                 onClick={() => setShowWithdrawModal(true)}
                 disabled={loading}
                 title="Withdraw Money"
               >
-                <i className="bi bi-arrow-up-circle me-1"></i>
+                <i className="bi bi-arrow-up-circle me-1 fw-bold my-auto "></i>
                 Withdraw
               </button>
-              <button 
-                className="btn btn-outline-primary d-none d-md-inline-flex"
-                onClick={() => setShowWithdrawModal(true)}
-                disabled={loading}
-              >
-                <i className="bi bi-arrow-up-circle me-2"></i>
-                Withdraw
-              </button>
+             
             </div>
           </div>
         </div>
@@ -388,7 +423,7 @@ export default function DashboardWallet() {
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-muted mb-1 small fw-medium">Wallet Balance</h6>
+                  <h6 className="text-muted mb-1 small fw-medium">Trading Profit</h6>
                   <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate">₹{walletData.walletBalance.toFixed(2)}</h4>
                   <small className={`${walletData.todayChange >= 0 ? "text-success" : "text-danger"} d-none d-sm-block`}>
                     {walletData.todayChange >= 0 ? '+' : ''}₹{walletData.todayChange.toFixed(2)} today
@@ -464,7 +499,7 @@ export default function DashboardWallet() {
             <div className="card-header bg-white border-0 p-0">
               <ul className="nav nav-tabs card-header-tabs flex-nowrap overflow-auto border-0">
                 <li className="nav-item flex-shrink-0">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'overview' ? 'active' : ''} px-3 py-2`}
                     onClick={() => setActiveTab('overview')}
                   >
@@ -474,7 +509,7 @@ export default function DashboardWallet() {
                   </button>
                 </li>
                 <li className="nav-item flex-shrink-0">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'transactions' ? 'active' : ''} px-3 py-2`}
                     onClick={() => setActiveTab('transactions')}
                   >
@@ -484,7 +519,7 @@ export default function DashboardWallet() {
                   </button>
                 </li>
                 <li className="nav-item flex-shrink-0">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'referrals' ? 'active' : ''} px-3 py-2`}
                     onClick={() => setActiveTab('referrals')}
                   >
@@ -494,7 +529,7 @@ export default function DashboardWallet() {
                   </button>
                 </li>
                 <li className="nav-item flex-shrink-0">
-                  <button 
+                  <button
                     className={`nav-link ${activeTab === 'withdrawals' ? 'active' : ''} px-3 py-2`}
                     onClick={() => setActiveTab('withdrawals')}
                   >
@@ -511,59 +546,47 @@ export default function DashboardWallet() {
                   <div className="col-md-6">
                     <h5 className="mb-3 fs-6 fs-md-5">Quick Actions</h5>
                     <div className="d-grid gap-2 gap-md-3">
-                      <button 
+                      <button
                         className="btn btn-primary btn-sm d-md-none"
                         onClick={() => setShowDepositModal(true)}
                       >
                         <i className="bi bi-plus-circle me-2"></i>
                         Add Money
                       </button>
-                      <button 
+                      <button
                         className="btn btn-primary d-none d-md-inline-flex"
                         onClick={() => setShowDepositModal(true)}
                       >
                         <i className="bi bi-plus-circle me-2"></i>
                         Add Money to Wallet
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline-primary btn-sm d-md-none"
-                        onClick={() => {
-                          setWithdrawType('wallet');
-                          setShowWithdrawModal(true);
-                        }}
+                        onClick={() => handleWithdrawClick('wallet')}
                         disabled={walletData.walletBalance < MIN_WITHDRAWAL_AMOUNT}
                       >
                         <i className="bi bi-arrow-up-circle me-2"></i>
                         Withdraw Wallet
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline-primary d-none d-md-inline-flex"
-                        onClick={() => {
-                          setWithdrawType('wallet');
-                          setShowWithdrawModal(true);
-                        }}
+                        onClick={() => handleWithdrawClick('wallet')}
                         disabled={walletData.walletBalance < MIN_WITHDRAWAL_AMOUNT}
                       >
                         <i className="bi bi-arrow-up-circle me-2"></i>
                         Withdraw from Wallet
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline-warning btn-sm d-md-none"
-                        onClick={() => {
-                          setWithdrawType('referral');
-                          setShowWithdrawModal(true);
-                        }}
+                        onClick={() => handleWithdrawClick('referral')}
                         disabled={walletData.referralBalance < MIN_WITHDRAWAL_AMOUNT || walletData.totalDeposits === 0}
                       >
                         <i className="bi bi-gift me-2"></i>
                         Withdraw Bonus
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline-warning d-none d-md-inline-flex"
-                        onClick={() => {
-                          setWithdrawType('referral');
-                          setShowWithdrawModal(true);
-                        }}
+                        onClick={() => handleWithdrawClick('referral')}
                         disabled={walletData.referralBalance < MIN_WITHDRAWAL_AMOUNT || walletData.totalDeposits === 0}
                       >
                         <i className="bi bi-gift me-2"></i>
@@ -575,6 +598,8 @@ export default function DashboardWallet() {
                     <h5 className="mb-3 fs-6 fs-md-5">Withdrawal Rules</h5>
                     <div className="alert alert-info py-2 py-md-3">
                       <ul className="mb-0 small">
+                        <li>Account must be 100% complete to withdraw</li>
+                        <li>KYC status must be approved to withdraw</li>
                         <li>Minimum withdrawal amount: ₹{MIN_WITHDRAWAL_AMOUNT}</li>
                         <li>Referral bonus can only be withdrawn after making at least one deposit</li>
                         <li>Withdrawal requests are processed within 24-48 hours</li>
@@ -622,12 +647,12 @@ export default function DashboardWallet() {
                                   {transaction.type === 'deposit' || transaction.type === 'referral_bonus' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
                                 </span>
                               </td>
-                              <td className="text-truncate d-none d-md-table-cell" style={{maxWidth: '200px'}} title={transaction.description}>
+                              <td className="text-truncate d-none d-md-table-cell" style={{ maxWidth: '200px' }} title={transaction.description}>
                                 {transaction.description}
                               </td>
                               <td className="d-none d-md-table-cell">
                                 <small>{new Date(transaction.createdAt || transaction.date).toLocaleDateString()}</small>
-                                <br/>
+                                <br />
                                 <small className="text-muted">
                                   {new Date(transaction.createdAt || transaction.date).toLocaleTimeString()}
                                 </small>
@@ -636,7 +661,7 @@ export default function DashboardWallet() {
                                 <div className="small text-muted">
                                   {new Date(transaction.createdAt || transaction.date).toLocaleDateString()}
                                 </div>
-                                <div className="text-truncate" style={{maxWidth: '150px'}} title={transaction.description}>
+                                <div className="text-truncate" style={{ maxWidth: '150px' }} title={transaction.description}>
                                   {transaction.description}
                                 </div>
                               </td>
@@ -657,7 +682,7 @@ export default function DashboardWallet() {
               {activeTab === 'referrals' && (
                 <div>
                   <h5 className="mb-3 fs-6 fs-md-5">Referral History</h5>
-                  
+
                   {/* Referral Stats */}
                   <div className="row mb-3 mb-md-4 g-2 g-md-3">
                     <div className="col-md-3 col-sm-6 col-6">
@@ -780,7 +805,7 @@ export default function DashboardWallet() {
                               <tr key={transaction._id}>
                                 <td className="d-none d-md-table-cell">
                                   <small>{new Date(transaction.createdAt).toLocaleDateString()}</small>
-                                  <br/>
+                                  <br />
                                   <small className="text-muted">
                                     {new Date(transaction.createdAt).toLocaleTimeString()}
                                   </small>
@@ -802,7 +827,7 @@ export default function DashboardWallet() {
                                   <div className="small text-muted">
                                     {transaction.metadata?.referredUserName || 'Unknown User'}
                                   </div>
-                                  <div className="small text-muted text-truncate" style={{maxWidth: '150px'}} title={transaction.description}>
+                                  <div className="small text-muted text-truncate" style={{ maxWidth: '150px' }} title={transaction.description}>
                                     {transaction.description}
                                   </div>
                                 </td>
@@ -857,7 +882,7 @@ export default function DashboardWallet() {
                               </td>
                               <td className="d-none d-md-table-cell">
                                 <small>{new Date(withdrawal.createdAt).toLocaleDateString()}</small>
-                                <br/>
+                                <br />
                                 <small className="text-muted">
                                   {new Date(withdrawal.createdAt).toLocaleTimeString()}
                                 </small>
@@ -871,7 +896,7 @@ export default function DashboardWallet() {
                                 {withdrawal.processedAt ? (
                                   <>
                                     <small>{new Date(withdrawal.processedAt).toLocaleDateString()}</small>
-                                    <br/>
+                                    <br />
                                     <small className="text-muted">
                                       {new Date(withdrawal.processedAt).toLocaleTimeString()}
                                     </small>
@@ -929,8 +954,8 @@ export default function DashboardWallet() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title fs-6 fs-md-5">Deposit to Wallet</h5>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn-close"
                   onClick={() => setShowDepositModal(false)}
                 ></button>
@@ -950,21 +975,21 @@ export default function DashboardWallet() {
                 <div className="alert alert-info py-2 py-md-3">
                   <small>
                     <i className="bi bi-info-circle me-2"></i>
-                    <strong>Minimum deposit: ₹{MIN_DEPOSIT_AMOUNT}</strong><br/>
+                    <strong>Minimum deposit: ₹{MIN_DEPOSIT_AMOUNT}</strong><br />
                     Payment will be processed securely through Razorpay
                   </small>
                 </div>
               </div>
               <div className="modal-footer d-flex gap-2 p-3 p-md-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-secondary flex-fill"
                   onClick={() => setShowDepositModal(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-primary flex-fill"
                   onClick={handleDeposit}
                   disabled={loading || !depositAmount || parseFloat(depositAmount) < MIN_DEPOSIT_AMOUNT}
@@ -986,13 +1011,55 @@ export default function DashboardWallet() {
                 <h5 className="modal-title fs-6 fs-md-5">
                   Withdraw from {withdrawType === 'wallet' ? 'Wallet' : 'Referral Balance'}
                 </h5>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn-close"
                   onClick={() => setShowWithdrawModal(false)}
                 ></button>
               </div>
               <div className="modal-body p-3 p-md-4">
+                {/* Validation Alert */}
+                {(() => {
+                  const validation = canWithdraw();
+                  if (!validation.canWithdraw) {
+                    return (
+                      <div className={`alert ${validation.type === 'profile' ? 'alert-warning' : 'alert-danger'} mb-4`}>
+                        <i className={`bi ${validation.type === 'profile' ? 'bi-person-exclamation' : 'bi-shield-exclamation'} me-2`}></i>
+                        <strong>{validation.message}</strong>
+                        {validation.type === 'profile' && (
+                          <div className="mt-2">
+                            <button 
+                              className="btn btn-warning btn-sm"
+                              onClick={() => {
+                                setShowWithdrawModal(false);
+                                // Navigate to profile setup
+                                window.location.href = '/profile-setup';
+                              }}
+                            >
+                              Complete Profile
+                            </button>
+                          </div>
+                        )}
+                        {validation.type === 'kyc' && (
+                          <div className="mt-2">
+                            <button 
+                              className="btn btn-danger btn-sm"
+                              onClick={() => {
+                                setShowWithdrawModal(false);
+                                // Navigate to KYC verification
+                                window.location.href = '/kyc-verification';
+                              }}
+                            >
+                              Check KYC Status
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Balance Type Selection */}
                 <div className="mb-4">
                   <label className="form-label small fw-medium">Select Balance Type</label>
@@ -1008,7 +1075,7 @@ export default function DashboardWallet() {
                         onChange={(e) => setWithdrawType(e.target.value)}
                       />
                       <label className="form-check-label small" htmlFor="walletBalance">
-                        Wallet Balance (₹{walletData.walletBalance.toFixed(2)})
+                        Trading Profit (₹{walletData.walletBalance.toFixed(2)})
                       </label>
                     </div>
                     <div className="form-check">
@@ -1049,7 +1116,7 @@ export default function DashboardWallet() {
                 {withdrawType === 'wallet' && (
                   <div className="mb-4">
                     <label className="form-label small fw-medium">Bank Account Details</label>
-                    
+
                     {/* Saved Banks Selection */}
                     {savedBanks.length > 0 && (
                       <div className="mb-3">
@@ -1108,7 +1175,7 @@ export default function DashboardWallet() {
                               type="text"
                               className="form-control"
                               value={bankDetails.bankName}
-                              onChange={(e) => setBankDetails({...bankDetails, bankName: e.target.value})}
+                              onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
                               placeholder="Enter bank name"
                             />
                           </div>
@@ -1118,7 +1185,7 @@ export default function DashboardWallet() {
                               type="text"
                               className="form-control"
                               value={bankDetails.accountNumber}
-                              onChange={(e) => setBankDetails({...bankDetails, accountNumber: e.target.value})}
+                              onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
                               placeholder="Enter account number"
                             />
                           </div>
@@ -1128,7 +1195,7 @@ export default function DashboardWallet() {
                               type="text"
                               className="form-control"
                               value={bankDetails.ifscCode}
-                              onChange={(e) => setBankDetails({...bankDetails, ifscCode: e.target.value.toUpperCase()})}
+                              onChange={(e) => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
                               placeholder="Enter IFSC code"
                             />
                           </div>
@@ -1138,7 +1205,7 @@ export default function DashboardWallet() {
                               type="text"
                               className="form-control"
                               value={bankDetails.accountHolderName}
-                              onChange={(e) => setBankDetails({...bankDetails, accountHolderName: e.target.value})}
+                              onChange={(e) => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
                               placeholder="Enter account holder name"
                             />
                           </div>
@@ -1148,12 +1215,12 @@ export default function DashboardWallet() {
                               type="text"
                               className="form-control"
                               value={bankDetails.upiId}
-                              onChange={(e) => setBankDetails({...bankDetails, upiId: e.target.value})}
+                              onChange={(e) => setBankDetails({ ...bankDetails, upiId: e.target.value })}
                               placeholder="Enter UPI ID"
                             />
                           </div>
                         </div>
-                        
+
                         {/* Save Bank Details Toggle */}
                         <div className="form-check">
                           <input
@@ -1188,18 +1255,18 @@ export default function DashboardWallet() {
                 )}
               </div>
               <div className="modal-footer d-flex gap-2 p-3 p-md-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-secondary flex-fill"
                   onClick={() => setShowWithdrawModal(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-primary flex-fill"
                   onClick={handleWithdraw}
-                  disabled={loading || !withdrawAmount || parseFloat(withdrawAmount) < MIN_WITHDRAWAL_AMOUNT}
+                  disabled={loading || !withdrawAmount || parseFloat(withdrawAmount) < MIN_WITHDRAWAL_AMOUNT || !canWithdraw().canWithdraw}
                 >
                   {loading ? 'Processing...' : 'Submit Withdrawal'}
                 </button>

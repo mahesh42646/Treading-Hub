@@ -175,6 +175,35 @@ class NotificationService {
     );
   }
 
+  // Challenge notifications
+  static async notifyChallengePurchased(userId, challengeName, amount) {
+    return await this.createNotification(
+      userId,
+      'custom',
+      'Challenge Purchased',
+      `Successfully purchased ${challengeName} challenge for ₹${amount}`,
+      {
+        priority: 'high',
+        metadata: { challengeName, amount },
+        relatedType: 'challenge'
+      }
+    );
+  }
+
+  static async notifyChallengeStatus(userId, challengeName, status, adminNote = '') {
+    return await this.createNotification(
+      userId,
+      'custom',
+      `Challenge ${status}`,
+      `Your challenge "${challengeName}" status updated to ${status}. ${adminNote}`.trim(),
+      {
+        priority: status === 'passed' ? 'high' : status === 'failed' ? 'urgent' : 'medium',
+        metadata: { challengeName, status, adminNote },
+        relatedType: 'challenge'
+      }
+    );
+  }
+
   // Create trading account assigned notification
   static async notifyTradingAccountAssigned(userId, accountDetails) {
     return await this.createNotification(

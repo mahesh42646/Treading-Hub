@@ -13,6 +13,7 @@ const transactionSchema = new mongoose.Schema({
       'withdrawal',        // Money withdrawn from wallet
       'withdrawal_rejected', // Withdrawal rejected by admin
       'plan_purchase',     // Plan purchased
+      'challenge_purchase', // Challenge purchased
       'referral_bonus',    // Referral bonus earned
       'admin_credit',      // Admin added money
       'admin_debit',       // Admin deducted money
@@ -49,6 +50,7 @@ const transactionSchema = new mongoose.Schema({
       'admin',             // Admin action
       'trading',           // Trading system
       'plan_purchase',     // Plan purchase
+      'challenge',         // Challenge related transactions
       'withdrawal',        // Withdrawal system
       'system'             // System generated
     ],

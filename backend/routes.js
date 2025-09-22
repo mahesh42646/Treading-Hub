@@ -6,6 +6,9 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { User } = require('./schema');
 const Plan = require('./models/Plan');
+const Challenge = require('./models/Challenge');
+const Transaction = require('./models/Transaction');
+const NotificationService = require('./utils/notificationService');
 const SupportTicket = require('./models/SupportTicket');
 
 const router = express.Router();
@@ -33,6 +36,82 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+// List active challenges configs
+router.get('/challenges/configs', async (req, res) => {
+  try {
+    const items = await Challenge.find({ isActive: true }).sort({ priority: 1, createdAt: -1 });
+    res.json({ success: true, challenges: items });
+  } catch (error) {
+    console.error('List challenges error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load challenges' });
+  }
+});
+
+// Purchase challenge from wallet/referral
+router.post('/challenges/purchase', async (req, res) => {
+  try {
+    const { uid, challengeId, accountSize, profitTarget, platform, couponCode, payFrom } = req.body;
+    if (!uid || !challengeId || !accountSize) return res.status(400).json({ success: false, message: 'Missing fields' });
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const challenge = await Challenge.findById(challengeId);
+    if (!challenge || !challenge.isActive) return res.status(400).json({ success: false, message: 'Challenge not available' });
+
+    const basePrice = Number(challenge.pricesByAccountSize?.get(String(accountSize)) || 0);
+    if (!basePrice) return res.status(400).json({ success: false, message: 'Invalid account size' });
+    let finalPrice = basePrice;
+    if (couponCode) {
+      const coupon = (challenge.coupons || []).find(c => c.code?.toLowerCase() === String(couponCode).toLowerCase() && c.isActive && (!c.expiresAt || c.expiresAt > new Date()));
+      if (coupon) {
+        if (coupon.discountPercent) finalPrice = finalPrice - ((finalPrice * coupon.discountPercent) / 100);
+        if (coupon.discountFlat) finalPrice = Math.max(0, finalPrice - coupon.discountFlat);
+      }
+    }
+
+    const payFromField = payFrom === 'referral' ? 'referralBalance' : 'walletBalance';
+    if (user.profile.wallet[payFromField] < finalPrice) return res.status(400).json({ success: false, message: 'Insufficient balance' });
+    user.profile.wallet[payFromField] -= finalPrice;
+
+    user.challenges.push({
+      challengeId: challenge._id,
+      name: challenge.name,
+      type: challenge.type,
+      model: challenge.model,
+      profitTarget: profitTarget || (challenge.profitTargets?.[0] || 8),
+      accountSize: Number(accountSize),
+      platform: platform || (challenge.platforms?.[0] || 'MetaTrader 5'),
+      price: finalPrice,
+      couponCode: couponCode || null,
+      status: 'active',
+      assignedBy: 'user'
+    });
+
+    await user.save();
+
+    const balanceAfter = user.profile.wallet[payFromField];
+    await Transaction.create({
+      userId: user._id,
+      type: 'challenge_purchase',
+      amount: finalPrice,
+      balanceAfter,
+      description: `Challenge purchase: ${challenge.name} (${accountSize})`,
+      status: 'completed',
+      source: payFrom === 'referral' ? 'referral' : 'wallet',
+      category: 'purchase',
+      metadata: { challengeId: challenge._id, accountSize, platform, couponCode }
+    });
+
+    await NotificationService.notifyChallengePurchased(user._id, challenge.name, finalPrice);
+
+    res.json({ success: true, message: 'Challenge purchased', balanceAfter });
+  } catch (error) {
+    console.error('Purchase challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to purchase challenge' });
   }
 });
 

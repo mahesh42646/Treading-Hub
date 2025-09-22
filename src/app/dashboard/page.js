@@ -566,6 +566,13 @@ const Dashboard = () => {
                   <i className="bi bi-headset me-2"></i>
                   Support
                 </button>
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={() => router.push('/dashboard/challenges')}
+                >
+                  <i className="bi bi-trophy me-2"></i>
+                  Challenges
+                </button>
               </div>
             </div>
           </div>

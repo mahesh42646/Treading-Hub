@@ -37,6 +37,11 @@ const Sidebar = () => {
       href: '/dashboard/transactions',
     },
     {
+      title: 'Challenges',
+      icon: 'bi bi-trophy',
+      href: '/dashboard/challenges',
+    },
+    {
       title: 'Trading Account',
       icon: 'bi bi-graph-up',
       href: '/dashboard/trading-account',

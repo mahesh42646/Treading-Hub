@@ -91,7 +91,6 @@ const FAQ = require('./models/FAQ');
 const Team = require('./models/Team');
 const Contact = require('./models/Contact');
 const Referral = require('./models/Referral');
-const Transaction = require('./models/Transaction');
 const Blog = require('./models/Blog');
 const News = require('./models/News');
 const Withdrawal = require('./models/Withdrawal');

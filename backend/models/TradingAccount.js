@@ -65,10 +65,24 @@ const tradingAccountSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    challengeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Challenge',
+      default: null
+    },
+    challengeEntryId: {
+      type: String,
+      default: null
+    },
     assignedAt: {
       type: Date,
       default: null
     }
+  },
+  accountStatus: {
+    type: String,
+    enum: ['assigned', 'passed', 'failed', 'unassigned'],
+    default: 'unassigned'
   },
   subscriptionId: {
     type: mongoose.Schema.Types.ObjectId,

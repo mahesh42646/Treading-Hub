@@ -65,6 +65,7 @@ export default function TradingAccountsPage() {
                     <th>Account</th>
                     <th>Broker</th>
                     <th>Platform</th>
+                    <th>Status</th>
                     <th>Started</th>
                     <th>Expiry</th>
                     <th></th>
@@ -77,6 +78,11 @@ export default function TradingAccountsPage() {
                       <td>{ch.tradingAccount?.accountName || '-'}</td>
                       <td>{ch.tradingAccount?.brokerName || '-'}</td>
                       <td>{ch.tradingAccount?.platform || '-'}</td>
+                      <td>
+                        <span className={`badge ${ch.tradingAccount?.accountStatus === 'passed' ? 'bg-success' : ch.tradingAccount?.accountStatus === 'failed' ? 'bg-danger' : 'bg-primary'}`}>
+                          {ch.tradingAccount?.accountStatus || 'assigned'}
+                        </span>
+                      </td>
                       <td>{ch.startedAt ? new Date(ch.startedAt).toLocaleDateString() : '-'}</td>
                       <td>{ch.endedAt ? new Date(ch.endedAt).toLocaleDateString() : '-'}</td>
                       <td className="text-end">

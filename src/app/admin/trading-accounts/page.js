@@ -23,11 +23,13 @@ const AdminTradingAccounts = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [users, setUsers] = useState([]);
   const [userChallenges, setUserChallenges] = useState([]);
   const [selectedUserUid, setSelectedUserUid] = useState('');
   const [selectedChallengeEntryId, setSelectedChallengeEntryId] = useState('');
+  const [editingAccount, setEditingAccount] = useState(null);
   const [formData, setFormData] = useState({
     accountName: 'Two Steps',
     brokerName: '',
@@ -188,6 +190,68 @@ const AdminTradingAccounts = () => {
     }
   };
 
+  const handleEditAccount = (account) => {
+    setEditingAccount(account);
+    setEditFormData({
+      accountName: account.accountName || '',
+      brokerName: account.brokerName || '',
+      serverId: account.serverId || '',
+      loginId: account.loginId || '',
+      password: account.password || '',
+      serverAddress: account.serverAddress || '',
+      platform: account.platform || 'MT5',
+      accountType: account.accountType || 'Demo',
+      balance: account.balance || 0,
+      leverage: account.leverage || '1:100',
+      currency: account.currency || 'USD',
+      notes: account.notes || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateAccount = async (e) => {
+    e.preventDefault();
+    if (!editingAccount) return;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${editingAccount._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(editFormData)
+      });
+
+      if (response.ok) {
+        alert('Trading account updated successfully');
+        setShowEditModal(false);
+        setEditingAccount(null);
+        fetchAccounts();
+      }
+    } catch (error) {
+      console.error('Error updating trading account:', error);
+      alert('Failed to update trading account');
+    }
+  };
+
+  const handleStatusChange = async (accountId, newStatus) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${accountId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        alert('Account status updated successfully');
+        fetchAccounts();
+      }
+    } catch (error) {
+      console.error('Error updating account status:', error);
+      alert('Failed to update account status');
+    }
+  };
+
   const handleDeleteAccount = async (accountId) => {
     if (!confirm('Are you sure you want to delete this trading account? This action cannot be undone.')) return;
     
@@ -321,7 +385,8 @@ const AdminTradingAccounts = () => {
                   <th>Platform</th>
                   <th>Type</th>
                   <th>Balance</th>
-                  <th>Status</th>
+                  <th>Assignment Status</th>
+                  <th>Account Status</th>
                   <th>Assigned To</th>
                   <th>Actions</th>
                 </tr>
@@ -358,6 +423,22 @@ const AdminTradingAccounts = () => {
                     </td>
                     <td>
                       {account.isAssigned ? (
+                        <select 
+                          className={`form-select form-select-sm ${account.accountStatus === 'passed' ? 'border-success' : account.accountStatus === 'failed' ? 'border-danger' : 'border-primary'}`}
+                          value={account.accountStatus || 'assigned'}
+                          onChange={(e) => handleStatusChange(account._id, e.target.value)}
+                        >
+                          <option value="assigned">Assigned</option>
+                          <option value="passed">Passed</option>
+                          <option value="failed">Failed</option>
+                          <option value="unassigned">Unassign</option>
+                        </select>
+                      ) : (
+                        <span className="badge bg-secondary">Unassigned</span>
+                      )}
+                    </td>
+                    <td>
+                      {account.isAssigned ? (
                         <div>
                           <strong>{account.assignedTo?.userEmail || 'Unknown'}</strong><br/>
                           <small className="text-muted">
@@ -373,6 +454,13 @@ const AdminTradingAccounts = () => {
                     </td>
                     <td>
                       <div className="btn-group btn-group-sm">
+                        <button 
+                          className="btn btn-outline-primary"
+                          onClick={() => handleEditAccount(account)}
+                          title="Edit Account"
+                        >
+                          <FaEdit />
+                        </button>
                         {!account.isAssigned ? (
                           <button 
                             className="btn btn-outline-success"
@@ -380,6 +468,7 @@ const AdminTradingAccounts = () => {
                               setSelectedAccount(account);
                               setShowAssignModal(true);
                             }}
+                            title="Assign Account"
                           >
                             <FaUser />
                           </button>
@@ -387,6 +476,7 @@ const AdminTradingAccounts = () => {
                           <button 
                             className="btn btn-outline-warning"
                             onClick={() => handleUnassignAccount(account._id)}
+                            title="Unassign Account"
                           >
                             <FaUserCheck />
                           </button>
@@ -394,6 +484,7 @@ const AdminTradingAccounts = () => {
                         <button 
                           className="btn btn-outline-danger"
                           onClick={() => handleDeleteAccount(account._id)}
+                          title="Delete Account"
                         >
                           <FaTrash />
                         </button>
@@ -685,6 +776,173 @@ const AdminTradingAccounts = () => {
                   Assign Account
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Account Modal */}
+      {showEditModal && editingAccount && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Trading Account</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowEditModal(false)}
+                ></button>
+              </div>
+              <form onSubmit={handleUpdateAccount}>
+                <div className="modal-body">
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Account Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.accountName}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, accountName: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Broker Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.brokerName}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, brokerName: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Server ID</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.serverId}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, serverId: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Login ID</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.loginId}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, loginId: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Password</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.password}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Server Address</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.serverAddress}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, serverAddress: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">Platform</label>
+                      <select
+                        className="form-select"
+                        value={editFormData.platform}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, platform: e.target.value }))}
+                      >
+                        <option value="MT4">MT4</option>
+                        <option value="MT5">MT5</option>
+                        <option value="TradingView">TradingView</option>
+                        <option value="Custom">Custom</option>
+                      </select>
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">Account Type</label>
+                      <select
+                        className="form-select"
+                        value={editFormData.accountType}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, accountType: e.target.value }))}
+                      >
+                        <option value="Demo">Demo</option>
+                        <option value="Live">Live</option>
+                      </select>
+                    </div>
+                    <div className="col-md-4 mb-3">
+                      <label className="form-label">Balance</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={editFormData.balance}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, balance: parseFloat(e.target.value) || 0 }))}
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Leverage</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.leverage}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, leverage: e.target.value }))}
+                      />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Currency</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editFormData.currency}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, currency: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Notes</label>
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      value={editFormData.notes}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setShowEditModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                  >
+                    Update Account
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

@@ -42,7 +42,7 @@ const storage = multer.diskStorage({
 // List active challenges configs
 router.get('/challenges/configs', async (req, res) => {
   try {
-    const items = await Challenge.find({ isActive: true }).sort({ priority: 1, createdAt: -1 });
+    const items = await Challenge.find({ isActive: true, saleStatus: 'active' }).sort({ priority: 1, createdAt: -1 });
     res.json({ success: true, challenges: items });
   } catch (error) {
     console.error('List challenges error:', error);

@@ -71,13 +71,30 @@ const AdminTradingAccounts = () => {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?limit=100`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?limit=200`, {
         credentials: 'include'
       });
       
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.users || []);
+        const baseUsers = Array.isArray(data.users) ? data.users : [];
+        // For each user, fetch challenges and keep only those with at least one active, unassigned challenge
+        const enriched = await Promise.all(baseUsers.map(async (u) => {
+          try {
+            const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${u.uid}/challenges`, { credentials: 'include' });
+            if (!r.ok) return null;
+            const d = await r.json();
+            const list = Array.isArray(d.challenges) ? d.challenges : [];
+            const eligible = list.filter(ch => ch.status === 'active' && !ch.tradingAccountId);
+            if (eligible.length > 0) {
+              return { ...u, challengesCount: eligible.length };
+            }
+            return null;
+          } catch (_) {
+            return null;
+          }
+        }));
+        setUsers(enriched.filter(Boolean));
       }
     } catch (error) {
       console.error('Error fetching users:', error);

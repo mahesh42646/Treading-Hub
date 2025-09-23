@@ -108,6 +108,19 @@ router.post('/challenges/purchase', async (req, res) => {
 
     await NotificationService.notifyChallengePurchased(user._id, challenge.name, finalPrice);
 
+    
+    // Process referral completion and 20% bonus on FIRST challenge purchase
+    try {
+      const isFirstChallenge = Array.isArray(user.challenges) && user.challenges.length === 1;
+      if (isFirstChallenge && user.referredByCode) {
+        const { processFirstPayment } = require('./utils/simpleReferralUtils');
+        await processFirstPayment(user._id, finalPrice, 'challenge');
+      }
+    } catch (refErr) {
+      console.error('Referral processing on challenge purchase failed:', refErr);
+      // Continue without blocking purchase response
+    }
+
     res.json({ success: true, message: 'Challenge purchased', balanceAfter });
   } catch (error) {
     console.error('Purchase challenge error:', error);

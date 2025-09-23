@@ -114,7 +114,7 @@ const userSchema = new mongoose.Schema({
     platform: { type: String },
     price: { type: Number, default: 0 },
     couponCode: { type: String, default: null },
-    status: { type: String, enum: ['active', 'inactive', 'expired', 'failed', 'passed'], default: 'active' },
+    status: { type: String, enum: ['active', 'inactive', 'expired', 'failed', 'passed', 'cancelled'], default: 'active' },
     adminNote: { type: String, default: '' },
     assignedBy: { type: String, enum: ['user', 'admin'], default: 'user' },
     startedAt: { type: Date, default: Date.now },

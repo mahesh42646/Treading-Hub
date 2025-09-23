@@ -58,8 +58,8 @@ export default function Header() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link href="/plans" className="nav-link px-3" style={{ color: '#e2e8f0', fontWeight: '500' }}>
-                Programs
+              <Link href="/challenges" className="nav-link px-3" style={{ color: '#e2e8f0', fontWeight: '500' }}>
+                Challenges
               </Link>
             </li>
             <li className="nav-item">

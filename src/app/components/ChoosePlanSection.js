@@ -57,7 +57,7 @@ const ChoosePlanSection = () => {
     }}>
       <div className="container">
         <div className="text-center mb-4 mb-md-5 pt-lg-5">
-          <h2 className="display-5 display-md-3 display-sm-5 fw-bold mb-3 text-white" style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}>Choose the Best Plan</h2>
+          <h2 className="display-5 display-md-3 display-sm-5 fw-bold mb-3 text-white" style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}>Choose the Best Challenge</h2>
         </div>
 
       
@@ -158,7 +158,7 @@ const ChoosePlanSection = () => {
 
                     {/* CTA Button */}
                     <Link 
-                      href="/plans" 
+                      href="/challenges" 
                       className="btn w-100 py-2 py-md-3 fw-bold rounded-4 text-white border-0"
                       style={{
                         background: gradients[index % gradients.length],

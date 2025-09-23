@@ -70,6 +70,16 @@ router.put('/challenges/:userId/:challengeEntryId/status', verifyAdminAuth, asyn
   try {
     const { userId, challengeEntryId } = req.params;
     const { status, adminNote } = req.body;
+    
+    // Validate status value
+    const validStatuses = ['active', 'inactive', 'expired', 'failed', 'passed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+    
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     const entry = user.challenges.id(challengeEntryId);
@@ -78,7 +88,7 @@ router.put('/challenges/:userId/:challengeEntryId/status', verifyAdminAuth, asyn
     if (['inactive','expired'].includes(entry.status)) return res.status(400).json({ success: false, message: 'Cannot assign account to inactive/expired challenge' });
     entry.status = status;
     entry.adminNote = adminNote || entry.adminNote;
-    entry.endedAt = ['expired', 'failed', 'passed', 'inactive'].includes(status) ? new Date() : entry.endedAt;
+    entry.endedAt = ['expired', 'failed', 'passed', 'inactive', 'cancelled'].includes(status) ? new Date() : entry.endedAt;
     await user.save();
 
     await NotificationService.notifyChallengeStatus(user._id, entry.name, status, adminNote || '');
@@ -2555,6 +2565,15 @@ router.put('/api/admin/challenges/:userId/:challengeEntryId/status', async (req,
     const { userId, challengeEntryId } = req.params;
     const { status, adminNote } = req.body;
     
+    // Validate status value
+    const validStatuses = ['active', 'inactive', 'expired', 'failed', 'passed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+    
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -2573,7 +2592,11 @@ router.put('/api/admin/challenges/:userId/:challengeEntryId/status', async (req,
 
     challengeEntry.status = status;
     challengeEntry.adminNote = adminNote || challengeEntry.adminNote;
-    challengeEntry.endedAt = new Date();
+    
+    // Set endedAt for completed/final statuses
+    if (['expired', 'failed', 'passed', 'cancelled', 'inactive'].includes(status)) {
+      challengeEntry.endedAt = new Date();
+    }
     
     await user.save();
 

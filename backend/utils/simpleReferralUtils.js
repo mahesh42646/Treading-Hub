@@ -143,8 +143,8 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
       return;
     }
 
-    // If this call is for a plan and we've already marked first plan, exit
-    if (type === 'plan' && user.myFirstPlan) {
+    // Ignore legacy 'plan' trigger: referral completion now only on first challenge
+    if (type === 'plan') {
       return;
     }
 
@@ -153,14 +153,14 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
       user.myFirstPayment = true;
       user.myFirstPaymentAmount = amount;
       user.myFirstPaymentDate = new Date();
-    } else if (type === 'plan') {
-      // Ensure first deposit fields exist if not set previously (for consistency)
+    } else if (type === 'challenge') {
+      // Marking challenge purchase as the qualifying event for referrals
       if (!user.myFirstPayment) {
         user.myFirstPayment = true;
         user.myFirstPaymentAmount = amount;
         user.myFirstPaymentDate = new Date();
       }
-      user.myFirstPlan = true;
+      user.myFirstPlan = true; // Reuse existing field to represent first challenge acquired
     }
 
     // If user was referred, credit bonus to referrer
@@ -204,7 +204,7 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
         
         if (referralIndex !== -1) {
           console.log('Found referral record, updating for type:', type);
-          // For deposits, only mark firstPayment; For plan, complete and credit bonus
+          // For deposits, only mark firstPayment; For challenge, complete and credit bonus
           if (type === 'deposit') {
             if (!referrer.referrals[referralIndex].firstPayment) {
               referrer.referrals[referralIndex].firstPayment = true;
@@ -212,7 +212,7 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
               referrer.referrals[referralIndex].firstPaymentDate = new Date();
               console.log('Marked first payment for deposit');
             }
-          } else if (type === 'plan') {
+          } else if (type === 'challenge') {
             referrer.referrals[referralIndex].firstPlan = true;
             referrer.referrals[referralIndex].refState = 'completed';
             // Credit bonus only if not yet credited
@@ -220,7 +220,7 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
               referrer.referrals[referralIndex].bonusCredited = true;
               referrer.referrals[referralIndex].bonusAmount = bonusAmount;
             }
-            console.log('Marked first plan and completed referral');
+            console.log('Marked first challenge and completed referral');
           }
           
           await referrer.save();

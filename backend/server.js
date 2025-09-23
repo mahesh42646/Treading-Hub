@@ -524,6 +524,17 @@ app.post('/api/challenges/purchase', async (req, res) => {
     });
     await notification.save();
 
+    // Process referral on first challenge purchase (20% of paid price)
+    try {
+      const isFirstChallenge = (user.challenges || []).length === 1;
+      if (isFirstChallenge && user.referredByCode) {
+        const { processFirstPayment } = require('./utils/simpleReferralUtils');
+        await processFirstPayment(user._id, price, 'challenge');
+      }
+    } catch (refErr) {
+      console.error('Referral processing on challenge purchase failed:', refErr);
+    }
+
     res.json({
       success: true,
       message: 'Challenge purchased successfully',

@@ -175,64 +175,9 @@ router.post('/subscription/purchase', async (req, res) => {
 
     // No separate Subscription model/profile badge needed; plans are stored on user
 
-    // Process referral bonus for first plan purchase
-    if (isFirstPlan && user.referredByCode) {
-      try {
-        const { processFirstPayment } = require('./utils/simpleReferralUtils');
-        
-        console.log('Processing referral for user:', {
-          userId: user._id,
-          isFirstPlan,
-          referredByCode: user.referredByCode,
-          planPrice: plan.price
-        });
-        
-        await processFirstPayment(user._id, plan.price, 'plan');
-        console.log('🎉 First plan purchase processed - referral bonus credited if applicable');
-      } catch (rbErr) {
-        console.error('Referral bonus on plan purchase failed:', rbErr);
-        // If referral processing fails, we should still try to complete the referral manually
-        try {
-          const referrer = await User.findOne({ myReferralCode: user.referredByCode });
-          if (referrer) {
-            const referralIndex = referrer.referrals.findIndex(
-              ref => ref.user.toString() === user._id.toString()
-            );
-            
-            if (referralIndex !== -1) {
-              const referralRecord = referrer.referrals[referralIndex];
-              referralRecord.firstPayment = true;
-              referralRecord.firstPlan = true;
-              referralRecord.refState = 'completed';
-              
-              const bonusAmount = Math.round(plan.price * 0.20);
-              referralRecord.bonusCredited = true;
-              referralRecord.bonusAmount = bonusAmount;
-              
-              // Add bonus to referrer's wallet
-              if (!referrer.profile) {
-                referrer.profile = {};
-              }
-              if (!referrer.profile.wallet) {
-                referrer.profile.wallet = {
-                  walletBalance: 0,
-                  referralBalance: 0
-                };
-              }
-              referrer.profile.wallet.referralBalance += bonusAmount;
-              
-              await referrer.save();
-              console.log('✅ Referral processing completed manually after initial failure');
-            }
-          }
-        } catch (manualErr) {
-          console.error('Manual referral processing also failed:', manualErr);
-        }
-      }
-    } else if (isFirstPlan) {
-      console.log('ℹ️ First plan purchase but user was not referred - no referral bonus');
-    } else {
-      console.log('ℹ️ Not first plan purchase - no referral bonus');
+    // Referral completion/bonus NO LONGER triggered by plan purchase
+    if (isFirstPlan) {
+      console.log('ℹ️ First plan purchase - referral bonus not triggered (only on first challenge)');
     }
 
     // Create transaction record for plan purchase

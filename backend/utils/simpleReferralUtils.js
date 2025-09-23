@@ -254,7 +254,6 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
             console.error('❌ Error creating referral transaction:', txnError);
             // Continue without failing the whole process
           }
-
           // Create notification for referrer
           try {
             const NotificationService = require('./notificationService');
@@ -269,6 +268,59 @@ async function processFirstPayment(userId, amount, type = 'deposit') {
             // Continue without failing the whole process
           }
           console.log('✅ Referral bonus credited:', bonusAmount, 'to', referrer._id);
+        } else if (type === 'challenge') {
+          // No existing referral record found; create one as completed for robustness
+          console.log('Referral record not found. Creating completed referral entry.');
+          referrer.referrals = Array.isArray(referrer.referrals) ? referrer.referrals : [];
+          referrer.referrals.push({
+            user: user._id,
+            refState: 'completed',
+            firstPayment: true,
+            firstPlan: true,
+            firstPaymentAmount: amount,
+            firstPaymentDate: new Date(),
+            bonusCredited: true,
+            bonusAmount: bonusAmount,
+            profileComplete: user.myProfilePercent || user.profile?.status?.completionPercentage || 0,
+            joinedAt: user.createdAt || new Date()
+          });
+          referrer.totalReferralsBy = (referrer.totalReferralsBy || 0) + 1;
+          await referrer.save();
+
+          // Create bonus transaction and notification
+          try {
+            const Transaction = require('../models/Transaction');
+            const referralTransaction = new Transaction({
+              userId: referrer._id,
+              type: 'referral_bonus',
+              amount: bonusAmount,
+              balanceAfter: referrer.profile.wallet.referralBalance,
+              description: `Referral bonus: 20% of ₹${amount} from ${user.email}`,
+              status: 'completed',
+              source: 'referral',
+              category: 'bonus',
+              metadata: {
+                referredUserId: userId,
+                referredUserEmail: user.email,
+                referralCode: user.referredByCode,
+                originalAmount: amount,
+                paymentType: type,
+                bonusPercentage: 20
+              },
+              processedAt: new Date(),
+              processedBy: 'system'
+            });
+            await referralTransaction.save();
+          } catch (txnErr) {
+            console.error('❌ Error creating referral transaction (fallback path):', txnErr);
+          }
+          try {
+            const NotificationService = require('./notificationService');
+            await NotificationService.notifyReferralCompleted(referrer._id, user.email, bonusAmount);
+          } catch (nErr) {
+            console.error('❌ Error sending referral notification (fallback path):', nErr);
+          }
+          console.log('✅ Referral record created and bonus credited on fallback path');
         }
       }
     }

@@ -14,6 +14,8 @@ export default function ChallengesPage() {
   const [platform, setPlatform] = useState('MetaTrader 5');
   const [couponCode, setCouponCode] = useState('');
   const [payFrom, setPayFrom] = useState('wallet');
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const walletBalance = profile?.wallet?.walletBalance || 0;
   const referralBalance = profile?.wallet?.referralBalance || 0;
@@ -57,8 +59,13 @@ export default function ChallengesPage() {
       alert('Insufficient balance');
       return;
     }
+    if (!agreeTerms) {
+      alert('Please agree to the terms to continue');
+      return;
+    }
     try {
       setPurchasing(true);
+      setErrorMsg('');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/challenges/purchase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,21 +74,33 @@ export default function ChallengesPage() {
           uid: user.uid,
           challengeId: selected._id,
           accountSize: Number(accountSize),
-          profitTarget: Number(profitTarget),
           platform,
           couponCode: couponCode || undefined,
-          payFrom
+          paymentSource: payFrom
         })
       });
       const data = await res.json();
       if (res.ok && data.success) {
         alert('Challenge purchased successfully');
         setCouponCode('');
+        // Soft reset of purchase UI
+        setAgreeTerms(true);
+        // Refresh wallet balances and notifications via a lightweight refetch
+        try {
+          const notifRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=1`, { credentials: 'include' });
+          await notifRes.json();
+        } catch (_) {}
+        // Force reload of profile balances via full page refresh to keep contexts in sync
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
       } else {
+        setErrorMsg(data.message || 'Failed to purchase');
         alert(data.message || 'Failed to purchase');
       }
     } catch (e) {
       console.error(e);
+      setErrorMsg('Failed to purchase');
       alert('Failed to purchase');
     } finally {
       setPurchasing(false);
@@ -185,16 +204,46 @@ export default function ChallengesPage() {
                         </div>
                       </div>
                     </div>
+                    {errorMsg ? (
+                      <div className="col-12">
+                        <div className="alert alert-danger py-2 mb-0">{errorMsg}</div>
+                      </div>
+                    ) : null}
                   </div>
                   <hr />
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div className="fw-semibold">Total</div>
-                      <div className="fs-4">₹{price.toFixed(2)}</div>
+                  <div className="row g-3 align-items-start">
+                    <div className="col-md-7">
+                      <div className="form-check">
+                        <input className="form-check-input" type="checkbox" id="agree" checked={agreeTerms} onChange={()=>setAgreeTerms(v=>!v)} />
+                        <label className="form-check-label" htmlFor="agree">
+                          I agree with the Terms of Use and confirm my information is correct
+                        </label>
+                      </div>
                     </div>
-                    <button className="btn btn-primary" onClick={purchase} disabled={!canAfford || purchasing}>
-                      {purchasing ? 'Processing...' : 'Buy Challenge'}
-                    </button>
+                    <div className="col-md-5">
+                      <div className="card bg-light border-0">
+                        <div className="card-body py-3">
+                          <div className="d-flex justify-content-between small">
+                            <span>{selected.name} — ${Number(accountSize).toLocaleString()}</span>
+                            <span>₹{price.toFixed(2)}</span>
+                          </div>
+                          <div className="d-flex justify-content-between small opacity-75">
+                            <span>Platform</span>
+                            <span>{platform}</span>
+                          </div>
+                          <hr className="my-2" />
+                          <div className="d-flex justify-content-between fw-semibold">
+                            <span>Total</span>
+                            <span>₹{price.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 d-flex justify-content-end">
+                      <button className="btn btn-primary" onClick={purchase} disabled={!canAfford || purchasing || !agreeTerms}>
+                        {purchasing ? 'Processing...' : 'Continue to Payment'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

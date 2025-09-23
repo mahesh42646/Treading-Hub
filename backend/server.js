@@ -409,7 +409,7 @@ app.get('/api/challenges/configs', async (req, res) => {
 
 app.post('/api/challenges/purchase', async (req, res) => {
   try {
-    const { uid, challengeId, accountSize, platform, paymentSource } = req.body;
+    const { uid, challengeId, accountSize, platform, paymentSource, couponCode } = req.body;
     
     if (!uid || !challengeId || !accountSize || !platform || !paymentSource) {
       return res.status(400).json({
@@ -435,12 +435,28 @@ app.post('/api/challenges/purchase', async (req, res) => {
       });
     }
 
-    const price = challenge.pricesByAccountSize.get(accountSize.toString());
+    let price = challenge.pricesByAccountSize.get(accountSize.toString());
     if (!price) {
       return res.status(400).json({
         success: false,
         message: 'Invalid account size for this challenge'
       });
+    }
+
+    // Apply coupon if provided
+    let discountApplied = null;
+    if (couponCode && Array.isArray(challenge.coupons) && challenge.coupons.length) {
+      const now = new Date();
+      const coupon = challenge.coupons.find(c => c.isActive !== false && c.code && c.code.toLowerCase() === couponCode.toLowerCase() && (!c.expiresAt || new Date(c.expiresAt) > now));
+      if (coupon) {
+        const percentOff = Math.max(0, Math.min(100, coupon.discountPercent || 0));
+        const flatOff = Math.max(0, coupon.discountFlat || 0);
+        const pctAmount = (percentOff / 100) * price;
+        const bestDiscount = Math.max(pctAmount, flatOff);
+        const newPrice = Math.max(0, price - bestDiscount);
+        discountApplied = { code: coupon.code, percentOff, flatOff, amount: price - newPrice };
+        price = newPrice;
+      }
     }
 
     // Check balance
@@ -491,7 +507,7 @@ app.post('/api/challenges/purchase', async (req, res) => {
       balanceAfter: paymentSource === 'wallet' ? user.walletBalance : user.referralBalance,
       source: 'challenge',
       category: 'purchase',
-      description: `Purchased ${challenge.name} - ${accountSize} account`,
+      description: `Purchased ${challenge.name} - ${accountSize} account${discountApplied ? ` (coupon ${discountApplied.code} -${discountApplied.amount})` : ''}`,
       status: 'completed',
       processedBy: 'user'
     });

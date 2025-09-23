@@ -18,11 +18,12 @@ const AdminChallengesPage = () => {
     description: '',
     type: 'One Step',
     model: 'Standard',
-    profitTargets: [8],
+    profitTargets: [10],
     accountSizes: [5000, 10000, 25000],
     pricesByAccountSize: {},
     platforms: ['MetaTrader 5'],
     couponCode: '',
+    coupons: [],
     isActive: true,
     priority: 1
   });
@@ -127,11 +128,12 @@ const AdminChallengesPage = () => {
       description: challenge.description || '',
       type: challenge.type || 'One Step',
       model: challenge.model || 'Standard',
-      profitTargets: challenge.profitTargets || [8],
+      profitTargets: (challenge.profitTargets && challenge.profitTargets.length) ? challenge.profitTargets : [10],
       accountSizes: challenge.accountSizes || [5000, 10000, 25000],
       pricesByAccountSize: challenge.pricesByAccountSize || {},
       platforms: challenge.platforms || ['MetaTrader 5'],
       couponCode: challenge.couponCode || '',
+      coupons: Array.isArray(challenge.coupons) ? challenge.coupons : [],
       isActive: false,
       priority: challenge.priority || 1
     };
@@ -164,11 +166,12 @@ const AdminChallengesPage = () => {
       description: '',
       type: 'One Step',
       model: 'Standard',
-      profitTargets: [8],
+      profitTargets: [10],
       accountSizes: [5000, 10000, 25000],
       pricesByAccountSize: {},
       platforms: ['MetaTrader 5'],
       couponCode: '',
+      coupons: [],
       isActive: true,
       priority: 1
     });
@@ -181,11 +184,12 @@ const AdminChallengesPage = () => {
       description: challenge.description || '',
       type: challenge.type || 'One Step',
       model: challenge.model || 'Standard',
-      profitTargets: challenge.profitTargets || [8],
+      profitTargets: (challenge.profitTargets && challenge.profitTargets.length) ? challenge.profitTargets : [10],
       accountSizes: challenge.accountSizes || [5000, 10000, 25000],
       pricesByAccountSize: challenge.pricesByAccountSize || {},
       platforms: challenge.platforms || ['MetaTrader 5'],
       couponCode: challenge.couponCode || '',
+      coupons: Array.isArray(challenge.coupons) ? challenge.coupons : [],
       isActive: challenge.isActive !== undefined ? challenge.isActive : true,
       priority: challenge.priority || 1
     });

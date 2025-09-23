@@ -1,542 +1,152 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../../services/api';
 
-export default function DashboardTradingAccount() {
-  const { profile, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [plans, setPlans] = useState([]);
-  const [walletData, setWalletData] = useState({
-    walletBalance: 0,
-    referralBalance: 0
-  });
-  const [currentPlan, setCurrentPlan] = useState(null);
-  const [tradingAccount, setTradingAccount] = useState(null);
+export default function TradingAccountsPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState({
-    walletAmount: 0,
-    referralAmount: 0
-  });
-  const [purchasing, setPurchasing] = useState(false);
-
-  // Check if profile is complete (new unified status)
-  const isProfileComplete = () => {
-    if (!profile) return false;
-    const kycStatus = profile.kyc?.status;
-    const percent = profile.status?.completionPercentage || 0;
-    return percent >= 100 || kycStatus === 'approved';
-  };
+  const [entries, setEntries] = useState([]);
+  const [view, setView] = useState(null); // challenge entry to view
 
   useEffect(() => {
-    if (user) {
-      fetchData();
-    }
+    const load = async () => {
+      if (!user?.uid) return;
+      try {
+        setLoading(true);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${user.uid}/challenges`);
+        const data = await res.json();
+        const now = Date.now();
+        const list = (data.challenges || [])
+          .filter(ch => ch.status === 'active' && ch.tradingAccountId && (!ch.endedAt || new Date(ch.endedAt).getTime() > now))
+          .sort((a,b) => new Date(b.startedAt || b.createdAt || 0) - new Date(a.startedAt || a.createdAt || 0));
+        setEntries(list);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [user]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch wallet data
-      const walletResponse = await api.get(`/wallet/balance/${user.uid}`);
-      setWalletData({
-        walletBalance: walletResponse.walletBalance || 0,
-        referralBalance: walletResponse.referralBalance || 0
-      });
-
-      // Fetch current plan from user.plans
-      const subResponse = await api.get(`/subscription/current/${user.uid}`);
-      if (subResponse.subscription) {
-        setCurrentPlan(subResponse.subscription);
-        
-        // If has plan, fetch trading account
-        const tradingResponse = await api.get(`/trading-account/user/${user.uid}`);
-        if (tradingResponse.tradingAccount) {
-          setTradingAccount(tradingResponse.tradingAccount);
-        }
-      } else {
-        // Fetch available plans
-        const plansResponse = await api.get('/plans/active');
-        setPlans(plansResponse.plans || []);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePlanSelect = (plan) => {
-    setSelectedPlan(plan);
-    setPaymentMethod({
-      walletAmount: Math.min(plan.price, walletData.walletBalance),
-      referralAmount: Math.max(0, plan.price - Math.min(plan.price, walletData.walletBalance))
-    });
-    setShowPlanModal(true);
-  };
-
-  const handlePurchasePlan = async () => {
-    if (purchasing) return; // Prevent multiple submissions
-    
-    try {
-      setPurchasing(true);
-      const totalPayment = paymentMethod.walletAmount + paymentMethod.referralAmount;
-      
-      if (totalPayment < selectedPlan.price) {
-        alert('Insufficient balance. Please add money to your wallet.');
-        setPurchasing(false);
-        return;
-      }
-
-      console.log('Purchasing plan:', {
-        planId: selectedPlan._id,
-        paymentMethod: paymentMethod,
-        uid: user.uid,
-        totalPayment,
-        planPrice: selectedPlan.price
-      });
-
-      const response = await api.post('/subscription/purchase', {
-        planId: selectedPlan._id,
-        paymentMethod: paymentMethod,
-        uid: user.uid
-      });
-
-      console.log('Purchase response:', response);
-
-      if (response && response.success) {
-        alert(`Plan purchased successfully! You now have access to the ${response.plan?.name || selectedPlan.name} plan.`);
-        setShowPlanModal(false);
-        setSelectedPlan(null);
-        fetchData(); // Refresh data
-      } else {
-        console.error('Purchase failed:', response);
-        alert(response?.message || 'Failed to purchase plan. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error purchasing plan:', error);
-      alert(`Failed to purchase plan: ${error.message}`);
-    } finally {
-      setPurchasing(false);
-    }
+  const copy = async (text) => {
+    try { await navigator.clipboard.writeText(text); alert('Copied'); } catch (_) {}
   };
 
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+        <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
       </div>
     );
   }
 
   return (
     <div className="container-fluid py-4">
-      {/* Header */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="fw-bold mb-1">Trading Account</h2>
-              <p className="text-muted mb-0">
-                {!isProfileComplete() 
-                  ? "Complete your profile to access trading plans" 
-                  : currentPlan 
-                    ? "Manage your trading account and monitor performance"
-                    : "Choose a plan to get started with trading"
-                }
-              </p>
-            </div>
-            {currentPlan && tradingAccount && (
-              <div className="d-flex gap-2">
-                <button className="btn btn-success">
-                  <i className="bi bi-check-circle me-2"></i>
-                  Active Plan
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3 className="fw-bold mb-0">My Trading Accounts</h3>
+        <a href="/dashboard/challenges" className="btn btn-primary">Get New Challenge</a>
       </div>
 
-      {/* Profile Incomplete Warning */}
-      {!isProfileComplete() && (
-        <div className="row">
-          <div className="col-12">
-            <div className="alert alert-warning">
-              <div className="row align-items-center">
-                <div className="col-md-8">
-                  <h5 className="alert-heading">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    Complete Your Profile
-                  </h5>
-                  <p className="mb-0">
-                    You need to complete your profile and get KYC approved before you can purchase trading plans.
-                  </p>
-                  <small className="text-muted">
-                    Make sure to fill all personal information and upload required KYC documents.
-                  </small>
-                </div>
-                <div className="col-md-4 text-end">
-                  <a href="/dashboard/profile" className="btn btn-warning">
-                    <i className="bi bi-person-check me-2"></i>
-                    Complete Profile
-                  </a>
-                </div>
-              </div>
-            </div>
+      {entries.length === 0 ? (
+        <div className="card border-0 shadow-sm">
+          <div className="card-body text-center py-5">
+            <p className="mb-2">No trading accounts assigned yet.</p>
+            <a href="/dashboard/challenges" className="btn btn-primary">Get New Challenge</a>
           </div>
         </div>
-      )}
-
-      {/* No Plan - Show Plans */}
-      {isProfileComplete() && !currentPlan && (
-        <div className="row">
-          <div className="col-12">
-            <div className="card border-0 shadow-sm mb-4">
-              <div className="card-body">
-                <h5 className="card-title mb-3">
-                  <i className="bi bi-star me-2"></i>
-                  Choose Your Trading Plan
-                </h5>
-                <p className="text-muted">
-                  Select a plan that suits your trading needs. All plans include access to professional trading accounts.
-                </p>
-                
-                {/* Wallet Balance Display */}
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <div className="card border-0 bg-primary bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-primary">₹{walletData.walletBalance.toFixed(2)}</h5>
-                        <small className="text-muted">Wallet Balance</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="card border-0 bg-warning bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-warning">₹{walletData.referralBalance.toFixed(2)}</h5>
-                        <small className="text-muted">Referral Balance</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Plans Grid */}
-                <div className="row">
-                  {plans.map((plan) => (
-                    <div key={plan._id} className="col-lg-4 col-md-6 mb-4">
-                      <div className="card border-0 shadow-sm h-100">
-                        <div className="card-body">
-                          <div className="text-center mb-3">
-                            <h5 className="card-title">{plan.name}</h5>
-                            <h3 className="text-primary">₹{plan.price}</h3>
-                            <small className="text-muted">{plan.duration} days</small>
-                          </div>
-                          
-                          <p className="text-muted small">{plan.description}</p>
-                          
-                          {plan.features && plan.features.length > 0 && (
-                            <ul className="list-unstyled small mb-3">
-                              {plan.features.map((feature, idx) => (
-                                <li key={idx} className="mb-1">
-                                  <i className="bi bi-check-circle text-success me-2"></i>
-                                  {feature}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          
-                          <div className="d-grid">
-                            <button 
-                              className="btn btn-primary"
-                              onClick={() => handlePlanSelect(plan)}
-                              disabled={walletData.walletBalance + walletData.referralBalance < plan.price}
-                            >
-                              {walletData.walletBalance + walletData.referralBalance >= plan.price 
-                                ? 'Get Plan' 
-                                : 'Insufficient Balance'
-                              }
-                            </button>
-                          </div>
-                          
-                          {walletData.walletBalance + walletData.referralBalance < plan.price && (
-                            <div className="text-center mt-2">
-                              <a href="/dashboard/wallet" className="btn btn-sm btn-outline-primary">
-                                <i className="bi bi-plus-circle me-1"></i>
-                                Add Money
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+      ) : (
+        <div className="card border-0 shadow-sm">
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>Challenge</th>
+                    <th>Account</th>
+                    <th>Broker</th>
+                    <th>Platform</th>
+                    <th>Started</th>
+                    <th>Expiry</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((ch, idx) => (
+                    <tr key={ch._id || idx}>
+                      <td>{ch.name} — ${'{'}Number(ch.accountSize).toLocaleString(){'}'}</td>
+                      <td>{ch.tradingAccount?.accountName || '-'}</td>
+                      <td>{ch.tradingAccount?.brokerName || '-'}</td>
+                      <td>{ch.tradingAccount?.platform || '-'}</td>
+                      <td>{ch.startedAt ? new Date(ch.startedAt).toLocaleDateString() : '-'}</td>
+                      <td>{ch.endedAt ? new Date(ch.endedAt).toLocaleDateString() : '-'}</td>
+                      <td className="text-end">
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => setView(ch)}>View</button>
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* Has Plan - Show Trading Account */}
-      {currentPlan && (
-        <div className="row">
-          <div className="col-12">
-            {/* Subscription Status */}
-            <div className="card border-0 shadow-sm mb-4">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-md-8">
-                    <h5 className="mb-1">
-                      <i className="bi bi-star-fill text-warning me-2"></i>
-                      {currentPlan.name} Plan
-                    </h5>
-                    <p className="text-muted mb-1">
-                      Active until {new Date(currentPlan.endDate).toLocaleDateString()}
-                    </p>
-                    <small className="text-success">
-                      <i className="bi bi-check-circle me-1"></i>
-                      Plan Active
-                    </small>
-                  </div>
-                  <div className="col-md-4 text-end">
-                    <span className={`badge bg-${currentPlan.status === 'active' ? 'success' : 'danger'} fs-6`}>
-                      {currentPlan.status.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Trading Account Details */}
-            {tradingAccount ? (
-              <div className="card border-0 shadow-sm">
-                <div className="card-body">
-                  <h5 className="card-title mb-4">
-                    <i className="bi bi-graph-up me-2"></i>
-                    Your Trading Account
-                  </h5>
-                  
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="card border-0 bg-light">
-                        <div className="card-body">
-                          <h6 className="card-title">Account Details</h6>
-                          <table className="table table-borderless table-sm">
-                            <tbody>
-                              <tr>
-                                <td><strong>Account Name:</strong></td>
-                                <td>{tradingAccount.accountName}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Broker:</strong></td>
-                                <td>{tradingAccount.brokerName}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Platform:</strong></td>
-                                <td>{tradingAccount.platform}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Account Type:</strong></td>
-                                <td>
-                                  <span className={`badge bg-${tradingAccount.accountType === 'Demo' ? 'info' : 'success'}`}>
-                                    {tradingAccount.accountType}
-                                  </span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td><strong>Balance:</strong></td>
-                                <td>{tradingAccount.currency} {tradingAccount.balance.toLocaleString()}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Leverage:</strong></td>
-                                <td>{tradingAccount.leverage}</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <div className="card border-0 bg-light">
-                        <div className="card-body">
-                          <h6 className="card-title">Login Credentials</h6>
-                          <table className="table table-borderless table-sm">
-                            <tbody>
-                              <tr>
-                                <td><strong>Server ID:</strong></td>
-                                <td>{tradingAccount.serverId}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Login ID:</strong></td>
-                                <td>{tradingAccount.loginId}</td>
-                              </tr>
-                              <tr>
-                                <td><strong>Password:</strong></td>
-                                <td>
-                                  <code className="user-select-all">{tradingAccount.password}</code>
-                                </td>
-                              </tr>
-                              {tradingAccount.serverAddress && (
-                                <tr>
-                                  <td><strong>Server:</strong></td>
-                                  <td>{tradingAccount.serverAddress}</td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                          
-                          <div className="alert alert-info mt-3">
-                            <small>
-                              <i className="bi bi-info-circle me-1"></i>
-                              Use these credentials to log into {tradingAccount.platform} or your preferred trading platform.
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {tradingAccount.notes && (
-                    <div className="mt-3">
-                      <div className="alert alert-warning">
-                        <strong>Important Notes:</strong><br/>
-                        {tradingAccount.notes}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="card border-0 shadow-sm">
-                <div className="card-body text-center py-5">
-                  <i className="bi bi-clock-history fs-1 text-muted mb-3"></i>
-                  <h5>Trading Account Being Prepared</h5>
-                  <p className="text-muted">
-                    Your trading account is being set up by our admin team. You will receive the account details shortly.
-                  </p>
-                  <small className="text-muted">
-                    This usually takes 24-48 hours after plan activation.
-                  </small>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Plan Purchase Modal */}
-      {showPlanModal && selectedPlan && (
+      {view && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Purchase {selectedPlan.name} Plan</h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => setShowPlanModal(false)}
-                ></button>
+                <h5 className="modal-title">Trading Account for {view.name}</h5>
+                <button type="button" className="btn-close" onClick={() => setView(null)}></button>
               </div>
               <div className="modal-body">
-                <div className="row mb-4">
+                <div className="row g-3">
                   <div className="col-md-6">
-                    <div className="card border-0 bg-light">
-                      <div className="card-body">
-                        <h6 className="card-title">Plan Details</h6>
-                        <p><strong>Name:</strong> {selectedPlan.name}</p>
-                        <p><strong>Price:</strong> ₹{selectedPlan.price}</p>
-                        <p><strong>Duration:</strong> {selectedPlan.duration} days</p>
-                        <p><strong>Description:</strong> {selectedPlan.description}</p>
+                    <div className="list-group small">
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Account Name</span>
+                        <span className="fw-semibold">{view.tradingAccount?.accountName}</span>
+                      </div>
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Broker</span>
+                        <span className="fw-semibold">{view.tradingAccount?.brokerName}</span>
+                      </div>
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Platform</span>
+                        <span className="fw-semibold">{view.tradingAccount?.platform}</span>
+                      </div>
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Server ID</span>
+                        <span className="fw-semibold">{view.tradingAccount?.serverId}</span>
+                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.serverId || '')}>Copy</button>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-6">
-                    <div className="card border-0 bg-light">
-                      <div className="card-body">
-                        <h6 className="card-title">Payment Method</h6>
-                        
-                        <div className="mb-3">
-                          <label className="form-label">From Wallet Balance</label>
-                          <div className="input-group">
-                            <span className="input-group-text">₹</span>
-                            <input
-                              type="number"
-                              className="form-control"
-                              value={paymentMethod.walletAmount}
-                              onChange={(e) => {
-                                const walletAmt = Math.min(parseFloat(e.target.value) || 0, walletData.walletBalance, selectedPlan.price);
-                                setPaymentMethod({
-                                  walletAmount: walletAmt,
-                                  referralAmount: Math.max(0, selectedPlan.price - walletAmt)
-                                });
-                              }}
-                              max={Math.min(walletData.walletBalance, selectedPlan.price)}
-                            />
-                          </div>
-                          <small className="text-muted">Available: ₹{walletData.walletBalance}</small>
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="form-label">From Referral Balance</label>
-                          <div className="input-group">
-                            <span className="input-group-text">₹</span>
-                            <input
-                              type="number"
-                              className="form-control"
-                              value={paymentMethod.referralAmount}
-                              onChange={(e) => {
-                                const referralAmt = Math.min(parseFloat(e.target.value) || 0, walletData.referralBalance, selectedPlan.price);
-                                setPaymentMethod({
-                                  referralAmount: referralAmt,
-                                  walletAmount: Math.max(0, selectedPlan.price - referralAmt)
-                                });
-                              }}
-                              max={Math.min(walletData.referralBalance, selectedPlan.price)}
-                            />
-                          </div>
-                          <small className="text-muted">Available: ₹{walletData.referralBalance}</small>
-                        </div>
-
-                        <div className="alert alert-info">
-                          <strong>Total Payment:</strong> ₹{(paymentMethod.walletAmount + paymentMethod.referralAmount).toFixed(2)} / ₹{selectedPlan.price}
-                        </div>
+                    <div className="list-group small">
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Login ID</span>
+                        <span className="fw-semibold">{view.tradingAccount?.loginId}</span>
+                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.loginId || '')}>Copy</button>
                       </div>
+                      <div className="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Password</span>
+                        <span className="fw-semibold">••••••••</span>
+                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.password || '')}>Copy</button>
+                      </div>
+                      {view.tradingAccount?.serverAddress && (
+                        <div className="list-group-item d-flex justify-content-between align-items-center">
+                          <span>Server</span>
+                          <span className="fw-semibold">{view.tradingAccount?.serverAddress}</span>
+                          <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.serverAddress || '')}>Copy</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowPlanModal(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-primary"
-                  onClick={handlePurchasePlan}
-                  disabled={paymentMethod.walletAmount + paymentMethod.referralAmount < selectedPlan.price || purchasing}
-                >
-                  {purchasing ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Purchasing...
-                    </>
-                  ) : (
-                    'Purchase Plan'
-                  )}
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setView(null)}>Close</button>
               </div>
             </div>
           </div>

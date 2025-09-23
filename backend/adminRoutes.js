@@ -2471,6 +2471,7 @@ router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', v
       brokerName: account.brokerName,
       serverId: account.serverId,
       loginId: account.loginId,
+      password: account.password,
       serverAddress: account.serverAddress,
       platform: account.platform,
       leverage: account.leverage,

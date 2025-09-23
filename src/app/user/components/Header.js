@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUserDisplayInfo, getUserAvatar } from '../../utils/userDisplay';
+import Image from 'next/image';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,16 +25,18 @@ export default function Header() {
     <header className="navbar navbar-expand-lg fixed-top" style={{
       background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
       backdropFilter: 'blur(20px)',
-      padding: '1rem 0',
+      padding: '0.1rem 0',
       zIndex: 1000,
       boxShadow: 'inset 0px 1px 20px 1px rgba(0, 0, 0, 0.22)'
     }}>
       <div className="container">
         {/* Logo */}
         <Link href="/" className="navbar-brand d-flex align-items-center" style={{ color: '#ffffff', textDecoration: 'none' }}>
-          <span className="fw-bold fs-3" style={{ color: '#ffffff' }}>
+          {/* <span className="fw-bold fs-3" style={{ color: '#ffffff' }}>
           <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span> <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span> 
-          </span>
+          </span> */}
+
+          <Image className="border-0" src="/logo.png" alt="Funding Flow" width={100} height={100} style={{ width: 'auto', height: '80px' }} />
         </Link>
 
         {/* Mobile Toggle */}

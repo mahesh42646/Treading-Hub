@@ -2438,6 +2438,66 @@ router.post('/challenges/assign', async (req, res) => {
   }
 });
 
+// Assign a trading account to a specific user's challenge entry
+router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid, challengeEntryId } = req.params;
+    const { accountId } = req.body;
+    const { User } = require('./schema');
+    const TradingAccount = require('./models/TradingAccount');
+
+    if (!accountId) return res.status(400).json({ success: false, message: 'accountId is required' });
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const entry = user.challenges.id(challengeEntryId);
+    if (!entry) return res.status(404).json({ success: false, message: 'Challenge entry not found' });
+
+    // Load account
+    const account = await TradingAccount.findById(accountId);
+    if (!account) return res.status(404).json({ success: false, message: 'Trading account not found' });
+    if (account.isAssigned) return res.status(400).json({ success: false, message: 'Trading account already assigned' });
+
+    // Assign to user in TradingAccount and mark assigned
+    await account.assignToUser(user._id, user.email, null);
+
+    // Attach snapshot to user challenge entry
+    entry.tradingAccountId = account._id;
+    entry.tradingAssignedAt = new Date();
+    entry.tradingAccount = {
+      provider: account.accountType || 'Demo',
+      accountName: account.accountName,
+      brokerName: account.brokerName,
+      serverId: account.serverId,
+      loginId: account.loginId,
+      serverAddress: account.serverAddress,
+      platform: account.platform,
+      leverage: account.leverage,
+      currency: account.currency
+    };
+
+    await user.save();
+
+    // Notify user
+    try {
+      const NotificationService = require('./utils/notificationService');
+      await NotificationService.notifyTradingAccountAssigned(user._id, {
+        challengeName: entry.name,
+        accountName: account.accountName,
+        brokerName: account.brokerName,
+        loginId: account.loginId,
+        platform: account.platform
+      });
+    } catch (_) {}
+
+    res.json({ success: true, message: 'Trading account assigned to challenge', challenge: entry });
+  } catch (error) {
+    console.error('Assign trading account to challenge error:', error);
+    res.status(500).json({ success: false, message: 'Failed to assign trading account', error: error.message });
+  }
+});
+
 // Update user challenge status
 router.put('/challenges/:userId/:challengeEntryId/status', async (req, res) => {
   try {

@@ -119,7 +119,21 @@ const userSchema = new mongoose.Schema({
     assignedBy: { type: String, enum: ['user', 'admin'], default: 'user' },
     startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date, default: null },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    // Trading account assignment (optional)
+    tradingAccountId: { type: mongoose.Schema.Types.ObjectId, ref: 'TradingAccount', default: null },
+    tradingAccount: {
+      provider: { type: String, default: null },
+      accountName: { type: String, default: null },
+      brokerName: { type: String, default: null },
+      serverId: { type: String, default: null },
+      loginId: { type: String, default: null },
+      serverAddress: { type: String, default: null },
+      platform: { type: String, default: null },
+      leverage: { type: String, default: null },
+      currency: { type: String, default: null }
+    },
+    tradingAssignedAt: { type: Date, default: null }
   }],
 
   // Trading accounts assigned to the user

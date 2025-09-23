@@ -435,7 +435,14 @@ app.post('/api/challenges/purchase', async (req, res) => {
       });
     }
 
-    let price = challenge.pricesByAccountSize.get(accountSize.toString());
+    // Resolve price from Map or plain object
+    let price = undefined;
+    if (challenge.pricesByAccountSize && typeof challenge.pricesByAccountSize.get === 'function') {
+      price = challenge.pricesByAccountSize.get(accountSize.toString());
+    }
+    if (!price && challenge.pricesByAccountSize && typeof challenge.pricesByAccountSize === 'object') {
+      price = challenge.pricesByAccountSize[accountSize.toString()];
+    }
     if (!price) {
       return res.status(400).json({
         success: false,
@@ -528,7 +535,16 @@ app.post('/api/challenges/purchase', async (req, res) => {
       category: 'purchase',
       description: `Purchased ${challenge.name} - ${accountSize} account${discountApplied ? ` (coupon ${discountApplied.code} -${discountApplied.amount})` : ''}`,
       status: 'completed',
-      processedBy: 'user'
+      processedBy: 'user',
+      processedAt: new Date(),
+      metadata: {
+        challengeId: challenge._id,
+        challengeName: challenge.name,
+        accountSize: Number(accountSize),
+        platform,
+        paymentSource,
+        coupon: discountApplied || null
+      }
     });
     await transaction.save();
 
@@ -560,11 +576,14 @@ app.post('/api/challenges/purchase', async (req, res) => {
       challenge: challengeEntry
     });
   } catch (error) {
-    console.error('Error purchasing challenge:', error);
+    console.error('Error purchasing challenge:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
-      message: 'Failed to purchase challenge',
-      error: error.message
+      message: error.message || 'Failed to purchase challenge'
     });
   }
 });

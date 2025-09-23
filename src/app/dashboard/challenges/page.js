@@ -16,6 +16,8 @@ export default function ChallengesPage() {
   const [payFrom, setPayFrom] = useState('wallet');
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [myChallenges, setMyChallenges] = useState([]);
+  const [showBuy, setShowBuy] = useState(false);
 
   const walletBalance = profile?.wallet?.walletBalance || 0;
   const referralBalance = profile?.wallet?.referralBalance || 0;
@@ -24,11 +26,24 @@ export default function ChallengesPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/challenges/configs`, { credentials: 'include' });
-        const data = await res.json();
-        setConfigs(data.challenges || []);
-        if ((data.challenges || []).length > 0) {
-          const first = data.challenges[0];
+        const [cfgRes, myRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/challenges/configs`, { credentials: 'include' }),
+          user?.uid ? fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${user.uid}/challenges`) : Promise.resolve({ ok: false, json: async () => ({}) })
+        ]);
+        const cfgData = await cfgRes.json();
+        setConfigs(cfgData.challenges || []);
+        if (myRes.ok) {
+          const myData = await myRes.json();
+          const list = Array.isArray(myData.challenges) ? myData.challenges : [];
+          // Sort: recent first by startedAt/createdAt
+          list.sort((a,b) => new Date(b.startedAt || b.createdAt || 0) - new Date(a.startedAt || a.createdAt || 0));
+          setMyChallenges(list);
+          setShowBuy(list.length === 0);
+        } else {
+          setShowBuy(true);
+        }
+        if ((cfgData.challenges || []).length > 0) {
+          const first = cfgData.challenges[0];
           setSelected(first);
           const firstSize = [...(first.pricesByAccountSize ? Object.keys(first.pricesByAccountSize) : ['10000'])][0];
           setAccountSize(firstSize);
@@ -40,7 +55,7 @@ export default function ChallengesPage() {
       }
     };
     load();
-  }, []);
+  }, [user]);
 
   const price = useMemo(() => {
     if (!selected) return 0;
@@ -85,15 +100,15 @@ export default function ChallengesPage() {
         setCouponCode('');
         // Soft reset of purchase UI
         setAgreeTerms(true);
-        // Refresh wallet balances and notifications via a lightweight refetch
+        // Refresh challenges list
         try {
-          const notifRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=1`, { credentials: 'include' });
-          await notifRes.json();
+          const myRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${user.uid}/challenges`);
+          const myData = await myRes.json();
+          const list = Array.isArray(myData.challenges) ? myData.challenges : [];
+          list.sort((a,b) => new Date(b.startedAt || b.createdAt || 0) - new Date(a.startedAt || a.createdAt || 0));
+          setMyChallenges(list);
+          setShowBuy(false);
         } catch (_) {}
-        // Force reload of profile balances via full page refresh to keep contexts in sync
-        if (typeof window !== 'undefined') {
-          window.location.reload();
-        }
       } else {
         setErrorMsg(data.message || 'Failed to purchase');
         alert(data.message || 'Failed to purchase');
@@ -124,39 +139,42 @@ export default function ChallengesPage() {
         <div className="alert alert-info">No challenges available.</div>
       ) : (
         <div className="row g-3">
-          <div className="col-lg-4">
-            <div className="card border-0 shadow-sm h-100">
-              <div className="card-header bg-white border-0">
-                <h6 className="mb-0">Select Challenge</h6>
-              </div>
-              <div className="list-group list-group-flush">
-                {configs.map(cfg => (
-                  <button
-                    key={cfg._id}
-                    className={`list-group-item list-group-item-action ${selected?._id === cfg._id ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelected(cfg);
-                      const firstSize = [...(cfg.pricesByAccountSize ? Object.keys(cfg.pricesByAccountSize) : ['10000'])][0];
-                      setAccountSize(firstSize);
-                      setProfitTarget(cfg.profitTargets?.[0] || 8);
-                      setPlatform(cfg.platforms?.[0] || 'MetaTrader 5');
-                    }}
-                  >
-                    <div className="d-flex justify-content-between">
-                      <div>
-                        <div className="fw-semibold">{cfg.name}</div>
-                        <small className="opacity-75">{cfg.type} · {cfg.model}</small>
+          {(showBuy || myChallenges.length === 0) && (
+            <div className="col-lg-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-header bg-white border-0">
+                  <h6 className="mb-0">Select Challenge</h6>
+                </div>
+                <div className="list-group list-group-flush">
+                  {configs.map(cfg => (
+                    <button
+                      key={cfg._id}
+                      className={`list-group-item list-group-item-action ${selected?._id === cfg._id ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelected(cfg);
+                        const firstSize = [...(cfg.pricesByAccountSize ? Object.keys(cfg.pricesByAccountSize) : ['10000'])][0];
+                        setAccountSize(firstSize);
+                        setProfitTarget(cfg.profitTargets?.[0] || 8);
+                        setPlatform(cfg.platforms?.[0] || 'MetaTrader 5');
+                        setShowBuy(true);
+                      }}
+                    >
+                      <div className="d-flex justify-content-between">
+                        <div>
+                          <div className="fw-semibold">{cfg.name}</div>
+                          <small className="opacity-75">{cfg.type} · {cfg.model}</small>
+                        </div>
+                        <i className="bi bi-trophy"></i>
                       </div>
-                      <i className="bi bi-trophy"></i>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="col-lg-8">
-            {selected && (
+            {showBuy || myChallenges.length === 0 ? selected && (
               <div className="card border-0 shadow-sm">
                 <div className="card-header bg-white border-0">
                   <h5 className="mb-0">{selected.name}</h5>
@@ -245,6 +263,51 @@ export default function ChallengesPage() {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="card border-0 shadow-sm">
+                <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">My Challenges</h5>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowBuy(true)}>
+                    New Challenge
+                  </button>
+                </div>
+                <div className="card-body">
+                  {myChallenges.length === 0 ? (
+                    <div className="alert alert-info mb-0">You don’t have any challenges yet.</div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Name</th>
+                            <th>Account</th>
+                            <th>Platform</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Expiry</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {myChallenges.map((ch, idx) => (
+                            <tr key={ch._id || idx}>
+                              <td>{ch.name}</td>
+                              <td>${Number(ch.accountSize).toLocaleString()}</td>
+                              <td>{ch.platform}</td>
+                              <td>₹{Number(ch.price || 0).toFixed(2)}</td>
+                              <td>
+                                <span className={`badge ${ch.status==='active'?'bg-success':'bg-secondary'}`}>{ch.status}</span>
+                              </td>
+                              <td>{ch.startedAt ? new Date(ch.startedAt).toLocaleDateString() : '-'}</td>
+                              <td>{ch.endedAt ? new Date(ch.endedAt).toLocaleDateString() : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -516,7 +516,9 @@ app.post('/api/challenges/purchase', async (req, res) => {
       platform: platform,
       price: price,
       status: 'active',
-      assignedBy: 'user'
+      assignedBy: 'user',
+      startedAt: new Date(),
+      endedAt: challenge.durationDays ? new Date(Date.now() + challenge.durationDays * 24 * 60 * 60 * 1000) : null
     };
 
     user.challenges.push(challengeEntry);

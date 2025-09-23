@@ -25,7 +25,8 @@ const AdminChallengesPage = () => {
     couponCode: '',
     coupons: [],
     isActive: true,
-    priority: 1
+    priority: 1,
+    durationDays: 30
   });
 
   useEffect(() => {
@@ -173,7 +174,8 @@ const AdminChallengesPage = () => {
       couponCode: '',
       coupons: [],
       isActive: true,
-      priority: 1
+      priority: 1,
+      durationDays: 30
     });
   };
 
@@ -191,7 +193,8 @@ const AdminChallengesPage = () => {
       couponCode: challenge.couponCode || '',
       coupons: Array.isArray(challenge.coupons) ? challenge.coupons : [],
       isActive: challenge.isActive !== undefined ? challenge.isActive : true,
-      priority: challenge.priority || 1
+      priority: challenge.priority || 1,
+      durationDays: challenge.durationDays || 30
     });
     setShowEditModal(true);
   };
@@ -504,6 +507,18 @@ const AdminChallengesPage = () => {
                           }}
                         />
                       </div>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label">Duration (days)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="durationDays"
+                        value={formData.durationDays}
+                        onChange={handleInputChange}
+                        min="1"
+                        required
+                      />
                     </div>
                   </div>
 

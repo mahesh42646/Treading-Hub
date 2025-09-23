@@ -88,7 +88,9 @@ router.post('/challenges/purchase', async (req, res) => {
       price: finalPrice,
       couponCode: couponCode || null,
       status: 'active',
-      assignedBy: 'user'
+      assignedBy: 'user',
+      startedAt: new Date(),
+      endedAt: challenge.durationDays ? new Date(Date.now() + (challenge.durationDays * 24 * 60 * 60 * 1000)) : null
     });
 
     await user.save();

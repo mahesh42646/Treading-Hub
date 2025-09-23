@@ -7,6 +7,8 @@ const challengeSchema = new mongoose.Schema({
   type: { type: String, required: true }, // e.g., One Step, Two Step, Zero
   model: { type: String, default: 'FundingPips' },
   profitTargets: [{ type: Number, default: 8 }], // percentages like 8, 10
+  // Duration of challenge validity (in days) from start date
+  durationDays: { type: Number, default: 30 },
   // Price per account size in INR (or site currency)
   pricesByAccountSize: {
     type: Map,

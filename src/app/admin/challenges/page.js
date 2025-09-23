@@ -144,21 +144,25 @@ const AdminChallengesPage = () => {
     setShowCreateModal(true);
   };
 
-  const handleToggleStatus = async (challengeId, currentStatus) => {
+  const handleSaleStatusChange = async (challengeId, newStatus) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${challengeId}/toggle`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${challengeId}/sale-status`, {
         method: 'PUT',
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ saleStatus: newStatus })
       });
       const data = await response.json();
       if (data.success) {
         fetchChallenges();
       } else {
-        alert(data.message || 'Failed to toggle challenge status');
+        alert(data.message || 'Failed to update challenge sale status');
       }
     } catch (error) {
-      console.error('Error toggling challenge status:', error);
-      alert('Failed to toggle challenge status');
+      console.error('Error updating challenge sale status:', error);
+      alert('Failed to update challenge sale status');
     }
   };
 
@@ -342,13 +346,15 @@ const AdminChallengesPage = () => {
                         </td>
                         <td>{challenge.priority}</td>
                         <td>
-                          <button
-                            className={`btn btn-sm ${challenge.isActive ? 'btn-success' : 'btn-secondary'}`}
-                            onClick={() => handleToggleStatus(challenge._id, challenge.isActive)}
+                          <select
+                            className={`form-select form-select-sm ${challenge.saleStatus === 'active' ? 'border-success' : challenge.saleStatus === 'stopped' ? 'border-warning' : 'border-secondary'}`}
+                            value={challenge.saleStatus || 'active'}
+                            onChange={(e) => handleSaleStatusChange(challenge._id, e.target.value)}
                           >
-                            {challenge.isActive ? <FaToggleOn /> : <FaToggleOff />}
-                            {challenge.isActive ? 'Active' : 'Inactive'}
-                          </button>
+                            <option value="active">Active</option>
+                            <option value="stopped">Stopped</option>
+                            <option value="inactive">Inactive</option>
+                          </select>
                         </td>
                         <td>
                           <div className="btn-group" role="group">

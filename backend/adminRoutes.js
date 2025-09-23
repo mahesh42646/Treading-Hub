@@ -2339,6 +2339,35 @@ router.delete('/challenges/:id', async (req, res) => {
   }
 });
 
+// Update challenge sale status
+router.put('/challenges/:id/sale-status', async (req, res) => {
+  try {
+    const Challenge = require('./models/Challenge');
+    const { saleStatus } = req.body;
+    
+    if (!['active', 'stopped', 'inactive'].includes(saleStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid sale status. Must be active, stopped, or inactive'
+      });
+    }
+    
+    const challenge = await Challenge.findById(req.params.id);
+    if (!challenge) {
+      return res.status(404).json({ success: false, message: 'Challenge not found' });
+    }
+    
+    challenge.saleStatus = saleStatus;
+    challenge.updatedAt = new Date();
+    await challenge.save();
+    
+    res.json({ success: true, challenge });
+  } catch (error) {
+    console.error('Error updating challenge sale status:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Toggle challenge status
 router.put('/challenges/:id/toggle', async (req, res) => {
   try {

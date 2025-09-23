@@ -459,26 +459,43 @@ app.post('/api/challenges/purchase', async (req, res) => {
       }
     }
 
-    // Check balance
-    if (paymentSource === 'wallet' && user.walletBalance < price) {
+    // Ensure wallet structure exists
+    if (!user.profile) {
+      user.profile = {};
+    }
+    if (!user.profile.wallet) {
+      user.profile.wallet = {
+        walletBalance: 0,
+        referralBalance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        currency: 'INR'
+      };
+    }
+
+    const currentWalletBalance = Number(user.profile.wallet.walletBalance || 0);
+    const currentReferralBalance = Number(user.profile.wallet.referralBalance || 0);
+
+    // Check balance using profile wallet balances
+    if (paymentSource === 'wallet' && currentWalletBalance < price) {
       return res.status(400).json({
         success: false,
         message: 'Insufficient wallet balance'
       });
     }
 
-    if (paymentSource === 'referral' && user.referralBalance < price) {
+    if (paymentSource === 'referral' && currentReferralBalance < price) {
       return res.status(400).json({
         success: false,
         message: 'Insufficient referral balance'
       });
     }
 
-    // Deduct balance
+    // Deduct balance from appropriate wallet
     if (paymentSource === 'wallet') {
-      user.walletBalance -= price;
+      user.profile.wallet.walletBalance = currentWalletBalance - price;
     } else {
-      user.referralBalance -= price;
+      user.profile.wallet.referralBalance = currentReferralBalance - price;
     }
 
     // Add challenge to user
@@ -504,7 +521,9 @@ app.post('/api/challenges/purchase', async (req, res) => {
       userId: user._id,
       type: 'challenge_purchase',
       amount: price,
-      balanceAfter: paymentSource === 'wallet' ? user.walletBalance : user.referralBalance,
+      balanceAfter: paymentSource === 'wallet' 
+        ? user.profile.wallet.walletBalance 
+        : user.profile.wallet.referralBalance,
       source: 'challenge',
       category: 'purchase',
       description: `Purchased ${challenge.name} - ${accountSize} account${discountApplied ? ` (coupon ${discountApplied.code} -${discountApplied.amount})` : ''}`,

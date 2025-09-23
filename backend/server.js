@@ -399,7 +399,10 @@ app.get('/api/news', async (req, res) => {
 app.get('/api/challenges/configs', async (req, res) => {
   try {
     const Challenge = require('./models/Challenge');
-    const challenges = await Challenge.find({ isActive: true }).sort({ priority: 1 });
+    const challenges = await Challenge.find({ 
+      isActive: true, 
+      saleStatus: 'active' 
+    }).sort({ priority: 1 });
     res.json({ success: true, challenges });
   } catch (error) {
     console.error('Error fetching challenges:', error);

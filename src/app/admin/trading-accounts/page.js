@@ -24,14 +24,28 @@ const AdminTradingAccounts = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [users, setUsers] = useState([]);
   const [userChallenges, setUserChallenges] = useState([]);
   const [selectedUserUid, setSelectedUserUid] = useState('');
   const [selectedChallengeEntryId, setSelectedChallengeEntryId] = useState('');
-  const [editingAccount, setEditingAccount] = useState(null);
   const [formData, setFormData] = useState({
     accountName: 'Two Steps',
+    brokerName: '',
+    serverId: '',
+    loginId: '',
+    password: '',
+    serverAddress: '',
+    platform: 'MT5',
+    accountType: 'Demo',
+    balance: 0,
+    leverage: '1:100',
+    currency: 'USD',
+    notes: ''
+  });
+  const [editFormData, setEditFormData] = useState({
+    accountName: '',
     brokerName: '',
     serverId: '',
     loginId: '',
@@ -190,6 +204,25 @@ const AdminTradingAccounts = () => {
     }
   };
 
+  const handleDeleteAccount = async (accountId) => {
+    if (!confirm('Are you sure you want to delete this trading account? This action cannot be undone.')) return;
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${accountId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        alert('Trading account deleted successfully');
+        fetchAccounts();
+      }
+    } catch (error) {
+      console.error('Error deleting trading account:', error);
+      alert('Failed to delete trading account');
+    }
+  };
+
   const handleEditAccount = (account) => {
     setEditingAccount(account);
     setEditFormData({
@@ -212,62 +245,27 @@ const AdminTradingAccounts = () => {
   const handleUpdateAccount = async (e) => {
     e.preventDefault();
     if (!editingAccount) return;
-
+    
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${editingAccount._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
         body: JSON.stringify(editFormData)
       });
-
+      
       if (response.ok) {
-        alert('Trading account updated successfully');
+        fetchAccounts();
         setShowEditModal(false);
         setEditingAccount(null);
-        fetchAccounts();
+      } else {
+        alert('Failed to update trading account');
       }
     } catch (error) {
       console.error('Error updating trading account:', error);
-      alert('Failed to update trading account');
-    }
-  };
-
-  const handleStatusChange = async (accountId, newStatus) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${accountId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (response.ok) {
-        alert('Account status updated successfully');
-        fetchAccounts();
-      }
-    } catch (error) {
-      console.error('Error updating account status:', error);
-      alert('Failed to update account status');
-    }
-  };
-
-  const handleDeleteAccount = async (accountId) => {
-    if (!confirm('Are you sure you want to delete this trading account? This action cannot be undone.')) return;
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${accountId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        alert('Trading account deleted successfully');
-        fetchAccounts();
-      }
-    } catch (error) {
-      console.error('Error deleting trading account:', error);
-      alert('Failed to delete trading account');
+      alert('Error updating trading account');
     }
   };
 
@@ -385,8 +383,7 @@ const AdminTradingAccounts = () => {
                   <th>Platform</th>
                   <th>Type</th>
                   <th>Balance</th>
-                  <th>Assignment Status</th>
-                  <th>Account Status</th>
+                  <th>Status</th>
                   <th>Assigned To</th>
                   <th>Actions</th>
                 </tr>
@@ -423,22 +420,6 @@ const AdminTradingAccounts = () => {
                     </td>
                     <td>
                       {account.isAssigned ? (
-                        <select 
-                          className={`form-select form-select-sm ${account.accountStatus === 'passed' ? 'border-success' : account.accountStatus === 'failed' ? 'border-danger' : 'border-primary'}`}
-                          value={account.accountStatus || 'assigned'}
-                          onChange={(e) => handleStatusChange(account._id, e.target.value)}
-                        >
-                          <option value="assigned">Assigned</option>
-                          <option value="passed">Passed</option>
-                          <option value="failed">Failed</option>
-                          <option value="unassigned">Unassign</option>
-                        </select>
-                      ) : (
-                        <span className="badge bg-secondary">Unassigned</span>
-                      )}
-                    </td>
-                    <td>
-                      {account.isAssigned ? (
                         <div>
                           <strong>{account.assignedTo?.userEmail || 'Unknown'}</strong><br/>
                           <small className="text-muted">
@@ -454,13 +435,6 @@ const AdminTradingAccounts = () => {
                     </td>
                     <td>
                       <div className="btn-group btn-group-sm">
-                        <button 
-                          className="btn btn-outline-primary"
-                          onClick={() => handleEditAccount(account)}
-                          title="Edit Account"
-                        >
-                          <FaEdit />
-                        </button>
                         {!account.isAssigned ? (
                           <button 
                             className="btn btn-outline-success"
@@ -468,7 +442,6 @@ const AdminTradingAccounts = () => {
                               setSelectedAccount(account);
                               setShowAssignModal(true);
                             }}
-                            title="Assign Account"
                           >
                             <FaUser />
                           </button>
@@ -476,15 +449,20 @@ const AdminTradingAccounts = () => {
                           <button 
                             className="btn btn-outline-warning"
                             onClick={() => handleUnassignAccount(account._id)}
-                            title="Unassign Account"
                           >
                             <FaUserCheck />
                           </button>
                         )}
                         <button 
+                          className="btn btn-outline-primary"
+                          onClick={() => handleEditAccount(account)}
+                          title="Edit Account"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button 
                           className="btn btn-outline-danger"
                           onClick={() => handleDeleteAccount(account._id)}
-                          title="Delete Account"
                         >
                           <FaTrash />
                         </button>
@@ -791,7 +769,10 @@ const AdminTradingAccounts = () => {
                 <button 
                   type="button" 
                   className="btn-close"
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingAccount(null);
+                  }}
                 ></button>
               </div>
               <form onSubmit={handleUpdateAccount}>
@@ -844,7 +825,7 @@ const AdminTradingAccounts = () => {
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Password</label>
                       <input
-                        type="text"
+                        type="password"
                         className="form-control"
                         value={editFormData.password}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
@@ -869,10 +850,10 @@ const AdminTradingAccounts = () => {
                         value={editFormData.platform}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, platform: e.target.value }))}
                       >
-                        <option value="MT4">MT4</option>
-                        <option value="MT5">MT5</option>
-                        <option value="TradingView">TradingView</option>
-                        <option value="Custom">Custom</option>
+                        <option value="MT5">MetaTrader 5</option>
+                        <option value="MT4">MetaTrader 4</option>
+                        <option value="cTrader">cTrader</option>
+                        <option value="MatchTrader">MatchTrader</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
@@ -905,16 +886,21 @@ const AdminTradingAccounts = () => {
                         className="form-control"
                         value={editFormData.leverage}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, leverage: e.target.value }))}
+                        placeholder="1:100"
                       />
                     </div>
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <select
+                        className="form-select"
                         value={editFormData.currency}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, currency: e.target.value }))}
-                      />
+                      >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                      </select>
                     </div>
                   </div>
                   <div className="mb-3">
@@ -928,17 +914,17 @@ const AdminTradingAccounts = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-secondary"
-                    onClick={() => setShowEditModal(false)}
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingAccount(null);
+                    }}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
-                  >
+                  <button type="submit" className="btn btn-primary">
                     Update Account
                   </button>
                 </div>

@@ -2339,6 +2339,27 @@ router.delete('/challenges/:id', async (req, res) => {
   }
 });
 
+// Update trading account
+router.put('/api/admin/trading-accounts/:id', async (req, res) => {
+  try {
+    const TradingAccount = require('./models/TradingAccount');
+    const account = await TradingAccount.findById(req.params.id);
+    if (!account) {
+      return res.status(404).json({ success: false, message: 'Trading account not found' });
+    }
+
+    const updateData = req.body;
+    Object.assign(account, updateData);
+    account.updatedAt = new Date();
+    await account.save();
+
+    res.json({ success: true, account });
+  } catch (error) {
+    console.error('Error updating trading account:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Update challenge sale status
 router.put('/challenges/:id/sale-status', async (req, res) => {
   try {
@@ -2364,66 +2385,6 @@ router.put('/challenges/:id/sale-status', async (req, res) => {
     res.json({ success: true, challenge });
   } catch (error) {
     console.error('Error updating challenge sale status:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Update trading account
-router.put('/trading-accounts/:id', async (req, res) => {
-  try {
-    const TradingAccount = require('./models/TradingAccount');
-    const account = await TradingAccount.findById(req.params.id);
-    if (!account) {
-      return res.status(404).json({ success: false, message: 'Trading account not found' });
-    }
-
-    const updateData = req.body;
-    Object.assign(account, updateData);
-    account.updatedAt = new Date();
-    await account.save();
-
-    res.json({ success: true, account });
-  } catch (error) {
-    console.error('Error updating trading account:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Update trading account status
-router.put('/trading-accounts/:id/status', async (req, res) => {
-  try {
-    const TradingAccount = require('./models/TradingAccount');
-    const { status } = req.body;
-    
-    if (!['assigned', 'passed', 'failed', 'unassigned'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid status. Must be assigned, passed, failed, or unassigned'
-      });
-    }
-    
-    const account = await TradingAccount.findById(req.params.id);
-    if (!account) {
-      return res.status(404).json({ success: false, message: 'Trading account not found' });
-    }
-
-    account.accountStatus = status;
-    if (status === 'unassigned') {
-      account.isAssigned = false;
-      account.assignedTo = {
-        userId: null,
-        userEmail: null,
-        challengeId: null,
-        challengeEntryId: null,
-        assignedAt: null
-      };
-    }
-    account.updatedAt = new Date();
-    await account.save();
-
-    res.json({ success: true, account });
-  } catch (error) {
-    console.error('Error updating trading account status:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -2549,16 +2510,7 @@ router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', v
     if (account.isAssigned) return res.status(400).json({ success: false, message: 'Trading account already assigned' });
 
     // Assign to user in TradingAccount and mark assigned (one account -> one challenge)
-    account.isAssigned = true;
-    account.accountStatus = 'assigned';
-    account.assignedTo = {
-      userId: user._id,
-      userEmail: user.email,
-      challengeId: entry.challengeId,
-      challengeEntryId: challengeEntryId,
-      assignedAt: new Date()
-    };
-    await account.save();
+    await account.assignToUser(user._id, user.email, null);
 
     // Attach snapshot to user challenge entry
     entry.tradingAccountId = account._id;
@@ -2573,8 +2525,7 @@ router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', v
       serverAddress: account.serverAddress,
       platform: account.platform,
       leverage: account.leverage,
-      currency: account.currency,
-      accountStatus: account.accountStatus
+      currency: account.currency
     };
 
     await user.save();
@@ -2599,7 +2550,7 @@ router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', v
 });
 
 // Update user challenge status
-router.put('/challenges/:userId/:challengeEntryId/status', async (req, res) => {
+router.put('/api/admin/challenges/:userId/:challengeEntryId/status', async (req, res) => {
   try {
     const { userId, challengeEntryId } = req.params;
     const { status, adminNote } = req.body;
@@ -2656,7 +2607,6 @@ router.put('/challenges/:userId/:challengeEntryId/status', async (req, res) => {
 router.get('/users/:uid/challenges', async (req, res) => {
   try {
     const { uid } = req.params;
-    const TradingAccount = require('./models/TradingAccount');
     
     const user = await User.findOne({ uid });
     if (!user) {
@@ -2666,20 +2616,9 @@ router.get('/users/:uid/challenges', async (req, res) => {
       });
     }
 
-    // Update account status from database for challenges with trading accounts
-    const challenges = user.challenges || [];
-    for (const challenge of challenges) {
-      if (challenge.tradingAccountId) {
-        const account = await TradingAccount.findById(challenge.tradingAccountId);
-        if (account && challenge.tradingAccount) {
-          challenge.tradingAccount.accountStatus = account.accountStatus;
-        }
-      }
-    }
-
     res.json({
       success: true,
-      challenges: challenges
+      challenges: user.challenges || []
     });
   } catch (error) {
     console.error('Error fetching user challenges:', error);

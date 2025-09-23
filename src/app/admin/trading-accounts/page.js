@@ -25,6 +25,9 @@ const AdminTradingAccounts = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [users, setUsers] = useState([]);
+  const [userChallenges, setUserChallenges] = useState([]);
+  const [selectedUserUid, setSelectedUserUid] = useState('');
+  const [selectedChallengeEntryId, setSelectedChallengeEntryId] = useState('');
   const [formData, setFormData] = useState({
     accountName: '',
     brokerName: '',
@@ -123,26 +126,24 @@ const AdminTradingAccounts = () => {
     }
   };
 
-  const handleAssignAccount = async (uid, extendPlanValidity = false) => {
-    if (!selectedAccount || !uid) return;
+  const handleAssignAccount = async (uid, challengeEntryId) => {
+    if (!selectedAccount || !uid || !challengeEntryId) return;
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/trading-accounts/${selectedAccount._id}/assign`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges/${challengeEntryId}/assign-trading-account`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ 
-          uid,
-          extendPlanValidity 
-        })
+        body: JSON.stringify({ accountId: selectedAccount._id })
       });
 
       if (response.ok) {
         alert('Trading account assigned successfully');
         setShowAssignModal(false);
         setSelectedAccount(null);
+        setSelectedUserUid('');
+        setSelectedChallengeEntryId('');
+        setUserChallenges([]);
         fetchAccounts();
       }
     } catch (error) {
@@ -606,7 +607,21 @@ const AdminTradingAccounts = () => {
                   <label className="form-label">Select User</label>
                   <select 
                     className="form-select"
-                    id="userSelect"
+                    value={selectedUserUid}
+                    onChange={async (e) => {
+                      const uid = e.target.value;
+                      setSelectedUserUid(uid);
+                      setSelectedChallengeEntryId('');
+                      setUserChallenges([]);
+                      if (uid) {
+                        try {
+                          const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, { credentials: 'include' });
+                          const d = await r.json();
+                          const list = Array.isArray(d.challenges) ? d.challenges : [];
+                          setUserChallenges(list);
+                        } catch (_) {}
+                      }
+                    }}
                   >
                     <option value="">Choose a user</option>
                     {users.map(user => (
@@ -616,21 +631,24 @@ const AdminTradingAccounts = () => {
                     ))}
                   </select>
                 </div>
-                <div className="mb-3">
-                  <div className="form-check">
-                    <input 
-                      className="form-check-input" 
-                      type="checkbox" 
-                      id="extendPlanValidity"
-                    />
-                    <label className="form-check-label" htmlFor="extendPlanValidity">
-                      Extend plan validity to 100% from now
-                    </label>
+                {selectedUserUid && (
+                  <div className="mb-3">
+                    <label className="form-label">Select Challenge</label>
+                    <select
+                      className="form-select"
+                      value={selectedChallengeEntryId}
+                      onChange={(e) => setSelectedChallengeEntryId(e.target.value)}
+                    >
+                      <option value="">Choose a challenge</option>
+                      {userChallenges.map(ch => (
+                        <option key={ch._id} value={ch._id}>
+                          {ch.name} — ${'{'}Number(ch.accountSize).toLocaleString(){'}'} — {ch.status}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="text-muted">Only assigns this account to the selected challenge entry.</small>
                   </div>
-                  <small className="text-muted">
-                    This will reset the user&apos;s plan start date to now and extend the validity to full plan duration.
-                  </small>
-                </div>
+                )}
               </div>
               <div className="modal-footer">
                 <button 
@@ -643,13 +661,7 @@ const AdminTradingAccounts = () => {
                 <button 
                   type="button" 
                   className="btn btn-primary"
-                  onClick={() => {
-                    const userSelect = document.getElementById('userSelect');
-                    const extendValidity = document.getElementById('extendPlanValidity').checked;
-                    if (userSelect.value) {
-                      handleAssignAccount(userSelect.value, extendValidity);
-                    }
-                  }}
+                  onClick={() => handleAssignAccount(selectedUserUid, selectedChallengeEntryId)}
                 >
                   Assign Account
                 </button>

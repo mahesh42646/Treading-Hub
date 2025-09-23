@@ -25,6 +25,7 @@ const AdminChallengesPage = () => {
     couponCode: '',
     coupons: [],
     isActive: true,
+    saleStatus: 'active',
     priority: 1,
     durationDays: 30
   });
@@ -174,6 +175,7 @@ const AdminChallengesPage = () => {
       couponCode: '',
       coupons: [],
       isActive: true,
+      saleStatus: 'active',
       priority: 1,
       durationDays: 30
     });
@@ -193,6 +195,7 @@ const AdminChallengesPage = () => {
       couponCode: challenge.couponCode || '',
       coupons: Array.isArray(challenge.coupons) ? challenge.coupons : [],
       isActive: challenge.isActive !== undefined ? challenge.isActive : true,
+      saleStatus: challenge.saleStatus || 'active',
       priority: challenge.priority || 1,
       durationDays: challenge.durationDays || 30
     });
@@ -297,6 +300,7 @@ const AdminChallengesPage = () => {
                       <th>Model</th>
                       <th>Account Sizes</th>
                       <th>Platforms</th>
+                      <th>Sale Status</th>
                       <th>Priority</th>
                       <th>Status</th>
                       <th>Actions</th>
@@ -330,6 +334,11 @@ const AdminChallengesPage = () => {
                               {platform}
                             </span>
                           ))}
+                        </td>
+                        <td>
+                          <span className={`badge ${challenge.saleStatus === 'active' ? 'bg-success' : challenge.saleStatus === 'stopped' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                            {challenge.saleStatus || 'active'}
+                          </span>
                         </td>
                         <td>{challenge.priority}</td>
                         <td>
@@ -648,7 +657,7 @@ const AdminChallengesPage = () => {
                     ))}
                   </div>
 
-                  <div className="form-check">
+                  <div className="form-check mb-3">
                     <input
                       className="form-check-input"
                       type="checkbox"
@@ -657,6 +666,16 @@ const AdminChallengesPage = () => {
                       onChange={handleInputChange}
                     />
                     <label className="form-check-label">Active</label>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-6">
+                      <label className="form-label">Sale Status</label>
+                      <select className="form-select" name="saleStatus" value={formData.saleStatus} onChange={handleInputChange}>
+                        <option value="active">Active (buying allowed)</option>
+                        <option value="stopped">Stopped (no new purchases)</option>
+                        <option value="inactive">Inactive (hidden)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div className="modal-footer">

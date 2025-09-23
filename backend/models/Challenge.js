@@ -24,6 +24,8 @@ const challengeSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true }
   }],
   isActive: { type: Boolean, default: true },
+  // Controls whether new purchases are allowed: 'active' -> allowed, 'inactive' -> hidden/inactive, 'stopped' -> visible but cannot purchase
+  saleStatus: { type: String, enum: ['active', 'inactive', 'stopped'], default: 'active' },
   priority: { type: Number, default: 0 },
 }, { timestamps: true });
 

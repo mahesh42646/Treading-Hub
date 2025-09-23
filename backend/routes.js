@@ -61,6 +61,7 @@ router.post('/challenges/purchase', async (req, res) => {
 
     const challenge = await Challenge.findById(challengeId);
     if (!challenge || !challenge.isActive) return res.status(400).json({ success: false, message: 'Challenge not available' });
+    if (challenge.saleStatus === 'stopped') return res.status(403).json({ success: false, message: 'This challenge is not open for new purchases' });
 
     const basePrice = Number(challenge.pricesByAccountSize?.get(String(accountSize)) || 0);
     if (!basePrice) return res.status(400).json({ success: false, message: 'Invalid account size' });

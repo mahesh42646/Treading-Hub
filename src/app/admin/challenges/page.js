@@ -418,7 +418,7 @@ const AdminChallengesPage = () => {
                   </div>
 
                   <div className="row">
-                    <div className="col-md-6 mb-3">
+                    <div className="col-md-6 mb-3" style={{ display: 'none' }}>
                       <label className="form-label">Model</label>
                       <select
                         className="form-select"
@@ -456,47 +456,162 @@ const AdminChallengesPage = () => {
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Profit Targets (comma-separated)</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={(formData.profitTargets || []).join(', ')}
-                        onChange={(e) => handleArrayChange('profitTargets', e.target.value)}
-                        placeholder="8, 5"
-                      />
+                      <label className="form-label">Profit Target</label>
+                      <select
+                        className="form-select"
+                        value={(formData.profitTargets && formData.profitTargets[0]) || 10}
+                        onChange={(e) => setFormData(prev => ({ ...prev, profitTargets: [parseFloat(e.target.value)] }))}
+                      >
+                        <option value={8}>8%</option>
+                        <option value={10}>10%</option>
+                      </select>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Account Sizes (comma-separated)</label>
+                      <label className="form-label">Account Sizes</label>
+                      <div className="d-flex flex-wrap gap-2">
+                        {[5000, 10000, 25000, 50000, 100000].map(size => (
+                          <label key={size} className="form-check form-check-inline">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={(formData.accountSizes || []).includes(size)}
+                              onChange={(e) => {
+                                setFormData(prev => {
+                                  const set = new Set(prev.accountSizes || []);
+                                  if (e.target.checked) set.add(size); else set.delete(size);
+                                  return { ...prev, accountSizes: Array.from(set) };
+                                });
+                              }}
+                            />
+                            <span className="form-check-label">${size.toLocaleString()}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="input-group mt-2">
+                        <span className="input-group-text">Add size</span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="Enter custom size"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const val = parseInt(e.currentTarget.value);
+                              if (!isNaN(val) && val > 0) {
+                                setFormData(prev => ({ ...prev, accountSizes: Array.from(new Set([...(prev.accountSizes || []), val])) }));
+                                e.currentTarget.value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Platforms</label>
+                    <div className="d-flex flex-wrap gap-2">
+                      {['MetaTrader 5', 'MatchTrader', 'cTrader'].map(p => (
+                        <label key={p} className="form-check form-check-inline">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            checked={(formData.platforms || []).includes(p)}
+                            onChange={(e) => {
+                              setFormData(prev => {
+                                const set = new Set(prev.platforms || []);
+                                if (e.target.checked) set.add(p); else set.delete(p);
+                                return { ...prev, platforms: Array.from(set) };
+                              });
+                            }}
+                          />
+                          <span className="form-check-label">{p}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="input-group mt-2">
+                      <span className="input-group-text">Add platform</span>
                       <input
                         type="text"
                         className="form-control"
-                        value={(formData.accountSizes || []).join(', ')}
-                        onChange={(e) => handleArrayChange('accountSizes', e.target.value)}
-                        placeholder="5000, 10000, 25000"
+                        placeholder="Enter custom platform"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = (e.currentTarget.value || '').trim();
+                            if (val) {
+                              setFormData(prev => ({ ...prev, platforms: Array.from(new Set([...(prev.platforms || []), val])) }));
+                              e.currentTarget.value = '';
+                            }
+                          }
+                        }}
                       />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Platforms (comma-separated)</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={(formData.platforms || []).join(', ')}
-                      onChange={(e) => handleArrayChange('platforms', e.target.value)}
-                      placeholder="MetaTrader 5, MatchTrader, cTrader"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Coupon Code (optional)</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="couponCode"
-                      value={formData.couponCode}
-                      onChange={handleInputChange}
-                    />
+                    <label className="form-label">Coupons</label>
+                    <div className="table-responsive">
+                      <table className="table table-sm">
+                        <thead>
+                          <tr>
+                            <th>Code</th>
+                            <th>Flat Off</th>
+                            <th>% Off</th>
+                            <th>Expires</th>
+                            <th>Active</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(formData.coupons || []).map((c, idx) => (
+                            <tr key={idx}>
+                              <td>
+                                <input className="form-control form-control-sm" value={c.code || ''} onChange={(e) => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons[idx] = { ...coupons[idx], code: e.target.value };
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }} />
+                              </td>
+                              <td>
+                                <input type="number" className="form-control form-control-sm" value={c.discountFlat || 0} onChange={(e) => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons[idx] = { ...coupons[idx], discountFlat: parseFloat(e.target.value) || 0 };
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }} />
+                              </td>
+                              <td>
+                                <input type="number" className="form-control form-control-sm" value={c.discountPercent || 0} onChange={(e) => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons[idx] = { ...coupons[idx], discountPercent: parseFloat(e.target.value) || 0 };
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }} />
+                              </td>
+                              <td>
+                                <input type="date" className="form-control form-control-sm" value={c.expiresAt ? new Date(c.expiresAt).toISOString().substring(0,10) : ''} onChange={(e) => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons[idx] = { ...coupons[idx], expiresAt: e.target.value ? new Date(e.target.value) : null };
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }} />
+                              </td>
+                              <td>
+                                <input type="checkbox" className="form-check-input" checked={c.isActive !== false} onChange={(e) => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons[idx] = { ...coupons[idx], isActive: e.target.checked };
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }} />
+                              </td>
+                              <td>
+                                <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => {
+                                  const coupons = [...(formData.coupons || [])];
+                                  coupons.splice(idx, 1);
+                                  setFormData(prev => ({ ...prev, coupons }));
+                                }}>Remove</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setFormData(prev => ({ ...prev, coupons: [...(prev.coupons || []), { code: '', discountFlat: 0, discountPercent: 0, expiresAt: null, isActive: true }] }))}>Add Coupon</button>
                   </div>
 
                   {/* Price Configuration */}

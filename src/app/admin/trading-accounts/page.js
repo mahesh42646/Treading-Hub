@@ -29,13 +29,13 @@ const AdminTradingAccounts = () => {
   const [selectedUserUid, setSelectedUserUid] = useState('');
   const [selectedChallengeEntryId, setSelectedChallengeEntryId] = useState('');
   const [formData, setFormData] = useState({
-    accountName: '',
+    accountName: 'Two Steps',
     brokerName: '',
     serverId: '',
     loginId: '',
     password: '',
     serverAddress: '',
-    platform: 'MT4',
+    platform: 'MT5',
     accountType: 'Demo',
     balance: 0,
     leverage: '1:100',
@@ -618,13 +618,15 @@ const AdminTradingAccounts = () => {
                           const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, { credentials: 'include' });
                           const d = await r.json();
                           const list = Array.isArray(d.challenges) ? d.challenges : [];
-                          setUserChallenges(list);
+                          // Filter: only active, without assigned trading account
+                          const filtered = list.filter(ch => ch.status === 'active' && !ch.tradingAccountId);
+                          setUserChallenges(filtered);
                         } catch (_) {}
                       }
                     }}
                   >
                     <option value="">Choose a user</option>
-                    {users.map(user => (
+                    {users.filter(u => (u.challengesCount ? u.challengesCount > 0 : true)).map(user => (
                       <option key={user._id} value={user.uid}>
                         {user.email} ({user.uid})
                       </option>

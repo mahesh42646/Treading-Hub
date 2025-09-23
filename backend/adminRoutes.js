@@ -74,6 +74,8 @@ router.put('/challenges/:userId/:challengeEntryId/status', verifyAdminAuth, asyn
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     const entry = user.challenges.id(challengeEntryId);
     if (!entry) return res.status(404).json({ success: false, message: 'Challenge entry not found' });
+    if (entry.tradingAccountId) return res.status(400).json({ success: false, message: 'This challenge already has a trading account' });
+    if (['inactive','expired'].includes(entry.status)) return res.status(400).json({ success: false, message: 'Cannot assign account to inactive/expired challenge' });
     entry.status = status;
     entry.adminNote = adminNote || entry.adminNote;
     entry.endedAt = ['expired', 'failed', 'passed', 'inactive'].includes(status) ? new Date() : entry.endedAt;
@@ -2457,7 +2459,7 @@ router.post('/users/:uid/challenges/:challengeEntryId/assign-trading-account', v
     if (!account) return res.status(404).json({ success: false, message: 'Trading account not found' });
     if (account.isAssigned) return res.status(400).json({ success: false, message: 'Trading account already assigned' });
 
-    // Assign to user in TradingAccount and mark assigned
+    // Assign to user in TradingAccount and mark assigned (one account -> one challenge)
     await account.assignToUser(user._id, user.email, null);
 
     // Attach snapshot to user challenge entry

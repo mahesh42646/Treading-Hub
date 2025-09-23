@@ -1,13 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import { FaPlus, FaEdit, FaTrash, FaCopy, FaToggleOn, FaToggleOff, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const AdminChallengesPage = () => {
-  const { user, profile } = useAuth();
-  const router = useRouter();
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -32,16 +28,12 @@ const AdminChallengesPage = () => {
   });
 
   useEffect(() => {
-    if (!user || !profile?.isAdmin) {
-      router.push('/admin/login');
-      return;
-    }
     fetchChallenges();
-  }, [user, profile, router]);
+  }, []);
 
   const fetchChallenges = async () => {
     try {
-      const response = await fetch('/api/admin/challenges', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges`, {
         credentials: 'include'
       });
       const data = await response.json();
@@ -58,7 +50,7 @@ const AdminChallengesPage = () => {
   const handleCreateChallenge = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/challenges', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +75,7 @@ const AdminChallengesPage = () => {
   const handleEditChallenge = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/admin/challenges/${editingChallenge._id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${editingChallenge._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +102,7 @@ const AdminChallengesPage = () => {
     if (!confirm('Are you sure you want to delete this challenge?')) return;
     
     try {
-      const response = await fetch(`/api/admin/challenges/${challengeId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${challengeId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -143,7 +135,7 @@ const AdminChallengesPage = () => {
 
   const handleToggleStatus = async (challengeId, currentStatus) => {
     try {
-      const response = await fetch(`/api/admin/challenges/${challengeId}/toggle`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/${challengeId}/toggle`, {
         method: 'PUT',
         credentials: 'include'
       });

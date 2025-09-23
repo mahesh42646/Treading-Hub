@@ -73,7 +73,7 @@ export default function TradingAccountsPage() {
                 <tbody>
                   {entries.map((ch, idx) => (
                     <tr key={ch._id || idx}>
-                      <td>{ch.name} — ${'{'}Number(ch.accountSize).toLocaleString(){'}'}</td>
+                      <td>{ch.name} — ${Number(ch.accountSize).toLocaleString()}</td>
                       <td>{ch.tradingAccount?.accountName || '-'}</td>
                       <td>{ch.tradingAccount?.brokerName || '-'}</td>
                       <td>{ch.tradingAccount?.platform || '-'}</td>
@@ -96,51 +96,166 @@ export default function TradingAccountsPage() {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Trading Account for {view.name}</h5>
+                <h5 className="modal-title">Trading Account for Challenge: {view.name}</h5>
                 <button type="button" className="btn-close" onClick={() => setView(null)}></button>
               </div>
               <div className="modal-body">
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <div className="list-group small">
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Account Name</span>
-                        <span className="fw-semibold">{view.tradingAccount?.accountName}</span>
+                <div className="row">
+                  <div className="col-12">
+                    <h6 className="text-muted mb-3">Account Details</h6>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <div className="card border-0 bg-light">
+                          <div className="card-body">
+                            <h6 className="card-title text-primary mb-3">
+                              <i className="bi bi-person-circle me-2"></i>
+                              Account Information
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Account Name</label>
+                              <div className="input-group">
+                                <input 
+                                  type="text" 
+                                  className="form-control form-control-sm" 
+                                  value={view.tradingAccount?.accountName || ''} 
+                                  readOnly 
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.accountName || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Broker</label>
+                              <div className="input-group">
+                                <input 
+                                  type="text" 
+                                  className="form-control form-control-sm" 
+                                  value={view.tradingAccount?.brokerName || ''} 
+                                  readOnly 
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.brokerName || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Platform</label>
+                              <div className="input-group">
+                                <input 
+                                  type="text" 
+                                  className="form-control form-control-sm" 
+                                  value={view.tradingAccount?.platform || ''} 
+                                  readOnly 
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.platform || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Broker</span>
-                        <span className="fw-semibold">{view.tradingAccount?.brokerName}</span>
-                      </div>
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Platform</span>
-                        <span className="fw-semibold">{view.tradingAccount?.platform}</span>
-                      </div>
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Server ID</span>
-                        <span className="fw-semibold">{view.tradingAccount?.serverId}</span>
-                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.serverId || '')}>Copy</button>
+                      <div className="col-md-6">
+                        <div className="card border-0 bg-light">
+                          <div className="card-body">
+                            <h6 className="card-title text-success mb-3">
+                              <i className="bi bi-key me-2"></i>
+                              Login Credentials
+                            </h6>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Server ID</label>
+                              <div className="input-group">
+                                <input 
+                                  type="text" 
+                                  className="form-control form-control-sm" 
+                                  value={view.tradingAccount?.serverId || ''} 
+                                  readOnly 
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.serverId || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Login ID</label>
+                              <div className="input-group">
+                                <input 
+                                  type="text" 
+                                  className="form-control form-control-sm" 
+                                  value={view.tradingAccount?.loginId || ''} 
+                                  readOnly 
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.loginId || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label small text-muted">Password</label>
+                              <div className="input-group">
+                                <input
+                                  type="password"
+                                  className="form-control form-control-sm"
+                                  value={view.tradingAccount?.password ? '********' : ''}
+                                  readOnly
+                                />
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm" 
+                                  type="button"
+                                  onClick={() => copy(view.tradingAccount?.password || '')}
+                                >
+                                  <i className="bi bi-copy"></i>
+                                </button>
+                              </div>
+                            </div>
+                            {view.tradingAccount?.serverAddress && (
+                              <div className="mb-3">
+                                <label className="form-label small text-muted">Server Address</label>
+                                <div className="input-group">
+                                  <input 
+                                    type="text" 
+                                    className="form-control form-control-sm" 
+                                    value={view.tradingAccount?.serverAddress || ''} 
+                                    readOnly 
+                                  />
+                                  <button 
+                                    className="btn btn-outline-secondary btn-sm" 
+                                    type="button"
+                                    onClick={() => copy(view.tradingAccount?.serverAddress || '')}
+                                  >
+                                    <i className="bi bi-copy"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="list-group small">
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Login ID</span>
-                        <span className="fw-semibold">{view.tradingAccount?.loginId}</span>
-                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.loginId || '')}>Copy</button>
-                      </div>
-                      <div className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>Password</span>
-                        <span className="fw-semibold">••••••••</span>
-                        <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.password || '')}>Copy</button>
-                      </div>
-                      {view.tradingAccount?.serverAddress && (
-                        <div className="list-group-item d-flex justify-content-between align-items-center">
-                          <span>Server</span>
-                          <span className="fw-semibold">{view.tradingAccount?.serverAddress}</span>
-                          <button className="btn btn-sm btn-outline-secondary ms-2" onClick={() => copy(view.tradingAccount?.serverAddress || '')}>Copy</button>
-                        </div>
-                      )}
+                    <div className="alert alert-info mt-3">
+                      <i className="bi bi-info-circle me-2"></i>
+                      <strong>Instructions:</strong> Use these credentials to log into your trading platform. Click the copy button next to each field to copy the value to your clipboard.
                     </div>
                   </div>
                 </div>

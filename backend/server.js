@@ -555,7 +555,10 @@ app.post('/api/challenges/purchase', async (req, res) => {
       title: 'Challenge Purchased',
       message: `You have successfully purchased ${challenge.name} with ${accountSize} account size`,
       type: 'challenge_purchased',
-      priority: 'medium'
+      priority: 'medium',
+      relatedType: 'challenge',
+      relatedId: challenge._id,
+      metadata: { accountSize: Number(accountSize), platform }
     });
     await notification.save();
 

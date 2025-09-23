@@ -20,6 +20,8 @@ const notificationSchema = new mongoose.Schema({
       'plan_expiring',         // Plan expiring soon
       'plan_expired',          // Plan expired
       'trading_account_assigned', // Trading account assigned
+      'challenge_purchased',   // Challenge purchased
+      'challenge_status_update', // Challenge status updated
       'custom',                // Custom notification
       'system'                 // System notification
     ],
@@ -52,8 +54,8 @@ const notificationSchema = new mongoose.Schema({
   },
   relatedType: {
     type: String,
-    enum: ['user', 'transaction', 'withdrawal', 'plan', 'referral', 'trading_account'],
-    default: null
+    enum: ['user', 'transaction', 'withdrawal', 'plan', 'referral', 'trading_account', 'challenge'],
+    required: false
   },
   expiresAt: {
     type: Date,

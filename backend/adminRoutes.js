@@ -1553,26 +1553,24 @@ router.post('/fix-all-user-flags', verifyAdminAuth, async (req, res) => {
 // Get all trading accounts
 router.get('/trading-accounts', verifyAdminAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 10, assigned = '', broker = '' } = req.query;
+    const { page = 1, limit = 10, assigned = '', broker = '', search = '' } = req.query;
     const skip = (page - 1) * limit;
     
-    let query = {};
-    
-    if (assigned === 'true') {
-      query.isAssigned = true;
-    } else if (assigned === 'false') {
-      query.isAssigned = false;
-    }
-    
-    if (broker) {
-      query.brokerName = { $regex: broker, $options: 'i' };
+    const query = {};
+    if (assigned === 'true') query.isAssigned = true;
+    if (assigned === 'false') query.isAssigned = false;
+    if (broker) query.brokerName = { $regex: broker, $options: 'i' };
+    if (search) {
+      query.$or = [
+        { accountName: { $regex: search, $options: 'i' } },
+        { brokerName: { $regex: search, $options: 'i' } },
+        { loginId: { $regex: search, $options: 'i' } }
+      ];
     }
 
     const accounts = await TradingAccount.find(query)
-      .populate('assignedTo.userId', 'email')
-      .populate('subscriptionId')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
+      .limit(parseInt(limit))
       .skip(skip);
 
     const total = await TradingAccount.countDocuments(query);
@@ -1581,8 +1579,8 @@ router.get('/trading-accounts', verifyAdminAuth, async (req, res) => {
       success: true,
       accounts,
       pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
+        current: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
         total
       }
     });

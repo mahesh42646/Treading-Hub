@@ -123,14 +123,18 @@ const AdminChallengesPage = () => {
 
   const handleDuplicateChallenge = async (challenge) => {
     const duplicateData = {
-      ...challenge,
-      name: `${challenge.name} (Copy)`,
-      isActive: false
+      name: `${challenge.name || 'Challenge'} (Copy)`,
+      description: challenge.description || '',
+      type: challenge.type || 'One Step',
+      model: challenge.model || 'Standard',
+      profitTargets: challenge.profitTargets || [8],
+      accountSizes: challenge.accountSizes || [5000, 10000, 25000],
+      pricesByAccountSize: challenge.pricesByAccountSize || {},
+      platforms: challenge.platforms || ['MetaTrader 5'],
+      couponCode: challenge.couponCode || '',
+      isActive: false,
+      priority: challenge.priority || 1
     };
-    delete duplicateData._id;
-    delete duplicateData.createdAt;
-    delete duplicateData.updatedAt;
-    delete duplicateData.__v;
 
     setFormData(duplicateData);
     setShowCreateModal(true);
@@ -173,17 +177,17 @@ const AdminChallengesPage = () => {
   const openEditModal = (challenge) => {
     setEditingChallenge(challenge);
     setFormData({
-      name: challenge.name,
-      description: challenge.description,
-      type: challenge.type,
-      model: challenge.model,
-      profitTargets: challenge.profitTargets,
-      accountSizes: challenge.accountSizes,
-      pricesByAccountSize: challenge.pricesByAccountSize,
-      platforms: challenge.platforms,
-      couponCode: challenge.couponCode,
-      isActive: challenge.isActive,
-      priority: challenge.priority
+      name: challenge.name || '',
+      description: challenge.description || '',
+      type: challenge.type || 'One Step',
+      model: challenge.model || 'Standard',
+      profitTargets: challenge.profitTargets || [8],
+      accountSizes: challenge.accountSizes || [5000, 10000, 25000],
+      pricesByAccountSize: challenge.pricesByAccountSize || {},
+      platforms: challenge.platforms || ['MetaTrader 5'],
+      couponCode: challenge.couponCode || '',
+      isActive: challenge.isActive !== undefined ? challenge.isActive : true,
+      priority: challenge.priority || 1
     });
     setShowEditModal(true);
   };
@@ -199,10 +203,10 @@ const AdminChallengesPage = () => {
   const handleArrayChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value.split(',').map(item => 
+      [field]: value ? value.split(',').map(item => 
         field === 'profitTargets' || field === 'accountSizes' ? 
         parseFloat(item.trim()) : item.trim()
-      )
+      ) : []
     }));
   };
 
@@ -452,7 +456,7 @@ const AdminChallengesPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={formData.profitTargets.join(', ')}
+                        value={(formData.profitTargets || []).join(', ')}
                         onChange={(e) => handleArrayChange('profitTargets', e.target.value)}
                         placeholder="8, 5"
                       />
@@ -462,7 +466,7 @@ const AdminChallengesPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={formData.accountSizes.join(', ')}
+                        value={(formData.accountSizes || []).join(', ')}
                         onChange={(e) => handleArrayChange('accountSizes', e.target.value)}
                         placeholder="5000, 10000, 25000"
                       />
@@ -474,7 +478,7 @@ const AdminChallengesPage = () => {
                     <input
                       type="text"
                       className="form-control"
-                      value={formData.platforms.join(', ')}
+                      value={(formData.platforms || []).join(', ')}
                       onChange={(e) => handleArrayChange('platforms', e.target.value)}
                       placeholder="MetaTrader 5, MatchTrader, cTrader"
                     />
@@ -631,7 +635,7 @@ const AdminChallengesPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={formData.profitTargets.join(', ')}
+                        value={(formData.profitTargets || []).join(', ')}
                         onChange={(e) => handleArrayChange('profitTargets', e.target.value)}
                         placeholder="8, 5"
                       />
@@ -641,7 +645,7 @@ const AdminChallengesPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        value={formData.accountSizes.join(', ')}
+                        value={(formData.accountSizes || []).join(', ')}
                         onChange={(e) => handleArrayChange('accountSizes', e.target.value)}
                         placeholder="5000, 10000, 25000"
                       />
@@ -653,7 +657,7 @@ const AdminChallengesPage = () => {
                     <input
                       type="text"
                       className="form-control"
-                      value={formData.platforms.join(', ')}
+                      value={(formData.platforms || []).join(', ')}
                       onChange={(e) => handleArrayChange('platforms', e.target.value)}
                       placeholder="MetaTrader 5, MatchTrader, cTrader"
                     />

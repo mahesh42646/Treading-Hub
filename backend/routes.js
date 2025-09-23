@@ -111,10 +111,47 @@ router.post('/challenges/purchase', async (req, res) => {
     
     // Process referral completion and 20% bonus on FIRST challenge purchase
     try {
-      const isFirstChallenge = Array.isArray(user.challenges) && user.challenges.length === 1;
-      if (isFirstChallenge && user.referredByCode) {
+      const challengesCount = Array.isArray(user.challenges) ? user.challenges.length : 0;
+      if (user.referredByCode) {
         const { processFirstPayment } = require('./utils/simpleReferralUtils');
-        await processFirstPayment(user._id, finalPrice, 'challenge');
+        if (challengesCount === 1) {
+          await processFirstPayment(user._id, finalPrice, 'challenge');
+        } else {
+          // Recovery: if referral pending, complete now using first challenge price
+          const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+          if (referrer) {
+            const idx = (referrer.referrals || []).findIndex(r => r.user.toString() === user._id.toString());
+            if (idx !== -1 && referrer.referrals[idx].refState !== 'completed') {
+              const basisPrice = Number((user.challenges?.[0]?.price) || finalPrice || 0);
+              const bonusAmount = Math.round(basisPrice * 0.20);
+              if (!referrer.profile) referrer.profile = {};
+              if (!referrer.profile.wallet) referrer.profile.wallet = { walletBalance: 0, referralBalance: 0, totalDeposits: 0, totalWithdrawals: 0 };
+              referrer.profile.wallet.referralBalance += bonusAmount;
+              referrer.referrals[idx].firstPlan = true;
+              referrer.referrals[idx].refState = 'completed';
+              referrer.referrals[idx].bonusCredited = true;
+              referrer.referrals[idx].bonusAmount = bonusAmount;
+              referrer.referrals[idx].firstPayment = true;
+              referrer.referrals[idx].firstPaymentAmount = basisPrice;
+              referrer.referrals[idx].firstPaymentDate = new Date();
+              await referrer.save();
+              await Transaction.create({
+                userId: referrer._id,
+                type: 'referral_bonus',
+                amount: bonusAmount,
+                balanceAfter: referrer.profile.wallet.referralBalance,
+                description: `Referral bonus: 20% of ₹${basisPrice} from ${user.email}`,
+                status: 'completed',
+                source: 'referral',
+                category: 'bonus',
+                processedAt: new Date(),
+                processedBy: 'system',
+                metadata: { referredUserId: user._id, paymentType: 'challenge', originalAmount: basisPrice, bonusPercentage: 20 }
+              });
+              try { await NotificationService.notifyReferralCompleted(referrer._id, user.email, bonusAmount); } catch (_) {}
+            }
+          }
+        }
       }
     } catch (refErr) {
       console.error('Referral processing on challenge purchase failed:', refErr);
@@ -1716,23 +1753,14 @@ router.post('/wallet/razorpay-verify', async (req, res) => {
     profile.wallet.walletBalance += depositAmount;
     profile.wallet.totalDeposits += depositAmount;
 
-    // Check if this is the first deposit and user has a referrer
+    // On first deposit: mark firstPayment fields for referral, but DO NOT credit bonus here
+    // Bonus will be credited on the referred user's first challenge purchase
     if (user.referredByCode && profile.wallet.totalDeposits === depositAmount) {
-      // Find referrer and credit referral bonus
-      const referrerUser = await User.findOne({ 'myReferralCode': user.referredByCode });
-      
-      if (referrerUser && referrerUser.profile) {
-        if (!referrerUser.profile.wallet) {
-          referrerUser.profile.wallet = {
-            walletBalance: 0,
-            referralBalance: 0,
-            totalDeposits: 0,
-            totalWithdrawals: 0
-          };
-        }
-        
-        referrerUser.profile.wallet.referralBalance += 200; // ₹200 referral bonus
-        await referrerUser.save();
+      try {
+        const { processFirstPayment } = require('./utils/simpleReferralUtils');
+        await processFirstPayment(user._id, depositAmount, 'deposit');
+      } catch (e) {
+        console.error('Referral first deposit processing failed:', e?.message);
       }
     }
 

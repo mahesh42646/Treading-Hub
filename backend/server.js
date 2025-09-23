@@ -564,10 +564,55 @@ app.post('/api/challenges/purchase', async (req, res) => {
 
     // Process referral on first challenge purchase (20% of paid price)
     try {
-      const isFirstChallenge = (user.challenges || []).length === 1;
-      if (isFirstChallenge && user.referredByCode) {
+      const challengesCount = Array.isArray(user.challenges) ? user.challenges.length : 0;
+      const isFirstChallenge = challengesCount === 1;
+      if (user.referredByCode) {
         const { processFirstPayment } = require('./utils/simpleReferralUtils');
-        await processFirstPayment(user._id, price, 'challenge');
+        if (isFirstChallenge) {
+          await processFirstPayment(user._id, price, 'challenge');
+        } else {
+          // Recovery: if referral still pending, complete it now using first challenge price
+          const { User } = require('./schema');
+          const referrer = await User.findOne({ myReferralCode: user.referredByCode });
+          if (referrer) {
+            const idx = (referrer.referrals || []).findIndex(r => r.user.toString() === user._id.toString());
+            if (idx !== -1 && referrer.referrals[idx].refState !== 'completed') {
+              const firstChallenge = user.challenges?.[0];
+              const basisPrice = Number(firstChallenge?.price || price || 0);
+              const bonusAmount = Math.round(basisPrice * 0.20);
+              // Initialize wallet
+              if (!referrer.profile) referrer.profile = {};
+              if (!referrer.profile.wallet) referrer.profile.wallet = { walletBalance: 0, referralBalance: 0, totalDeposits: 0, totalWithdrawals: 0 };
+              referrer.profile.wallet.referralBalance += bonusAmount;
+              referrer.referrals[idx].firstPlan = true;
+              referrer.referrals[idx].refState = 'completed';
+              referrer.referrals[idx].bonusCredited = true;
+              referrer.referrals[idx].bonusAmount = bonusAmount;
+              referrer.referrals[idx].firstPayment = true;
+              referrer.referrals[idx].firstPaymentAmount = basisPrice;
+              referrer.referrals[idx].firstPaymentDate = new Date();
+              await referrer.save();
+              const Transaction = require('./models/Transaction');
+              await Transaction.create({
+                userId: referrer._id,
+                type: 'referral_bonus',
+                amount: bonusAmount,
+                balanceAfter: referrer.profile.wallet.referralBalance,
+                description: `Referral bonus: 20% of ₹${basisPrice} from ${user.email}`,
+                status: 'completed',
+                source: 'referral',
+                category: 'bonus',
+                processedAt: new Date(),
+                processedBy: 'system',
+                metadata: { referredUserId: user._id, paymentType: 'challenge', originalAmount: basisPrice, bonusPercentage: 20 }
+              });
+              try {
+                const NotificationService = require('./utils/notificationService');
+                await NotificationService.notifyReferralCompleted(referrer._id, user.email, bonusAmount);
+              } catch (_) {}
+            }
+          }
+        }
       }
     } catch (refErr) {
       console.error('Referral processing on challenge purchase failed:', refErr);

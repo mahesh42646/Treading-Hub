@@ -38,10 +38,13 @@ const AdminChallengesPage = () => {
       });
       const data = await response.json();
       if (data.success) {
-        setChallenges(data.challenges);
+        setChallenges(data.challenges || []);
+      } else {
+        setChallenges([]);
       }
     } catch (error) {
       console.error('Error fetching challenges:', error);
+      setChallenges([]);
     } finally {
       setLoading(false);
     }
@@ -213,7 +216,7 @@ const AdminChallengesPage = () => {
     }));
   };
 
-  const filteredChallenges = challenges.filter(challenge => {
+  const filteredChallenges = (challenges || []).filter(challenge => {
     const matchesSearch = challenge.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          challenge.type.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || 
@@ -289,7 +292,7 @@ const AdminChallengesPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredChallenges.map((challenge) => (
+                    {(filteredChallenges || []).map((challenge) => (
                       <tr key={challenge._id}>
                         <td>
                           <div>
@@ -304,14 +307,14 @@ const AdminChallengesPage = () => {
                         </td>
                         <td>{challenge.model}</td>
                         <td>
-                          {challenge.accountSizes.map(size => (
+                          {(challenge.accountSizes || []).map(size => (
                             <span key={size} className="badge bg-secondary me-1">
                               ${size.toLocaleString()}
                             </span>
                           ))}
                         </td>
                         <td>
-                          {challenge.platforms.map(platform => (
+                          {(challenge.platforms || []).map(platform => (
                             <span key={platform} className="badge bg-light text-dark me-1">
                               {platform}
                             </span>
@@ -491,7 +494,7 @@ const AdminChallengesPage = () => {
                   {/* Price Configuration */}
                   <div className="mb-3">
                     <label className="form-label">Prices by Account Size</label>
-                    {formData.accountSizes.map((size) => (
+                    {(formData.accountSizes || []).map((size) => (
                       <div key={size} className="input-group mb-2">
                         <span className="input-group-text">${size.toLocaleString()}</span>
                         <input
@@ -670,7 +673,7 @@ const AdminChallengesPage = () => {
                   {/* Price Configuration */}
                   <div className="mb-3">
                     <label className="form-label">Prices by Account Size</label>
-                    {formData.accountSizes.map((size) => (
+                    {(formData.accountSizes || []).map((size) => (
                       <div key={size} className="input-group mb-2">
                         <span className="input-group-text">${size.toLocaleString()}</span>
                         <input

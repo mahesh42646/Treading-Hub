@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Header from './user/components/Header';
 import Footer from './user/components/Footer';
 import Image from 'next/image';
-import ChoosePlanSection from './components/ChoosePlanSection';
+import ChooseChallengeSection from './components/ChooseChallengeSection';
 
 export default function Home() {
   return (
@@ -105,14 +105,14 @@ export default function Home() {
                   Start Challenge
                   <i className="bi bi-arrow-down"></i>
                 </Link>
-                <Link href="/plans" className="btn btn-lg px-5 py-3 fw-bold rounded-4" style={{
+                <Link href="/challenges" className="btn btn-lg px-5 py-3 fw-bold rounded-4" style={{
                   background: 'rgba(59, 130, 246, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   fontSize: '1.1rem',
                   color: 'white',
                   backdropFilter: 'blur(20px)', boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                 }}>
-                  Free Trial
+                  View Challenges
                 </Link>
               </div>
 
@@ -356,8 +356,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Choose the Best Plan Section - Dynamic Component */}
-      <ChoosePlanSection />
+      {/* Choose the Best Challenge Section - Dynamic Component */}
+      <ChooseChallengeSection />
 
       {/* Rewarding Our Best Traders Section - Dark Glossy Theme */}
       <section className="py-5 best-traders-section" style={{

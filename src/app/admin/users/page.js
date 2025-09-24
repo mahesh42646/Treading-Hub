@@ -33,9 +33,6 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [kycActionLoading, setKycActionLoading] = useState(null);
   const [userAnalytics, setUserAnalytics] = useState(null);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('');
-  const [plans, setPlans] = useState([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
   const [walletEditMode, setWalletEditMode] = useState(false);
@@ -54,15 +51,6 @@ const AdminUsers = () => {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralBonus, setReferralBonus] = useState(0);
-  const [showPlanManagementModal, setShowPlanManagementModal] = useState(false);
-  const [userPlans, setUserPlans] = useState([]);
-  const [editingPlan, setEditingPlan] = useState(null);
-  const [showPlanEditModal, setShowPlanEditModal] = useState(false);
-  const [planEditData, setPlanEditData] = useState({
-    endDate: '',
-    status: 'active',
-    durationDays: 0
-  });
   
   // Challenge management state
   const [showChallengeManagementModal, setShowChallengeManagementModal] = useState(false);
@@ -144,19 +132,6 @@ const AdminUsers = () => {
     }
   }, [searchTerm, currentPage, pageSize]);
 
-  const fetchPlans = useCallback(async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPlans(data.plans || []);
-      }
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-    }
-  }, []);
 
   const fetchChallenges = useCallback(async () => {
     try {
@@ -174,11 +149,10 @@ const AdminUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-    fetchPlans();
     fetchChallenges();
     // Refresh referral counts on page load
     refreshReferralCounts();
-  }, [fetchUsers, fetchPlans, fetchChallenges, refreshReferralCounts]);
+  }, [fetchUsers, fetchChallenges, refreshReferralCounts]);
 
   // Reset to first page when search term changes
   useEffect(() => {
@@ -415,20 +389,6 @@ const AdminUsers = () => {
     }
   };
 
-  const fetchUserPlans = async (uid) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans`, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUserPlans(data.plans || []);
-      }
-    } catch (error) {
-      console.error('Error fetching user plans:', error);
-    }
-  };
 
   const fetchUserTransactions = async (uid) => {
     try {
@@ -485,116 +445,10 @@ const AdminUsers = () => {
     }
   };
 
-  const removeUserPlan = async (uid, planEntryId) => {
-    if (!confirm('Are you sure you want to remove this plan?')) return;
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
 
-      if (response.ok) {
-        alert('Plan removed successfully');
-        fetchUserPlans(uid);
-        fetchUserDetails(uid);
-      }
-    } catch (error) {
-      console.error('Error removing plan:', error);
-      alert('Failed to remove plan');
-    }
-  };
 
-  const extendUserPlan = async (uid, planEntryId, days) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          durationDays: days,
-          action: 'extend'
-        })
-      });
 
-      if (response.ok) {
-        alert('Plan extended successfully');
-        fetchUserPlans(uid);
-        fetchUserDetails(uid);
-      }
-    } catch (error) {
-      console.error('Error extending plan:', error);
-      alert('Failed to extend plan');
-    }
-  };
 
-  const updatePlanStatus = async (uid, planEntryId, status) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans/${planEntryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          status: status,
-          action: 'update_status'
-        })
-      });
-
-      if (response.ok) {
-        alert('Plan status updated successfully');
-        fetchUserPlans(uid);
-        fetchUserDetails(uid);
-      }
-    } catch (error) {
-      console.error('Error updating plan status:', error);
-      alert('Failed to update plan status');
-    }
-  };
-
-  const openPlanEditModal = (plan) => {
-    setEditingPlan(plan);
-    setPlanEditData({
-      endDate: plan.endDate ? new Date(plan.endDate).toISOString().split('T')[0] : '',
-      status: plan.status,
-      durationDays: plan.durationDays
-    });
-    setShowPlanEditModal(true);
-  };
-
-  const savePlanEdit = async () => {
-    if (!selectedUser || !editingPlan) return;
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${selectedUser.uid}/plans/${editingPlan._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          endDate: planEditData.endDate ? new Date(planEditData.endDate) : undefined,
-          status: planEditData.status,
-          durationDays: parseInt(planEditData.durationDays),
-          action: 'edit'
-        })
-      });
-
-      if (response.ok) {
-        alert('Plan updated successfully');
-        setShowPlanEditModal(false);
-        setEditingPlan(null);
-        fetchUserPlans(selectedUser.uid);
-        fetchUserDetails(selectedUser.uid);
-      }
-    } catch (error) {
-      console.error('Error updating plan:', error);
-      alert('Failed to update plan');
-    }
-  };
 
   // Challenge management functions
   const fetchUserChallenges = async (uid) => {

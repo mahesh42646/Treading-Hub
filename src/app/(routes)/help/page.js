@@ -52,8 +52,8 @@ const HelpPage = () => {
                   <div className="col-md-6">
                     <ul className="list-unstyled">
                       <li className="mb-2">
-                        <a href="/plans" className="text-decoration-none">
-                          <i className="bi bi-arrow-right me-2"></i>Trading Plans
+                        <a href="/challenges" className="text-decoration-none">
+                          <i className="bi bi-arrow-right me-2"></i>Trading Challenges
                         </a>
                       </li>
                       <li className="mb-2">

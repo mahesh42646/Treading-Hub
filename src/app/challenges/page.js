@@ -13,6 +13,9 @@ const Challenges = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [filteredChallenges, setFilteredChallenges] = useState([]);
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
+  const [activeChallenge, setActiveChallenge] = useState(null);
 
   useEffect(() => {
     fetchChallenges();
@@ -21,6 +24,41 @@ const Challenges = () => {
   useEffect(() => {
     filterChallenges();
   }, [challenges, selectedSize, selectedPlatform]);
+
+  // When challenges load, initialize selectors (type/model/size) and the active challenge
+  useEffect(() => {
+    if (!challenges || challenges.length === 0) return;
+    const types = getAllTypes();
+    const models = getAllModels();
+    const initialType = selectedType || (types[0] || '');
+    const initialModel = selectedModel || (models[0] || '');
+    setSelectedType(initialType);
+    setSelectedModel(initialModel);
+
+    const candidates = challenges.filter(c => (!initialType || c.type === initialType) && (!initialModel || c.model === initialModel));
+    const chosen = candidates[0] || challenges[0];
+    setActiveChallenge(chosen || null);
+
+    // Initialize size based on chosen challenge
+    const sizes = getAccountSizesForChallenge(chosen);
+    setSelectedSize(prev => prev || (sizes[0] || null));
+  }, [challenges]);
+
+  // Re-compute active challenge when type/model change
+  useEffect(() => {
+    if (!challenges || challenges.length === 0) return;
+    const candidates = challenges.filter(c => (!selectedType || c.type === selectedType) && (!selectedModel || c.model === selectedModel));
+    const chosen = candidates[0] || null;
+    setActiveChallenge(chosen);
+
+    // Reset available size if previous is not valid anymore
+    if (chosen) {
+      const sizes = getAccountSizesForChallenge(chosen);
+      if (!sizes.includes(selectedSize)) {
+        setSelectedSize(sizes[0] || null);
+      }
+    }
+  }, [selectedType, selectedModel]);
 
   const fetchChallenges = async () => {
     try {
@@ -99,6 +137,18 @@ const Challenges = () => {
     return Array.from(platforms);
   };
 
+  const getAllTypes = () => {
+    const types = new Set();
+    challenges.forEach(ch => { if (ch.type) types.add(ch.type); });
+    return Array.from(types);
+  };
+
+  const getAllModels = () => {
+    const models = new Set();
+    challenges.forEach(ch => { if (ch.model) models.add(ch.model); });
+    return Array.from(models);
+  };
+
   const getPriceForSize = (challenge, size) => {
     if (!challenge.pricesByAccountSize) return 0;
     
@@ -108,6 +158,14 @@ const Challenges = () => {
     } else {
       return challenge.pricesByAccountSize[size.toString()] || 0;
     }
+  };
+
+  const getAccountSizesForChallenge = (challenge) => {
+    if (!challenge || !challenge.pricesByAccountSize) return [];
+    if (challenge.pricesByAccountSize instanceof Map) {
+      return Array.from(challenge.pricesByAccountSize.keys()).map(k => parseInt(k)).sort((a,b)=>a-b);
+    }
+    return Object.keys(challenge.pricesByAccountSize).map(k => parseInt(k)).sort((a,b)=>a-b);
   };
 
   if (loading) {
@@ -146,6 +204,50 @@ const Challenges = () => {
             <p className="lead text-white-50 mb-4" style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)' }}>
               Start your trading journey with our comprehensive challenge programs
             </p>
+          </div>
+
+          {/* Top selectors like the reference UI: type, model, sizes */}
+          <div className="row justify-content-center mb-4">
+            <div className="col-12 col-lg-10">
+              <div className="d-flex flex-wrap gap-2 justify-content-center mb-3">
+                {getAllTypes().map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`btn btn-sm ${selectedType === t ? 'btn-primary' : 'btn-outline-light'}`}
+                    onClick={() => setSelectedType(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <div className="d-flex flex-wrap gap-2 justify-content-center mb-3">
+                {getAllModels().map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`btn btn-sm ${selectedModel === m ? 'btn-info' : 'btn-outline-light'}`}
+                    onClick={() => setSelectedModel(m)}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+              {activeChallenge && (
+                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                  {getAccountSizesForChallenge(activeChallenge).map(size => (
+                    <button
+                      key={size}
+                      type="button"
+                      className={`btn btn-sm ${selectedSize === size ? 'btn-warning text-dark' : 'btn-outline-light'}`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      ${size.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Popular Challenge Highlight */}
@@ -237,6 +339,69 @@ const Challenges = () => {
           </div>
         </div>
       </section>
+
+      {/* Selected Challenge Overview (similar to comparison card) */}
+      {activeChallenge && (
+        <section className="py-4">
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-12 col-xl-10">
+                <div className="card rounded-4 border-0 shadow" style={{ background: '#0b1021', color: 'white' }}>
+                  <div className="card-body p-4 p-md-5">
+                    <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                      <div className="mb-3 mb-md-0">
+                        <div className="h4 mb-1">{activeChallenge.name}</div>
+                        <div className="text-white-50 small">{activeChallenge.description}</div>
+                      </div>
+                      <div className="text-end">
+                        <div className="small text-white-50">Account size</div>
+                        <div className="display-6 fw-bold">{selectedSize ? `${selectedSize.toLocaleString()}` : '-' }<span className="h6 ms-1">USD</span></div>
+                      </div>
+                    </div>
+
+                    <div className="row text-center g-3 g-md-4 mb-4">
+                      <div className="col-6 col-md-3">
+                        <div className="p-3 rounded" style={{ background:'#111736' }}>
+                          <div className="small text-white-50">Duration</div>
+                          <div className="fw-bold">{activeChallenge.durationDays} days</div>
+                        </div>
+                      </div>
+                      <div className="col-6 col-md-3">
+                        <div className="p-3 rounded" style={{ background:'#111736' }}>
+                          <div className="small text-white-50">Profit Target</div>
+                          <div className="fw-bold">{activeChallenge.profitTargets?.[0] || 8}%</div>
+                        </div>
+                      </div>
+                      <div className="col-6 col-md-3">
+                        <div className="p-3 rounded" style={{ background:'#111736' }}>
+                          <div className="small text-white-50">Type</div>
+                          <div className="fw-bold">{activeChallenge.type}</div>
+                        </div>
+                      </div>
+                      <div className="col-6 col-md-3">
+                        <div className="p-3 rounded" style={{ background:'#111736' }}>
+                          <div className="small text-white-50">Model</div>
+                          <div className="fw-bold">{activeChallenge.model}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="d-flex flex-wrap justify-content-between align-items-center">
+                      <div>
+                        <div className="small text-white-50">Price</div>
+                        <div className="h3 fw-bold">₹{selectedSize ? getPriceForSize(activeChallenge, selectedSize) : 0}</div>
+                      </div>
+                      <Link href="/dashboard/challenges" className="btn btn-primary btn-lg rounded-4 px-4">
+                        Buy Challenge
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Challenges Grid */}
       <section className="py-5">

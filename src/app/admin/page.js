@@ -247,9 +247,9 @@ const AdminDashboard = () => {
                   </a>
                 </div>
                 <div className="col-md-3">
-                  <a href="/admin/plans" className="btn btn-outline-success w-100">
+                  <a href="/admin/challenges" className="btn btn-outline-success w-100">
                     <FaPlus className="me-2" />
-                    Manage Plans
+                    Manage Challenges
                   </a>
                 </div>
                 <div className="col-md-3">

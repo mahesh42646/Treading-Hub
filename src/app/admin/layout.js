@@ -85,7 +85,6 @@ const AdminLayout = ({ children }) => {
   const menuItems = [
     { name: 'Dashboard', icon: FaTachometerAlt, path: '/admin' },
     { name: 'Users', icon: FaUsers, path: '/admin/users' },
-    { name: 'Plans', icon: FaClipboardList, path: '/admin/plans' },
     { name: 'Challenges', icon: FaTrophy, path: '/admin/challenges' },
     { name: 'Trading Accounts', icon: FaCreditCard, path: '/admin/trading-accounts' },
     { name: 'FAQs', icon: FaQuestionCircle, path: '/admin/faqs' },

@@ -32,11 +32,11 @@ const RefundPage = () => {
                   <li>Technical issues preventing platform access may qualify for refunds</li>
                 </ul>
 
-                <h2 className="h4 mb-4">Trading Plan Refunds</h2>
+                <h2 className="h4 mb-4">Trading Challenge Refunds</h2>
                 <ul className="mb-4">
-                  <li>Pro-rated refunds available for unused portions of trading plans</li>
-                  <li>Refund requests must be submitted before plan expiry</li>
-                  <li>Processing fees may apply to plan refunds</li>
+                  <li>Pro-rated refunds available for unused portions of trading challenges</li>
+                  <li>Refund requests must be submitted before challenge expiry</li>
+                  <li>Processing fees may apply to challenge refunds</li>
                 </ul>
 
                 <h2 className="h4 mb-4">How to Request a Refund</h2>

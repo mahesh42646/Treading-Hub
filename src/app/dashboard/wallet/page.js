@@ -48,6 +48,7 @@ export default function DashboardWallet() {
   const [saveBankDetails, setSaveBankDetails] = useState(false);
   const [withdrawals, setWithdrawals] = useState([]);
   const [withdrawalPage, setWithdrawalPage] = useState(1);
+  const [upiDeposits, setUpiDeposits] = useState([]);
 
   const MIN_DEPOSIT_AMOUNT = 500;
   const MIN_WITHDRAWAL_AMOUNT = 500;
@@ -114,6 +115,7 @@ export default function DashboardWallet() {
     fetchSavedBanks();
     fetchWithdrawals();
     fetchReferralData();
+    fetchUpiDeposits();
 
     // Load Razorpay script
     const script = document.createElement('script');
@@ -139,6 +141,15 @@ export default function DashboardWallet() {
       }
     } catch (error) {
       console.error('Error fetching saved banks:', error);
+    }
+  };
+
+  const fetchUpiDeposits = async () => {
+    try {
+      const data = await api.get(`/wallet/upi-deposits/${user.uid}`);
+      setUpiDeposits(data.deposits || []);
+    } catch (error) {
+      console.error('Error fetching UPI deposits:', error);
     }
   };
 
@@ -539,6 +550,16 @@ export default function DashboardWallet() {
                     <i className="bi bi-arrow-up-circle me-1 d-none d-sm-inline"></i>
                     <span className="d-sm-none small">Withdraw</span>
                     <span className="d-none d-sm-inline small">Withdrawals</span>
+                  </button>
+                </li>
+                <li className="nav-item flex-shrink-0">
+                  <button
+                    className={`nav-link ${activeTab === 'upi' ? 'active' : ''} px-3 py-2`}
+                    onClick={() => setActiveTab('upi')}
+                  >
+                    <i className="bi bi-qr-code me-1 d-none d-sm-inline"></i>
+                    <span className="d-sm-none small">UPI</span>
+                    <span className="d-none d-sm-inline small">UPI Deposits</span>
                   </button>
                 </li>
               </ul>
@@ -952,6 +973,59 @@ export default function DashboardWallet() {
                   )}
                 </div>
               )}
+
+              {activeTab === 'upi' && (
+                <div>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0 fs-6 fs-md-5">UPI Deposit Requests</h5>
+                    <button className="btn btn-success btn-sm" onClick={() => setShowUpiModal(true)}>
+                      <i className="bi bi-plus-circle me-2"></i>New UPI Deposit
+                    </button>
+                  </div>
+                  {upiDeposits.length === 0 ? (
+                    <div className="text-center py-4">
+                      <i className="bi bi-qr-code fs-1 text-muted"></i>
+                      <p className="text-muted mt-2 small">No UPI deposits yet</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover">
+                        <thead className="d-none d-md-table-header-group">
+                          <tr>
+                            <th>Submitted</th>
+                            <th>Txn ID</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Processed</th>
+                            <th>Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {upiDeposits.map((d) => (
+                            <tr key={d._id}>
+                              <td className="d-none d-md-table-cell">
+                                <small>{new Date(d.submittedAt).toLocaleString()}</small>
+                              </td>
+                              <td className="d-md-none">
+                                <div className="small text-muted">{new Date(d.submittedAt).toLocaleDateString()}</div>
+                              </td>
+                              <td><code className="small">{d.upiTransactionId}</code></td>
+                              <td>₹{Number(d.amount).toFixed(2)}</td>
+                              <td>
+                                <span className={`badge ${d.status === 'pending' ? 'bg-warning' : d.status === 'completed' ? 'bg-success' : 'bg-danger'}`}>{d.status}</span>
+                              </td>
+                              <td className="d-none d-md-table-cell">
+                                <small>{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</small>
+                              </td>
+                              <td className="text-truncate" style={{ maxWidth: '200px' }}>{d.adminNote || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1075,6 +1149,7 @@ export default function DashboardWallet() {
                       setUpiTxnId('');
                       setUpiAmount('');
                       setShowUpiModal(false);
+                      fetchUpiDeposits();
                     } catch (e) {
                       console.error('UPI deposit error:', e);
                       alert(e?.message || 'Failed to submit UPI deposit');

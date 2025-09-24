@@ -624,6 +624,19 @@ router.get('/admin/upi-deposits/:uid', async (req, res) => {
   }
 });
 
+// User: list own UPI deposit requests
+router.get('/upi-deposits/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    return res.json({ success: true, deposits: user.profile?.upiDeposits || [] });
+  } catch (error) {
+    console.error('User list UPI deposits error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to list UPI deposits', error: error.message });
+  }
+});
+
 // Admin: process UPI deposit (complete or reject)
 router.put('/admin/upi-deposits/:uid/:depositId', async (req, res) => {
   try {

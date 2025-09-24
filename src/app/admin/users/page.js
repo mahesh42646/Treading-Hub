@@ -611,20 +611,7 @@ const AdminUsers = () => {
             </div>
             {activeTab === 'details' && (
               <div className="d-flex gap-2">
-                <button 
-                  className="btn btn-outline-primary"
-                  onClick={() => setShowSubscriptionModal(true)}
-                >
-                  <FaCreditCard className="me-2" />
-                  Assign Plan
-                </button>
-                <button 
-                  className="btn btn-outline-info"
-                  onClick={() => setShowPlanManagementModal(true)}
-                >
-                  <FaEdit className="me-2" />
-                  Manage Plans
-                </button>
+                {/* Plan actions removed */}
                 <button 
                   className="btn btn-outline-warning"
                   onClick={() => setShowChallengeManagementModal(true)}
@@ -1500,57 +1487,7 @@ const AdminUsers = () => {
         </div>
       )}
 
-      {/* Subscription Assignment Modal */}
-      {showSubscriptionModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Assign Plan to {selectedUser?.email}</h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => setShowSubscriptionModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Select Plan</label>
-                  <select 
-                    className="form-select"
-                    value={selectedPlan}
-                    onChange={(e) => setSelectedPlan(e.target.value)}
-                  >
-                    <option value="">Choose a plan</option>
-                    {plans.map(plan => (
-                      <option key={plan._id} value={plan._id}>
-                        {plan.name} - ₹{plan.price} ({plan.duration} days)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowSubscriptionModal(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-primary"
-                  onClick={assignPlan}
-                  disabled={!selectedPlan}
-                >
-                  Assign Plan
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Plan assignment modal removed */}
 
       {/* Wallet Action Modal */}
       {showWalletModal && (

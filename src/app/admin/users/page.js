@@ -207,28 +207,23 @@ const AdminUsers = () => {
         credentials: 'include'
       });
 
-      // Fetch user plans
-      const plansResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/plans`, {
-        credentials: 'include'
-      });
+      // Plans removed
 
       // Fetch user challenges
       const challengesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, {
         credentials: 'include'
       });
 
-      const [userData, walletData, referralData, transactionData, plansData, challengesData] = await Promise.all([
+      const [userData, walletData, referralData, transactionData, challengesData] = await Promise.all([
         userResponse.json(),
         walletResponse.json(),
         referralResponse.json(),
         transactionResponse.json(),
-        plansResponse.json(),
         challengesResponse.json()
       ]);
 
       if (userData.success) {
         setSelectedUser(userData.user);
-        setUserPlans(plansData.plans || []);
         setUserChallenges(challengesData.challenges || []);
         setUserAnalytics({
           ...userData.user,
@@ -362,32 +357,7 @@ const AdminUsers = () => {
     }
   };
 
-  const assignPlan = async () => {
-    if (!selectedUser || !selectedPlan) return;
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/assign-plan`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          uid: selectedUser.uid,
-          planId: selectedPlan
-        })
-      });
-
-      if (response.ok) {
-        alert('Plan assigned successfully');
-        setShowSubscriptionModal(false);
-        fetchUserDetails(selectedUser.uid);
-      }
-    } catch (error) {
-      console.error('Error assigning plan:', error);
-      alert('Failed to assign plan');
-    }
-  };
+  // All legacy plan functions removed
 
 
   const fetchUserTransactions = async (uid) => {
@@ -704,7 +674,6 @@ const AdminUsers = () => {
                       <th>Profile Status</th>
                       <th>KYC Status</th>
                       <th>Wallet Balance</th>
-                      <th>Active Plan</th>
                       <th>Referrals</th>
                       <th>Joined</th>
                       <th>Actions</th>
@@ -744,22 +713,6 @@ const AdminUsers = () => {
                             <small className="text-muted">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
                             <small className="text-muted">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
                           </div>
-                        </td>
-                        <td>
-                          {user.plans && user.plans.length > 0 ? (
-                            <div>
-                              {user.plans.map((plan, index) => (
-                                <div key={index}>
-                                  <span className="badge bg-success">{plan.name}</span><br/>
-                                  <small className="text-muted">
-                                    {new Date(plan.endDate).toLocaleDateString()}
-                                  </small>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="badge bg-secondary">No Plan</span>
-                          )}
                         </td>
                         <td>
                           <div>
@@ -1051,135 +1004,6 @@ const AdminUsers = () => {
             </div>
           </div>
 
-          {/* Plan Management */}
-          <div className="col-12 mb-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="card-title mb-0">
-                    <FaCreditCard className="me-2" />
-                    Plan Management
-                  </h5>
-                  <div className="btn-group btn-group-sm">
-                    <button 
-                      className="btn btn-outline-primary"
-                      onClick={() => setShowSubscriptionModal(true)}
-                    >
-                      <FaPlus className="me-1" />
-                      Assign New Plan
-                    </button>
-                    <button 
-                      className="btn btn-outline-info"
-                      onClick={() => setShowPlanManagementModal(true)}
-                    >
-                      <FaEdit className="me-1" />
-                      Manage All Plans
-                    </button>
-                  </div>
-                </div>
-                
-                {userPlans && userPlans.length > 0 ? (
-                  <div className="table-responsive">
-                    <table className="table table-sm">
-                      <thead>
-                        <tr>
-                          <th>Plan Name</th>
-                          <th>Price</th>
-                          <th>Duration</th>
-                          <th>Start Date</th>
-                          <th>End Date</th>
-                          <th>Status</th>
-                          <th>Assigned By</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {userPlans.map((plan, idx) => (
-                          <tr key={idx}>
-                            <td>
-                              <strong>{plan.name}</strong>
-                            </td>
-                            <td>₹{plan.price}</td>
-                            <td>{plan.durationDays} days</td>
-                            <td>{new Date(plan.startDate).toLocaleDateString()}</td>
-                            <td>{new Date(plan.endDate).toLocaleDateString()}</td>
-                            <td>
-                              <span className={`badge ${
-                                plan.status === 'active' ? 'bg-success' :
-                                plan.status === 'expired' ? 'bg-danger' :
-                                'bg-warning'
-                              }`}>
-                                {plan.status}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`badge ${
-                                plan.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
-                              }`}>
-                                {plan.assignedBy}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="btn-group btn-group-sm">
-                                <button 
-                                  className="btn btn-outline-primary"
-                                  onClick={() => openPlanEditModal(plan)}
-                                  title="Edit Plan"
-                                >
-                                  <FaEdit />
-                                </button>
-                                <button 
-                                  className="btn btn-outline-success"
-                                  onClick={() => {
-                                    const days = prompt('Enter days to extend:');
-                                    if (days && !isNaN(days)) {
-                                      extendUserPlan(selectedUser.uid, plan._id, parseInt(days));
-                                    }
-                                  }}
-                                  title="Extend Plan"
-                                >
-                                  <FaPlus />
-                                </button>
-                                <select 
-                                  className="form-select form-select-sm"
-                                  style={{ width: 'auto' }}
-                                  value={plan.status}
-                                  onChange={(e) => updatePlanStatus(selectedUser.uid, plan._id, e.target.value)}
-                                >
-                                  <option value="active">Active</option>
-                                  <option value="expired">Expired</option>
-                                  <option value="cancelled">Cancelled</option>
-                                </select>
-                                <button 
-                                  className="btn btn-outline-danger"
-                                  onClick={() => removeUserPlan(selectedUser.uid, plan._id)}
-                                  title="Remove Plan"
-                                >
-                                  <FaTimes />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted">No plans assigned to this user</p>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setShowSubscriptionModal(true)}
-                    >
-                      <FaPlus className="me-2" />
-                      Assign First Plan
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Challenges Management */}
           <div className="col-12 mb-4">
             <div className="card border-0 shadow-sm">
@@ -1462,7 +1286,14 @@ const AdminUsers = () => {
                               </div>
                             </td>
                             <td>{new Date(tx.createdAt).toLocaleDateString()}</td>
-                            <td>{tx.description}</td>
+                            <td>
+                              <div>
+                                <div>{tx.description}</div>
+                                {tx.metadata?.referredUserEmail && (
+                                  <small className="text-muted">From: {tx.metadata.referredUserEmail}</small>
+                                )}
+                              </div>
+                            </td>
                             <td>
                               <button 
                                 className="btn btn-outline-primary btn-sm"
@@ -1622,223 +1453,9 @@ const AdminUsers = () => {
         </div>
       )}
 
-      {/* Plan Management Modal */}
-      {showPlanManagementModal && selectedUser && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-xl">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Manage Plans for {selectedUser.email}</h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => setShowPlanManagementModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6>Current Plans ({userPlans.length})</h6>
-                  <button 
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setShowSubscriptionModal(true)}
-                  >
-                    <FaPlus className="me-1" />
-                    Assign New Plan
-                  </button>
-                </div>
-                
-                {userPlans && userPlans.length > 0 ? (
-                  <div className="table-responsive">
-                    <table className="table table-hover">
-                      <thead>
-                        <tr>
-                          <th>Plan Name</th>
-                          <th>Price</th>
-                          <th>Duration</th>
-                          <th>Start Date</th>
-                          <th>End Date</th>
-                          <th>Status</th>
-                          <th>Assigned By</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {userPlans.map((plan, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{plan.name}</strong></td>
-                            <td>₹{plan.price}</td>
-                            <td>{plan.durationDays} days</td>
-                            <td>{new Date(plan.startDate).toLocaleDateString()}</td>
-                            <td>{new Date(plan.endDate).toLocaleDateString()}</td>
-                            <td>
-                              <span className={`badge ${
-                                plan.status === 'active' ? 'bg-success' :
-                                plan.status === 'expired' ? 'bg-danger' :
-                                'bg-warning'
-                              }`}>
-                                {plan.status}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`badge ${
-                                plan.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
-                              }`}>
-                                {plan.assignedBy}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="btn-group btn-group-sm">
-                                <button 
-                                  className="btn btn-outline-primary"
-                                  onClick={() => openPlanEditModal(plan)}
-                                  title="Edit Plan"
-                                >
-                                  <FaEdit />
-                                </button>
-                                <button 
-                                  className="btn btn-outline-success"
-                                  onClick={() => {
-                                    const days = prompt('Enter days to extend:');
-                                    if (days && !isNaN(days)) {
-                                      extendUserPlan(selectedUser.uid, plan._id, parseInt(days));
-                                    }
-                                  }}
-                                  title="Extend Plan"
-                                >
-                                  <FaPlus />
-                                </button>
-                                <select 
-                                  className="form-select form-select-sm"
-                                  style={{ width: 'auto' }}
-                                  value={plan.status}
-                                  onChange={(e) => updatePlanStatus(selectedUser.uid, plan._id, e.target.value)}
-                                >
-                                  <option value="active">Active</option>
-                                  <option value="expired">Expired</option>
-                                  <option value="cancelled">Cancelled</option>
-                                </select>
-                                <button 
-                                  className="btn btn-outline-danger"
-                                  onClick={() => removeUserPlan(selectedUser.uid, plan._id)}
-                                  title="Remove Plan"
-                                >
-                                  <FaTimes />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted">No plans assigned to this user</p>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setShowSubscriptionModal(true)}
-                    >
-                      <FaPlus className="me-2" />
-                      Assign First Plan
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowPlanManagementModal(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    
 
-      {/* Plan Edit Modal */}
-      {showPlanEditModal && editingPlan && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit Plan: {editingPlan.name}</h5>
-                <button 
-                  type="button" 
-                  className="btn-close"
-                  onClick={() => setShowPlanEditModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">End Date</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={planEditData.endDate}
-                    onChange={(e) => setPlanEditData({
-                      ...planEditData,
-                      endDate: e.target.value
-                    })}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Status</label>
-                  <select 
-                    className="form-select"
-                    value={planEditData.status}
-                    onChange={(e) => setPlanEditData({
-                      ...planEditData,
-                      status: e.target.value
-                    })}
-                  >
-                    <option value="active">Active</option>
-                    <option value="expired">Expired</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Duration (Days)</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={planEditData.durationDays}
-                    onChange={(e) => setPlanEditData({
-                      ...planEditData,
-                      durationDays: parseInt(e.target.value) || 0
-                    })}
-                    placeholder="Enter duration in days"
-                  />
-                </div>
-                <div className="alert alert-info">
-                  <strong>Current Plan Details:</strong><br/>
-                  Name: {editingPlan.name}<br/>
-                  Price: ₹{editingPlan.price}<br/>
-                  Original Duration: {editingPlan.durationDays} days
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowPlanEditModal(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-primary"
-                  onClick={savePlanEdit}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    
 
       {/* Transactions Modal */}
       {showTransactionsModal && selectedUser && (
@@ -1925,7 +1542,7 @@ const AdminUsers = () => {
                                 {transaction.type === 'deposit' && '💰'}
                                 {transaction.type === 'withdrawal' && '💸'}
                                 {transaction.type === 'withdrawal_rejected' && '↩️'}
-                                {transaction.type === 'plan_purchase' && '📦'}
+                                
                                 {transaction.type === 'referral_bonus' && '🎁'}
                                 {transaction.type === 'admin_credit' && '➕'}
                                 {transaction.type === 'admin_debit' && '➖'}
@@ -1949,9 +1566,6 @@ const AdminUsers = () => {
                           <td>
                             <div>
                               <div>{transaction.description}</div>
-                              {transaction.metadata?.planName && (
-                                <small className="text-muted">Plan: {transaction.metadata.planName}</small>
-                              )}
                               {transaction.metadata?.referredUserEmail && (
                                 <small className="text-muted">From: {transaction.metadata.referredUserEmail}</small>
                               )}
@@ -1959,12 +1573,13 @@ const AdminUsers = () => {
                           </td>
                           <td>
                             <span className={`badge ${
+                              
                               transaction.source === 'razorpay' ? 'bg-primary' :
                               transaction.source === 'wallet' ? 'bg-info' :
                               transaction.source === 'referral' ? 'bg-success' :
                               transaction.source === 'admin' ? 'bg-warning' :
                               transaction.source === 'trading' ? 'bg-purple' :
-                              transaction.source === 'plan_purchase' ? 'bg-info' :
+                              
                               transaction.source === 'withdrawal' ? 'bg-secondary' :
                               transaction.source === 'system' ? 'bg-dark' : 'bg-secondary'
                             }`}>

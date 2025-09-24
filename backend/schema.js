@@ -293,6 +293,21 @@ const userSchema = new mongoose.Schema({
       }
     },
 
+    // UPI deposit requests (manual verification flow)
+    upiDeposits: [{
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: () => new mongoose.Types.ObjectId()
+      },
+      upiTransactionId: { type: String, required: true, trim: true },
+      amount: { type: Number, required: true },
+      status: { type: String, enum: ['pending', 'completed', 'rejected'], default: 'pending' },
+      submittedAt: { type: Date, default: Date.now },
+      processedAt: { type: Date, default: null },
+      adminNote: { type: String, default: '' },
+      processedBy: { type: String, default: null }
+    }],
+
     // Transaction History
     transactions: [{
       type: {

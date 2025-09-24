@@ -29,6 +29,9 @@ export default function DashboardWallet() {
   const [withdrawType, setWithdrawType] = useState('wallet'); // 'wallet' or 'referral'
   const [loading, setLoading] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [upiTxnId, setUpiTxnId] = useState('');
+  const [upiAmount, setUpiAmount] = useState('');
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   // Bank details state
@@ -561,6 +564,13 @@ export default function DashboardWallet() {
                         Add Money to Wallet
                       </button>
                       <button
+                        className="btn btn-outline-success"
+                        onClick={() => setShowUpiModal(true)}
+                      >
+                        <i className="bi bi-qr-code me-2"></i>
+                        Deposit via UPI
+                      </button>
+                      <button
                         className="btn btn-outline-primary btn-sm d-md-none"
                         onClick={() => handleWithdrawClick('wallet')}
                         disabled={walletData.walletBalance < MIN_WITHDRAWAL_AMOUNT}
@@ -995,6 +1005,85 @@ export default function DashboardWallet() {
                   disabled={loading || !depositAmount || parseFloat(depositAmount) < MIN_DEPOSIT_AMOUNT}
                 >
                   {loading ? 'Processing...' : 'Proceed to Payment'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UPI Deposit Modal */}
+      {showUpiModal && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title fs-6 fs-md-5">Deposit using UPI</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowUpiModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body p-3 p-md-4">
+                <div className="text-center mb-3">
+                  <img src="/upi.jpg" alt="UPI QR" style={{ maxWidth: '220px', width: '100%' }} />
+                  <div className="small text-muted mt-2">Scan the QR with your UPI app and pay</div>
+                </div>
+                <div className="row g-2">
+                  <div className="col-12">
+                    <label className="form-label small fw-medium">UPI Transaction ID</label>
+                    <input
+                      className="form-control"
+                      placeholder="Enter UPI transaction/reference ID"
+                      value={upiTxnId}
+                      onChange={(e) => setUpiTxnId(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label small fw-medium">Amount (₹)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder={`Enter amount (min: ₹${MIN_DEPOSIT_AMOUNT})`}
+                      min={MIN_DEPOSIT_AMOUNT}
+                      value={upiAmount}
+                      onChange={(e) => setUpiAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="alert alert-warning mt-3">
+                  <small>
+                    After submitting, your UPI deposit will be reviewed. Money will be added to your wallet within 24 hours once verified.
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer d-flex gap-2 p-3 p-md-4">
+                <button className="btn btn-secondary flex-fill" onClick={() => setShowUpiModal(false)}>Cancel</button>
+                <button
+                  className="btn btn-success flex-fill"
+                  disabled={loading || !upiTxnId || !upiAmount || parseFloat(upiAmount) < MIN_DEPOSIT_AMOUNT}
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      await api.post('/wallet/upi-deposit', {
+                        uid: user.uid,
+                        upiTransactionId: upiTxnId.trim(),
+                        amount: parseFloat(upiAmount)
+                      });
+                      alert('UPI deposit submitted. We will verify and credit within 24 hours.');
+                      setUpiTxnId('');
+                      setUpiAmount('');
+                      setShowUpiModal(false);
+                    } catch (e) {
+                      console.error('UPI deposit error:', e);
+                      alert(e?.message || 'Failed to submit UPI deposit');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Submit
                 </button>
               </div>
             </div>

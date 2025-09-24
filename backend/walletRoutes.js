@@ -18,6 +18,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 const { User } = require('./schema');
 const Transaction = require('./models/Transaction');
 const Withdrawal = require('./models/Withdrawal');
+const NotificationService = require('./utils/notificationService');
 
 // Create Razorpay order for deposit
 router.post('/razorpay-order', async (req, res) => {
@@ -573,6 +574,120 @@ router.get('/referral-history/:uid', async (req, res) => {
       message: 'Failed to fetch referral history',
       error: error.message
     });
+  }
+});
+
+// Submit UPI deposit request
+router.post('/upi-deposit', async (req, res) => {
+  try {
+    const { uid, upiTransactionId, amount } = req.body;
+    if (!uid || !upiTransactionId || !amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Missing or invalid fields' });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (!user.profile) user.profile = {};
+    if (!user.profile.upiDeposits) user.profile.upiDeposits = [];
+
+    // Create a new UPI deposit entry
+    user.profile.upiDeposits.push({ upiTransactionId, amount, status: 'pending' });
+    await user.save();
+
+    // Notify user
+    await NotificationService.createNotification(
+      user._id,
+      'custom',
+      'UPI Transaction Under Process',
+      'UPI transaction under process, money will be added to your wallet within 24 hours',
+      { relatedType: 'transaction', metadata: { upiTransactionId, amount, method: 'upi' } }
+    );
+
+    return res.json({ success: true, message: 'UPI deposit submitted', upiDeposits: user.profile.upiDeposits });
+  } catch (error) {
+    console.error('UPI deposit submit error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to submit UPI deposit', error: error.message });
+  }
+});
+
+// Admin: list UPI deposits for a user
+router.get('/admin/upi-deposits/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    return res.json({ success: true, deposits: user.profile?.upiDeposits || [] });
+  } catch (error) {
+    console.error('List UPI deposits error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to list UPI deposits', error: error.message });
+  }
+});
+
+// Admin: process UPI deposit (complete or reject)
+router.put('/admin/upi-deposits/:uid/:depositId', async (req, res) => {
+  try {
+    const { uid, depositId } = req.params;
+    const { action, adminNote } = req.body; // action: 'complete' | 'reject'
+    if (!['complete', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action' });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const entry = user.profile?.upiDeposits?.id(depositId);
+    if (!entry) return res.status(404).json({ success: false, message: 'UPI deposit entry not found' });
+
+    if (entry.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'This UPI request is already processed' });
+    }
+
+    entry.processedAt = new Date();
+    entry.adminNote = adminNote || entry.adminNote;
+    entry.processedBy = req.admin?._id?.toString() || 'admin';
+
+    if (action === 'complete') {
+      entry.status = 'completed';
+
+      // Initialize wallet if needed
+      if (!user.profile.wallet) {
+        user.profile.wallet = { walletBalance: 0, referralBalance: 0, totalDeposits: 0, totalWithdrawals: 0, currency: 'INR' };
+      }
+      user.profile.wallet.walletBalance += entry.amount;
+      user.profile.wallet.totalDeposits += entry.amount;
+
+      // Create transaction
+      const txn = new Transaction({
+        userId: user._id,
+        type: 'deposit',
+        amount: entry.amount,
+        balanceAfter: user.profile.wallet.walletBalance,
+        description: `Wallet deposit via UPI - Ref: ${entry.upiTransactionId}`,
+        status: 'completed',
+        source: 'upi',
+        category: 'deposit',
+        metadata: { upiTransactionId: entry.upiTransactionId, method: 'upi' },
+        processedAt: new Date(),
+        processedBy: 'admin'
+      });
+      await txn.save();
+
+      await NotificationService.notifyDeposit(user._id, entry.amount, 'UPI');
+    } else {
+      entry.status = 'rejected';
+      await NotificationService.notifyCustom(
+        user._id,
+        'UPI Deposit Rejected',
+        `Your UPI deposit request was rejected.${adminNote ? ' Reason: ' + adminNote : ''}`,
+        'high'
+      );
+    }
+
+    await user.save();
+    return res.json({ success: true, message: 'UPI deposit updated', deposit: entry });
+  } catch (error) {
+    console.error('Process UPI deposit error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to process UPI deposit', error: error.message });
   }
 });
 

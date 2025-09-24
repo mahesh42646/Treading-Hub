@@ -45,6 +45,7 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     enum: [
       'razorpay',          // Razorpay payment gateway
+      'upi',               // UPI manual deposits
       'wallet',            // Internal wallet transfer
       'referral',          // Referral system
       'admin',             // Admin action

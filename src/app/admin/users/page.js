@@ -71,6 +71,7 @@ const AdminUsers = () => {
   });
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [userTransactions, setUserTransactions] = useState([]);
+  const [upiDeposits, setUpiDeposits] = useState([]);
   const [transactionSummary, setTransactionSummary] = useState({
     totalDeposits: 0,
     totalWithdrawals: 0,
@@ -236,6 +237,9 @@ const AdminUsers = () => {
           referralBalance: walletData.referralBalance || 0
         });
         setActiveTab('details');
+
+        // Load UPI deposits for this user
+        await fetchUpiDeposits(uid);
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -544,6 +548,51 @@ const AdminUsers = () => {
     return <span className={`badge ${config.class}`}>{config.text}</span>;
   };
 
+  const fetchUpiDeposits = async (uid) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/admin/upi-deposits/${uid}`, {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUpiDeposits(data.deposits || []);
+      }
+    } catch (e) {
+      console.error('Error loading UPI deposits:', e);
+    }
+  };
+
+  const processUpiDeposit = async (uid, depositId, action) => {
+    if (!['complete', 'reject'].includes(action)) return;
+    if (action === 'complete') {
+      const ok = confirm('Approve this UPI deposit and credit amount to user wallet?');
+      if (!ok) return;
+    }
+    let adminNote = '';
+    if (action === 'reject') {
+      adminNote = prompt('Enter rejection note (optional):') || '';
+    }
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/admin/upi-deposits/${uid}/${depositId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action, adminNote })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(action === 'complete' ? 'Deposit approved and wallet credited' : 'Deposit rejected');
+        await fetchUpiDeposits(uid);
+        await fetchUserDetails(uid);
+      } else {
+        alert(data.message || 'Failed to update UPI deposit');
+      }
+    } catch (e) {
+      console.error('Process UPI deposit error:', e);
+      alert('Failed to update UPI deposit');
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
@@ -838,7 +887,8 @@ const AdminUsers = () => {
                   <strong>UID:</strong><br/>
                   <span className="text-muted">{selectedUser.uid}</span>
                 </div>
-                <div className="mb-3">
+               <div className="d-flex justify-content-between align-items-center">
+               <div className="mb-3">
                   <strong>Joined:</strong><br/>
                   <span className="text-muted">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
                 </div>
@@ -857,6 +907,7 @@ const AdminUsers = () => {
                   ) : (
                     <span className="badge bg-secondary">Not Started</span>
                   )}
+                </div>
                 </div>
                 
                 {/* KYC Actions */}
@@ -1131,6 +1182,73 @@ const AdminUsers = () => {
                       Assign First Challenge
                     </button>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* UPI Deposit Requests */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="card-title mb-0">
+                    <i className="bi bi-qr-code me-2"></i>
+                    UPI Deposit Requests
+                  </h5>
+                </div>
+                {upiDeposits && upiDeposits.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Submitted</th>
+                          <th>Txn ID</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                          <th>Processed</th>
+                          <th>Note</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {upiDeposits.map(d => (
+                          <tr key={d._id}>
+                            <td>{new Date(d.submittedAt).toLocaleString()}</td>
+                            <td><code>{d.upiTransactionId}</code></td>
+                            <td>₹{Number(d.amount).toFixed(2)}</td>
+                            <td>
+                              <span className={`badge ${d.status === 'pending' ? 'bg-warning' : d.status === 'completed' ? 'bg-success' : 'bg-danger'}`}>{d.status}</span>
+                            </td>
+                            <td>{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</td>
+                            <td className="text-truncate" style={{ maxWidth: '200px' }}>{d.adminNote || '-'}</td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button
+                                  className="btn btn-outline-success"
+                                  disabled={d.status !== 'pending'}
+                                  onClick={() => processUpiDeposit(selectedUser.uid, d._id, 'complete')}
+                                  title="Approve & Credit"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  className="btn btn-outline-danger"
+                                  disabled={d.status !== 'pending'}
+                                  onClick={() => processUpiDeposit(selectedUser.uid, d._id, 'reject')}
+                                  title="Reject"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted">No UPI deposit requests</div>
                 )}
               </div>
             </div>

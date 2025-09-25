@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setting up automated deployment for Trading Hub..."
+echo "🚀 Setting up automated deployment for Xfunding Flow..."
 
 # Install PM2 globally if not installed
 if ! command -v pm2 &> /dev/null; then

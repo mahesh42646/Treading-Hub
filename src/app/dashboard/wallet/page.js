@@ -232,7 +232,7 @@ export default function DashboardWallet() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'Trading Hub',
+        name: 'Xfunding Flow',
         description: 'Wallet Deposit',
         order_id: orderData.id,
         handler: async function (response) {

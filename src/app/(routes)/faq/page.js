@@ -34,12 +34,12 @@ const FAQPage = () => {
 
   // Mock data for most viewed articles
   const mostViewedArticles = [
-    "What Is The Copy Trading Rule at Trading Hub?",
+    "What Is The Copy Trading Rule at Xfunding Flow?",
     "What are the Restricted/Prohibited Trading Strategies?",
     "How can I calculate the Daily Loss Limit?",
     "How can I complete the KYC verification process?",
     "What Will Be My Profit Share from the Challenge?",
-    "Does Trading Hub offer a Scale-Up plan?",
+    "Does Xfunding Flow offer a Scale-Up plan?",
     "How can I Withdraw my profits?",
     "What is slippage? Understanding Slippage in Trading"
   ];
@@ -47,12 +47,12 @@ const FAQPage = () => {
   // Mock data for FAQ categories
   const faqCategories = [
     { name: "General FAQ", icon: FaQuestionCircle, count: 62, color: "purple" },
-    { name: "About Trading Hub", icon: FaBook, count: 18, color: "blue" },
+    { name: "About Xfunding Flow", icon: FaBook, count: 18, color: "blue" },
     { name: "1-Step Challenge FAQ", icon: FaUser, count: 9, color: "blue" },
     { name: "2-Step Challenge FAQ", icon: FaShieldAlt, count: 11, color: "orange" },
     { name: "Lite Challenge FAQ", icon: FaRocket, count: 11, color: "orange" },
     { name: "Instant Challenge", icon: FaStar, count: 28, color: "purple" },
-    { name: "Trading Hub Features", icon: FaSearch, count: 20, color: "purple" },
+    { name: "Xfunding Flow Features", icon: FaSearch, count: 20, color: "purple" },
     { name: "Trading Basics", icon: FaLaptop, count: 8, color: "blue" },
     { name: "Trading Rules & Guidelines", icon: FaBalanceScale, count: 19, color: "blue" },
     { name: "Dashboard FAQ", icon: FaChartBar, count: 17, color: "orange" },

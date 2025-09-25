@@ -365,7 +365,7 @@ export default function Footer() {
         <div className="row align-items-center">
           <div className="col-md-6">
             <p className="mb-0 text-secondry" style={{ color: '#64748b' }}>
-              © 2023 FUNDEDNEXT. All rights reserved.
+              © 2023 Xfunding Flow. All rights reserved.
             </p>
           </div>
         </div>

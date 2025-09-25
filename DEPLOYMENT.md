@@ -1,4 +1,4 @@
-# 🚀 Trading Hub Deployment Guide
+# 🚀 Xfunding Flow Deployment Guide
 
 ## Prerequisites
 

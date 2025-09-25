@@ -66,7 +66,7 @@ pm2 restart trading-hub-webhook
 
 - **3000**: Your main app
 - **3001**: Another service
-- **3002**: Trading Hub (your project)
+- **3002**: Xfunding Flow (your project)
 - **3009**: Webhook server (new)
 
 ## Troubleshooting

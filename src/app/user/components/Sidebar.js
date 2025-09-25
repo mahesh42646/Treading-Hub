@@ -99,7 +99,7 @@ const Sidebar = () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             {!isCollapsed && (
               <div className="text-center flex-grow-1">
-                <h5 className="text-primary fw-bold mb-0">Trading Hub</h5>
+                <h5 className="text-primary fw-bold mb-0">Xfunding Flow</h5>
                 <small className="text-white">Professional Trading Platform</small>
               </div>
             )}

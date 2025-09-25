@@ -1,8 +1,8 @@
-# Trading Hub - Referral & Wallet System Implementation
+# Xfunding Flow - Referral & Wallet System Implementation
 
 ## Overview
 
-This document outlines the comprehensive referral and wallet system implementation for the Trading Hub platform. The system includes referral tracking, wallet management, Razorpay integration, and responsive dashboard improvements.
+This document outlines the comprehensive referral and wallet system implementation for the Xfunding Flow platform. The system includes referral tracking, wallet management, Razorpay integration, and responsive dashboard improvements.
 
 ## 🚀 Key Features Implemented
 

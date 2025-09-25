@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Server Deployment Script for Trading Hub"
+echo "🚀 Server Deployment Script for Xfunding Flow"
 echo "==========================================="
 
 # Change to project directory

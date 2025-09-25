@@ -12,7 +12,7 @@ export default function Home() {
 
   
 
-      {/* Hero Section - Exact FUNDEDNEXT Style */}
+      {/* Hero Section - Exact Xfunding Flow Style */}
       <section
         className="hero-section hero--landing position-relative overflow-hidden pt-lg-5 pb-lg-0"
         style={{
@@ -38,7 +38,7 @@ export default function Home() {
 </h1>
 
 
-              {/* Key Features - Exact FUNDEDNEXT Layout */}
+              {/* Key Features - Exact Xfunding Flow Layout */}
               <div className="row mb-1 hero-features py-lg-3">
                 <div className="col-6 mb-4">
                   <div className="d-flex align-items-center mb-2">
@@ -146,7 +146,7 @@ export default function Home() {
                     <div className="row text-center justify-content-center ">
                       <div className="col-4 col-md-4 ">
                         <div className="h2 fw-bold text-white mb-1 hero-stat-number">156+</div>
-                        <div className="text-white small">FundedNext Accounts</div>
+                        <div className="text-white small">Xfunding Flow Accounts</div>
                       </div>
                       <div className="col-4 col-md-4 ">
                         <div className="h2 fw-bold text-white mb-1 hero-stat-number">520+</div>

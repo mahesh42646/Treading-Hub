@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Trading Hub Database Seeding..."
+echo "🚀 Starting Xfunding Flow Database Seeding..."
 
 # Navigate to backend directory
 cd backend

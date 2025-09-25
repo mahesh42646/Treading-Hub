@@ -42,7 +42,7 @@ const AboutPage = () => {
           <div className="row justify-content-center text-center">
             <div className="col-lg-8 ">
               <h1 className=" display-5 display-md-3 display-sm-5 fw-bold mb-4">
-                Meet the Team Behind <span className="text-info"> <br/>Trading Hub</span>
+                Meet the Team Behind <span className="text-info"> <br/>Xfunding Flow</span>
               </h1>
               <p className="lead mb-5">
                 We are a passionate team dedicated to empowering traders with the tools, 
@@ -59,7 +59,7 @@ const AboutPage = () => {
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Meet Our <span className="text-info">Team</span></h2>
-            <p className="lead text-muted">The passionate individuals behind Trading Hub&apos;s success</p>
+            <p className="lead text-muted">The passionate individuals behind Xfunding Flow&apos;s success</p>
           </div>
 
           {error && (
@@ -218,7 +218,7 @@ const AboutPage = () => {
                 fontWeight: 'bold',
                 margin: '0 auto'
               }}>
-                Trading Hub
+                Xfunding Flow
               </div>
             </div>
           </div>
@@ -278,7 +278,7 @@ const AboutPage = () => {
       <section className="py-5 bg-light">
         <div className="container">
           <h2 className="text-center display-5 fw-bold mb-5">
-            <span className="text-info">Trading Hub</span> Office Tour
+            <span className="text-info">Xfunding Flow</span> Office Tour
           </h2>
           <div className="row g-4">
             {[1, 2, 3, 4].map((i) => (
@@ -308,7 +308,7 @@ const AboutPage = () => {
       <section className="py-5">
         <div className="container">
           <h2 className="text-center display-5 fw-bold mb-5">
-            <span className="text-info">Trading Hub</span> Global Meet-Up and Conferences
+            <span className="text-info">Xfunding Flow</span> Global Meet-Up and Conferences
           </h2>
           <div className="row g-4">
             <div className="col-lg-8">

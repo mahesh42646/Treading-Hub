@@ -1,6 +1,6 @@
-# Trading Hub Backend
+# Xfunding Flow Backend
 
-A scalable Node.js backend API for the Trading Hub platform built with Express and MongoDB.
+A scalable Node.js backend API for the Xfunding Flow platform built with Express and MongoDB.
 
 ## Features
 

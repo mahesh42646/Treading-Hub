@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Trading Hub Deployment..."
+echo "🚀 Starting Xfunding Flow Deployment..."
 
 # Colors for output
 RED='\033[0;31m'

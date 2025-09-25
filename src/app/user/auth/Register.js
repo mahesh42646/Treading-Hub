@@ -269,7 +269,7 @@ const Register = () => {
                     color: '#198754'
                   }}>
                     <small>
-                      <strong>🎉 Referral Bonus:</strong> You&apos;ve been referred by {referrerName || 'a Trading Hub member'}. 
+                      <strong>🎉 Referral Bonus:</strong> You&apos;ve been referred by {referrerName || 'a Xfunding Flow member'}. 
                       Complete your profile and make your first deposit to earn your referrer 20% of your deposit amount!
                     </small>
                   </div>
@@ -344,7 +344,7 @@ const Register = () => {
                       <div>
                         <div className="fw-bold">🎉 You&apos;ve been referred!</div>
                         <small>
-                          Invited by <strong>{referrerName || 'a Trading Hub member'}</strong>. 
+                          Invited by <strong>{referrerName || 'a Xfunding Flow member'}</strong>. 
                           Complete registration and get special benefits!
                         </small>
                       </div>

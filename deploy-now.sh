@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Manual deployment script for Trading Hub..."
+echo "🚀 Manual deployment script for Xfunding Flow..."
 
 # Change to project directory
 cd /var/www/Ubuntu/Treading-Hub

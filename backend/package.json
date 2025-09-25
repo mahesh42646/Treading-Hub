@@ -1,7 +1,7 @@
 {
   "name": "trading-hub-backend",
   "version": "1.0.0",
-  "description": "Backend API for Trading Hub platform",
+  "description": "Backend API for Xfunding Flow platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -16,7 +16,7 @@
     "express",
     "mongodb"
   ],
-  "author": "Trading Hub",
+  "author": "Xfunding Flow",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.5.0",

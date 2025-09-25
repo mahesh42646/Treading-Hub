@@ -1,4 +1,4 @@
-# Trading Hub Database Setup & Seeded Data
+# Xfunding Flow Database Setup & Seeded Data
 
 ## Overview
 This document outlines the database setup, seeded data, and how to access it in both admin dashboard and user-side pages.
@@ -65,7 +65,7 @@ This document outlines the database setup, seeded data, and how to access it in 
 - Security measures
 
 ### News Articles (5 total)
-- Trading Hub Mobile App Launch
+- Xfunding Flow Mobile App Launch
 - Bitcoin All-Time High
 - Regulatory Framework Updates
 - AI-Powered Trading Tools
@@ -200,4 +200,4 @@ This will check all API endpoints and confirm the data is properly seeded and ac
 - Trading statistics are realistic for demonstration purposes
 - All content follows the trading/financial theme
 
-The database is now fully populated with comprehensive, realistic data that demonstrates all features of the Trading Hub platform.
+The database is now fully populated with comprehensive, realistic data that demonstrates all features of the Xfunding Flow platform.

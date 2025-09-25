@@ -41,7 +41,7 @@ const DisclaimerPage = () => {
 
                 <h2 className="h4 mb-4">Regulatory Compliance</h2>
                 <p className="mb-4">
-                  Trading Hub operates in compliance with applicable laws and regulations. 
+                  Xfunding Flow operates in compliance with applicable laws and regulations. 
                   However, trading regulations may vary by jurisdiction, and it is your responsibility 
                   to ensure compliance with local laws.
                 </p>
@@ -55,7 +55,7 @@ const DisclaimerPage = () => {
 
                 <h2 className="h4 mb-4">Limitation of Liability</h2>
                 <p className="mb-4">
-                  To the maximum extent permitted by law, Trading Hub shall not be liable for any 
+                  To the maximum extent permitted by law, Xfunding Flow shall not be liable for any 
                   direct, indirect, incidental, special, or consequential damages arising from 
                   the use of our services.
                 </p>

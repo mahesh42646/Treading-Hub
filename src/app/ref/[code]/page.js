@@ -107,9 +107,9 @@ export default function ReferralPage() {
              style={{ width: '80px', height: '80px' }}>
           <i className="bi bi-check-circle text-white fs-1"></i>
         </div>
-        <h4 className="text-success mb-3">Welcome to Trading Hub!</h4>
+        <h4 className="text-success mb-3">Welcome to Xfunding Flow!</h4>
         <p className="text-muted mb-2">
-          You&apos;ve been invited by <strong>{referralData?.referrerName || 'a Trading Hub member'}</strong>
+          You&apos;ve been invited by <strong>{referralData?.referrerName || 'a Xfunding Flow member'}</strong>
         </p>
         <p className="text-muted mb-4">
           Creating your account...
@@ -118,7 +118,7 @@ export default function ReferralPage() {
         <div className="alert alert-info d-inline-block text-start">
           <h6 className="alert-heading">🎉 Special Benefits:</h6>
           <ul className="mb-0 small">
-            <li>Get started with Trading Hub</li>
+            <li>Get started with Xfunding Flow</li>
             <li>Complete your profile to unlock features</li>
             <li>Make your first deposit to activate account</li>
             <li>Your referrer will earn ₹200 bonus when you complete setup</li>

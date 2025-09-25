@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const NotificationDropdown = () => {
+const NotificationDropdown = ({ isOpen, onToggle }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const dropdownRef = useRef(null);
@@ -176,13 +175,13 @@ const NotificationDropdown = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+        onToggle(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [onToggle]);
 
   if (!user) {
     console.log('No user found, hiding notification dropdown');
@@ -193,7 +192,7 @@ const NotificationDropdown = () => {
     <div className="position-relative" ref={dropdownRef}>
       <button
         className="btn btn-link text-dark position-relative"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         style={{ padding: '8px' }}
         title="Notifications"
       >
@@ -210,9 +209,12 @@ const NotificationDropdown = () => {
           className="position-absolute end-0 mt-2 bg-white border rounded shadow-lg"
           style={{ 
             width: '350px', 
+            maxWidth: 'calc(100vw - 20px)',
             maxHeight: '400px', 
             zIndex: 1050,
-            top: '100%'
+            top: '100%',
+            right: '0',
+            left: 'auto'
           }}
         >
           <div className="d-flex justify-content-between align-items-center p-3 border-bottom">

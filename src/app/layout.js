@@ -12,15 +12,15 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Treading Hub - Funded Trading Programs",
+  title: "xfunding Flow - Funded Trading Programs",
   description: "Join thousands of successful traders with our funded trading programs. Get funded up to $200,000 and keep up to 90% of your profits.",
   keywords: "funded trading, trading programs, forex trading, stock trading, trading education",
-  authors: [{ name: "Treading Hub" }],
+  authors: [{ name: "xfunding Flow" }],
   openGraph: {
-    title: "Treading Hub - Funded Trading Programs",
+    title: "xfunding Flow - Funded Trading Programs",
     description: "Join thousands of successful traders with our funded trading programs.",
-    url: "https://treadinghub.com",
-    siteName: "Treading Hub",
+    url: "https://xfundingflow.com",
+    siteName: "xfunding Flow",
     images: [
       {
         url: "/og-image.jpg",
@@ -33,7 +33,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Treading Hub - Funded Trading Programs",
+    title: "xfunding Flow - Funded Trading Programs",
     description: "Join thousands of successful traders with our funded trading programs.",
     images: ["/og-image.jpg"],
   },

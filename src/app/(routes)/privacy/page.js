@@ -129,7 +129,7 @@ export default function Privacy() {
                     If you have any questions about this Privacy Policy or our data practices, please contact us:
                   </p>
                   <div className="bg-light p-3 rounded">
-                    <p className="mb-1"><strong>Email:</strong> privacy@treadinghub.com</p>
+                    <p className="mb-1"><strong>Email:</strong> privacy@xfundingflow.com</p>
                     <p className="mb-1"><strong>Phone:</strong> +1 (555) 123-4567</p>
                     <p className="mb-0"><strong>Address:</strong> 123 Trading Street, Financial District, New York, NY 10001</p>
                   </div>
@@ -137,7 +137,7 @@ export default function Privacy() {
                   <div className="mt-4 p-3 bg-info bg-opacity-10 rounded">
                     <h6 className="text-info">Data Protection Officer</h6>
                     <p className="mb-0 text-muted">
-                      For EU residents, you can contact our Data Protection Officer at: dpo@treadinghub.com
+                      For EU residents, you can contact our Data Protection Officer at: dpo@xfundingflow.com
                     </p>
                   </div>
                 </div>

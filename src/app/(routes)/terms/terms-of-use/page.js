@@ -32,14 +32,14 @@ export default function TermsOfUse() {
 
                   <h4 className="mb-3">1. Agreement to Terms</h4>
                   <p className="mb-4">
-                    By accessing and using Treading Hub&apos;s website, mobile application, and services (collectively, 
+                    By accessing and using xfunding Flow&apos;s website, mobile application, and services (collectively, 
                     the &quot;Service&quot;), you agree to be bound by these Terms of Use (&quot;Terms&quot;). If you do not agree 
                     to these Terms, you may not access or use our Service.
                   </p>
 
                   <h4 className="mb-3">2. Description of Service</h4>
                   <p className="mb-4">
-                    Treading Hub provides a proprietary trading platform that offers funded trading programs, 
+                    xfunding Flow provides a proprietary trading platform that offers funded trading programs, 
                     evaluation challenges, and educational resources for traders. Our Service includes:
                   </p>
                   <ul className="mb-4">
@@ -83,7 +83,7 @@ export default function TermsOfUse() {
                     <li>You understand the risks involved in trading</li>
                     <li>You can afford to lose the money you invest</li>
                     <li>Past performance does not guarantee future results</li>
-                    <li>You will not hold Treading Hub liable for trading losses</li>
+                    <li>You will not hold xfunding Flow liable for trading losses</li>
                     <li>You will comply with all trading rules and restrictions</li>
                   </ul>
 
@@ -142,7 +142,7 @@ export default function TermsOfUse() {
 
                   <h4 className="mb-3">10. Intellectual Property Rights</h4>
                   <p className="mb-4">
-                    The Service and its original content, features, and functionality are owned by Treading Hub 
+                    The Service and its original content, features, and functionality are owned by xfunding Flow 
                     and are protected by international copyright, trademark, patent, trade secret, and other 
                     intellectual property laws. You may not:
                   </p>
@@ -167,14 +167,14 @@ export default function TermsOfUse() {
                     not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement.
                   </p>
                   <p className="mb-4">
-                    <strong>Limitation of Liability:</strong> In no event shall Treading Hub be liable for any indirect, 
+                    <strong>Limitation of Liability:</strong> In no event shall xfunding Flow be liable for any indirect, 
                     incidental, special, consequential, or punitive damages, including without limitation, loss of profits, 
                     data, use, goodwill, or other intangible losses, resulting from your use of the Service.
                   </p>
 
                   <h4 className="mb-3">13. Indemnification</h4>
                   <p className="mb-4">
-                    You agree to defend, indemnify, and hold harmless Treading Hub and its officers, directors, 
+                    You agree to defend, indemnify, and hold harmless xfunding Flow and its officers, directors, 
                     employees, and agents from and against any claims, damages, obligations, losses, liabilities, 
                     costs, or debt, and expenses (including attorney&apos;s fees) arising from:
                   </p>
@@ -195,7 +195,7 @@ export default function TermsOfUse() {
                   <h4 className="mb-3">15. Governing Law and Dispute Resolution</h4>
                   <p className="mb-4">
                     These Terms shall be governed by and construed in accordance with the laws of the jurisdiction 
-                    in which Treading Hub operates, without regard to its conflict of law provisions. Any disputes 
+                    in which xfunding Flow operates, without regard to its conflict of law provisions. Any disputes 
                     arising from these Terms or your use of the Service shall be resolved through binding arbitration 
                     in accordance with the rules of the American Arbitration Association.
                   </p>
@@ -211,7 +211,7 @@ export default function TermsOfUse() {
                   <p className="mb-4">
                     If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining 
                     provisions of these Terms will remain in effect. These Terms constitute the entire agreement 
-                    between you and Treading Hub regarding the use of the Service.
+                    between you and xfunding Flow regarding the use of the Service.
                   </p>
 
                   <h4 className="mb-3">18. Contact Information</h4>
@@ -219,7 +219,7 @@ export default function TermsOfUse() {
                     If you have any questions about these Terms of Use, please contact us:
                   </p>
                   <div className="bg-light p-3 rounded">
-                    <p className="mb-1"><strong>Email:</strong> legal@treadinghub.com</p>
+                    <p className="mb-1"><strong>Email:</strong> legal@xfundingflow.com</p>
                     <p className="mb-1"><strong>Phone:</strong> +1 (555) 123-4567</p>
                     <p className="mb-1"><strong>Address:</strong> 123 Trading Street, Financial District, New York, NY 10001</p>
                     <p className="mb-0"><strong>Support Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM EST</p>

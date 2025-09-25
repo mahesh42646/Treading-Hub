@@ -76,23 +76,7 @@ const AdminDashboard = () => {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">Dashboard</h1>
-        <div className="d-flex gap-2">
-          <button 
-            className="btn btn-warning btn-sm"
-            onClick={handleRecalculateReferrals}
-          >
-            <FaChartLine className="me-1" />
-            Recalculate Referrals
-          </button>
-          <button className="btn btn-primary btn-sm">
-            <FaPlus className="me-1" />
-            Add User
-          </button>
-          <button className="btn btn-outline-primary btn-sm">
-            <FaEye className="me-1" />
-            View Reports
-          </button>
-        </div>
+   
       </div>
 
       {/* Stats Cards */}

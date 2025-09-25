@@ -6,7 +6,7 @@
 
 ```bash
 # Navigate to your project
-cd /var/www/Ubuntu/Treading-Hub
+cd /var/www/Ubuntu/Xfunding-Flow
 
 # Make scripts executable
 chmod +x setup-deploy.sh deploy-now.sh webhook-server.js

@@ -32,13 +32,13 @@ export default function Terms() {
 
                   <h4 className="mb-3">1. Acceptance of Terms</h4>
                   <p className="mb-4">
-                    By accessing and using Treading Hub&apos;s services, you accept and agree to be bound by the terms 
+                    By accessing and using xfunding Flow&apos;s services, you accept and agree to be bound by the terms 
                     and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
                   </p>
 
                   <h4 className="mb-3">2. Description of Service</h4>
                   <p className="mb-4">
-                    Treading Hub provides funded trading programs where traders can demonstrate their skills 
+                    xfunding Flow provides funded trading programs where traders can demonstrate their skills 
                     and potentially receive funding to trade with real capital. Our services include evaluation 
                     programs, trading education, and platform access.
                   </p>
@@ -98,7 +98,7 @@ export default function Terms() {
 
                   <h4 className="mb-3">10. Intellectual Property</h4>
                   <p className="mb-4">
-                    All content, features, and functionality of our service are owned by Treading Hub and are 
+                    All content, features, and functionality of our service are owned by xfunding Flow and are 
                     protected by international copyright, trademark, and other intellectual property laws.
                   </p>
 
@@ -110,7 +110,7 @@ export default function Terms() {
 
                   <h4 className="mb-3">12. Limitation of Liability</h4>
                   <p className="mb-4">
-                    In no event shall Treading Hub be liable for any indirect, incidental, special, consequential, 
+                    In no event shall xfunding Flow be liable for any indirect, incidental, special, consequential, 
                     or punitive damages, including without limitation, loss of profits, data, use, goodwill, or 
                     other intangible losses.
                   </p>
@@ -124,7 +124,7 @@ export default function Terms() {
                   <h4 className="mb-3">14. Governing Law</h4>
                   <p className="mb-4">
                     These Terms shall be interpreted and governed by the laws of the jurisdiction in which 
-                    Treading Hub operates, without regard to its conflict of law provisions.
+                    xfunding Flow operates, without regard to its conflict of law provisions.
                   </p>
 
                   <h4 className="mb-3">15. Changes to Terms</h4>
@@ -138,7 +138,7 @@ export default function Terms() {
                     If you have any questions about these Terms, please contact us at:
                   </p>
                   <div className="bg-light p-3 rounded">
-                    <p className="mb-1"><strong>Email:</strong> legal@treadinghub.com</p>
+                    <p className="mb-1"><strong>Email:</strong> legal@xfundingflow.com</p>
                     <p className="mb-1"><strong>Phone:</strong> +1 (555) 123-4567</p>
                     <p className="mb-0"><strong>Address:</strong> 123 Trading Street, Financial District, New York, NY 10001</p>
                   </div>

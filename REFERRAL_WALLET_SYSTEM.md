@@ -76,7 +76,7 @@ backend/
 ## 💰 Referral Bonus System
 
 ### How It Works
-1. User shares referral link: `https://treadinghub.com/ref/ABC123`
+1. User shares referral link: `https://xfundingflow.com/ref/ABC123`
 2. New user clicks link and gets redirected to registration
 3. Referral code is automatically applied during registration
 4. When referred user completes profile (100%) and makes first deposit
@@ -151,7 +151,7 @@ npm install
 
 # Set environment variables
 NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
-NEXT_PUBLIC_BASE_URL=https://treadinghub.com
+NEXT_PUBLIC_BASE_URL=https://xfundingflow.com
 
 # Run development server
 npm run dev
@@ -205,7 +205,7 @@ referral: {
 
 ### Referral Flow
 1. User A has referral code: `ABC123`
-2. User A shares link: `https://treadinghub.com/ref/ABC123`
+2. User A shares link: `https://xfundingflow.com/ref/ABC123`
 3. User B clicks link → redirected to referral validation page
 4. User B registers → referral code automatically applied
 5. User B completes profile and makes first deposit
@@ -263,7 +263,7 @@ curl -X POST "http://localhost:9988/api/wallet/razorpay-order" \
 ```env
 # Frontend
 NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_...
-NEXT_PUBLIC_BASE_URL=https://treadinghub.com
+NEXT_PUBLIC_BASE_URL=https://xfundingflow.com
 
 # Backend
 RAZORPAY_KEY_ID=rzp_test_...

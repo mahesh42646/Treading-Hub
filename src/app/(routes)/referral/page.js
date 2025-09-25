@@ -78,7 +78,7 @@ export default function Referral() {
   };
 
   const shareReferral = (platform) => {
-    const text = `Join Treading Hub and start your trading journey! Use my referral code: ${referralCode}`;
+    const text = `Join xfunding Flow and start your trading journey! Use my referral code: ${referralCode}`;
     const url = referralLink;
     
     let shareUrl = '';

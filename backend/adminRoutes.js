@@ -11,6 +11,7 @@ const Plan = require('./models/Plan');
 const Challenge = require('./models/Challenge');
 const Transaction = require('./models/Transaction');
 const NotificationService = require('./utils/notificationService');
+const SupportTicket = require('./models/SupportTicket');
 // Admin: create or update a challenge config
 router.post('/challenges', verifyAdminAuth, async (req, res) => {
   try {
@@ -143,6 +144,155 @@ router.post('/login', (req, res) => {
     res.json({ success: true, token: result.token });
   } else {
     res.status(401).json(result);
+  }
+});
+
+// ===== SUPPORT TICKET MANAGEMENT (ADMIN) =====
+
+// List all support tickets
+router.get('/support/tickets', verifyAdminAuth, async (req, res) => {
+  try {
+    const { status = '', category = '', search = '' } = req.query;
+    const query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+    if (search) {
+      query.$or = [
+        { subject: { $regex: search, $options: 'i' } },
+        { message: { $regex: search, $options: 'i' } },
+        { userEmail: { $regex: search, $options: 'i' } },
+        { ticketId: { $regex: search, $options: 'i' } }
+      ];
+    }
+    const tickets = await SupportTicket.find(query).sort({ lastActivity: -1, createdAt: -1 });
+    res.json({ success: true, tickets });
+  } catch (error) {
+    console.error('Admin list tickets error:', error);
+    res.status(500).json({ success: false, message: 'Failed to list tickets', error: error.message });
+  }
+});
+
+// Get ticket details (with user info/kyc)
+router.get('/support/ticket/:ticketId', verifyAdminAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    // Map uid -> user profile info
+    let userInfo = null;
+    try {
+      const user = await User.findOne({ uid: ticket.userId });
+      if (user) {
+        userInfo = {
+          uid: user.uid,
+          email: user.email,
+          phone: user.profile?.personalInfo?.phone || null,
+          personalInfo: user.profile?.personalInfo || null,
+          kyc: user.profile?.kyc || null
+        };
+      }
+    } catch (_) {}
+
+    res.json({ success: true, ticket, user: userInfo });
+  } catch (error) {
+    console.error('Admin get ticket error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load ticket', error: error.message });
+  }
+});
+
+// Add admin response to a ticket
+router.post('/support/ticket/:ticketId/response', verifyAdminAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ success: false, message: 'Message is required' });
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    ticket.responses.push({ from: 'admin', message, timestamp: new Date() });
+    ticket.status = ticket.status === 'open' ? 'in_progress' : ticket.status;
+    await ticket.save();
+
+    // Optional: notify user about admin reply
+    try {
+      const user = await User.findOne({ uid: ticket.userId });
+      if (user) {
+        await NotificationService.createNotification(
+          user._id,
+          'system',
+          'Support replied to your ticket',
+          `Ticket ${ticket.ticketId}: ${message.substring(0, 140)}...`,
+          {
+            priority: 'medium',
+            relatedType: 'support_ticket',
+            relatedId: ticket._id,
+            metadata: { ticketId: ticket.ticketId }
+          }
+        );
+      }
+    } catch (e) {
+      console.warn('Notification on ticket response failed:', e?.message);
+    }
+
+    res.json({ success: true, message: 'Response added', ticket });
+  } catch (error) {
+    console.error('Admin add ticket response error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add response', error: error.message });
+  }
+});
+
+// Update ticket status (notify on resolve)
+router.put('/support/ticket/:ticketId/status', verifyAdminAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { status } = req.body;
+    if (!status) return res.status(400).json({ success: false, message: 'Status is required' });
+
+    const valid = ['open', 'in_progress', 'resolved', 'closed'];
+    if (!valid.includes(status)) return res.status(400).json({ success: false, message: 'Invalid status' });
+
+    const ticket = await SupportTicket.findOne({ ticketId });
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    ticket.status = status;
+    if (status === 'resolved') {
+      ticket.isResolved = true;
+      ticket.resolvedAt = new Date();
+    }
+    if (status === 'closed') {
+      ticket.closedAt = new Date();
+    }
+    await ticket.save();
+
+    // Notify user if resolved
+    if (status === 'resolved') {
+      try {
+        const user = await User.findOne({ uid: ticket.userId });
+        if (user) {
+          await NotificationService.createNotification(
+            user._id,
+            'system',
+            'Your support ticket was resolved',
+            `Ticket ${ticket.ticketId} has been marked as resolved.`,
+            {
+              priority: 'medium',
+              relatedType: 'support_ticket',
+              relatedId: ticket._id,
+              metadata: { ticketId: ticket.ticketId, status: 'resolved' }
+            }
+          );
+        }
+      } catch (e) {
+        console.warn('Notification on ticket resolve failed:', e?.message);
+      }
+    }
+
+    res.json({ success: true, message: 'Status updated', ticket });
+  } catch (error) {
+    console.error('Admin update ticket status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update ticket status', error: error.message });
   }
 });
 

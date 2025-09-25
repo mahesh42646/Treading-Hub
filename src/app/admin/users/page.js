@@ -1055,6 +1055,70 @@ const AdminUsers = () => {
             </div>
           </div>
 
+          {/* KYC Details */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title mb-3">KYC Details</h5>
+                {selectedUser.profile?.kyc ? (
+                  <div className="row g-3">
+                    <div className="col-md-3">
+                      <div><strong>Status:</strong></div>
+                      <div className="mt-1">
+                        {getKycStatusBadge(selectedUser.profile.kyc.status || 'not_applied')}
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>PAN Number:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc.panCardNumber || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>PAN Holder:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc.panHolderName || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Applied At:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
+                    </div>
+                    {(selectedUser.profile.kyc.panCardImage || selectedUser.profile.kyc.profilePhoto) && (
+                      <div className="col-12">
+                        <div className="row g-3">
+                          {selectedUser.profile.kyc.panCardImage && (
+                            <div className="col-md-6">
+                              <div className="small text-muted mb-1">PAN Card Image</div>
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${selectedUser.profile.kyc.panCardImage}`}
+                                alt="PAN"
+                                className="img-fluid rounded border"
+                              />
+                            </div>
+                          )}
+                          {selectedUser.profile.kyc.profilePhoto && (
+                            <div className="col-md-6">
+                              <div className="small text-muted mb-1">Profile Photo</div>
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${selectedUser.profile.kyc.profilePhoto}`}
+                                alt="Profile"
+                                className="img-fluid rounded border"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {selectedUser.profile.kyc.rejectionNote && (
+                      <div className="col-12">
+                        <div className="alert alert-warning mb-0"><strong>Rejection Note:</strong> {selectedUser.profile.kyc.rejectionNote}</div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-muted">No KYC data available</div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Challenges Management */}
           <div className="col-12 mb-4">
             <div className="card border-0 shadow-sm">

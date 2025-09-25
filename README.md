@@ -1,4 +1,4 @@
-# Treading Hub - Funded Trading Platform
+# xfunding Flow - Funded Trading Platform
 
 A comprehensive funded trading platform built with Next.js, Firebase, and Bootstrap. This project provides a complete MVP similar to FundedNext with user authentication, trading plans, wallet management, and referral systems.
 
@@ -112,7 +112,7 @@ treading-hub/
    RAZORPAY_KEY_SECRET=your_razorpay_secret_key
 
    # App Configuration
-   NEXT_PUBLIC_APP_NAME=Treading Hub
+   NEXT_PUBLIC_APP_NAME=xfunding Flow
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
@@ -210,7 +210,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For support, email support@treadinghub.com or create an issue in the repository.
+For support, email support@xfundingflow.com or create an issue in the repository.
 
 ## Roadmap
 

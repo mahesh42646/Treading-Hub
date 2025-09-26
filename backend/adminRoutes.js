@@ -2098,21 +2098,29 @@ router.post('/user-wallet-action/:uid', verifyAdminAuth, async (req, res) => {
     const { uid } = req.params;
     const { action, amount, wallet, reason } = req.body;
 
+    console.log('Wallet action request:', { uid, action, amount, wallet, reason });
+
     const user = await User.findOne({ uid });
     if (!user) {
+      console.log('User not found for uid:', uid);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    console.log('User found:', user.email);
+
     const profile = user.profile;
     if (!profile) {
+      console.log('Profile not found for user:', user.email);
       return res.status(404).json({
         success: false,
         message: 'Profile not found'
       });
     }
+
+    console.log('Profile found, wallet:', profile.wallet);
 
     // Initialize wallet if not exists
     if (!profile.wallet) {
@@ -2138,6 +2146,7 @@ router.post('/user-wallet-action/:uid', verifyAdminAuth, async (req, res) => {
     }
 
     // Create transaction record
+    console.log('Creating transaction for user:', user._id);
     const transaction = new Transaction({
       userId: user._id,
       type: action === 'add' ? 'admin_credit' : 'admin_debit',
@@ -2153,8 +2162,14 @@ router.post('/user-wallet-action/:uid', verifyAdminAuth, async (req, res) => {
       processedAt: new Date()
     });
 
+    console.log('Saving transaction...');
     await transaction.save();
-    await profile.save();
+    console.log('Transaction saved successfully');
+    
+    console.log('Saving user...');
+    user.markModified('profile.wallet');
+    await user.save();
+    console.log('User saved successfully');
 
     res.json({
       success: true,

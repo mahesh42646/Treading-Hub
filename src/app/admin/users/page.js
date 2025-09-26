@@ -61,9 +61,11 @@ const AdminUsers = () => {
   const [loadingChallengeList, setLoadingChallengeList] = useState(false);
   const [challengeAssignData, setChallengeAssignData] = useState({
     challengeId: '',
+    
     accountSize: '',
     platform: '',
-    adminNote: ''
+    adminNote: '',
+    deductFromWallet: false
   });
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [showChallengeEditModal, setShowChallengeEditModal] = useState(false);
@@ -462,7 +464,36 @@ const AdminUsers = () => {
       return;
     }
 
+    const selectedChallenge = challenges.find(c => c._id === challengeAssignData.challengeId);
+    const challengePrice = selectedChallenge?.pricesByAccountSize?.[challengeAssignData.accountSize];
+
     try {
+      setLoading(true);
+
+      // If deduct from wallet is selected, first deduct the amount
+      if (challengeAssignData.deductFromWallet && challengePrice) {
+        const deductResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/user-wallet-action/${selectedUser.uid}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'deduct',
+            amount: challengePrice,
+            wallet: 'wallet',
+            reason: `Challenge purchase: ${selectedChallenge.name} - ${challengeAssignData.accountSize}`
+          })
+        });
+
+        if (!deductResponse.ok) {
+          const deductData = await deductResponse.json();
+          alert(`Failed to deduct amount: ${deductData.message || 'Unknown error'}`);
+          return;
+        }
+      }
+
+      // Assign the challenge
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges/assign`, {
         method: 'POST',
         headers: {
@@ -474,18 +505,24 @@ const AdminUsers = () => {
           challengeId: challengeAssignData.challengeId,
           accountSize: parseInt(challengeAssignData.accountSize),
           platform: challengeAssignData.platform,
-          adminNote: challengeAssignData.adminNote
+          adminNote: challengeAssignData.deductFromWallet && challengePrice 
+            ? `${challengeAssignData.adminNote || ''} - Amount deducted from wallet: ₹${challengePrice}`.trim()
+            : challengeAssignData.adminNote || 'Assigned for free by admin'
         })
       });
 
       if (response.ok) {
-        alert('Challenge assigned successfully');
+        const message = challengeAssignData.deductFromWallet && challengePrice 
+          ? `Challenge assigned successfully! ₹${challengePrice} deducted from user's wallet.`
+          : 'Challenge assigned successfully for free!';
+        alert(message);
         setShowChallengeAssignModal(false);
         setChallengeAssignData({
           challengeId: '',
           accountSize: '',
           platform: '',
-          adminNote: ''
+          adminNote: '',
+          deductFromWallet: false
         });
         fetchUserChallenges(selectedUser.uid);
         fetchUserDetails(selectedUser.uid);
@@ -496,6 +533,8 @@ const AdminUsers = () => {
     } catch (error) {
       console.error('Error assigning challenge:', error);
       alert('Failed to assign challenge');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -2271,10 +2310,36 @@ const AdminUsers = () => {
                       />
                     </div>
 
+                    <div className="mb-3">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="deductFromWallet"
+                          checked={challengeAssignData.deductFromWallet}
+                          onChange={(e) => setChallengeAssignData({
+                            ...challengeAssignData,
+                            deductFromWallet: e.target.checked
+                          })}
+                        />
+                        <label className="form-check-label" htmlFor="deductFromWallet">
+                          <strong>Deduct ₹{challengeAssignData.accountSize ? challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || '0' : '0'} from user's wallet</strong>
+                          <br />
+                          <small className="text-muted">
+                            {challengeAssignData.deductFromWallet 
+                              ? 'Amount will be deducted from user\'s wallet and transaction will be recorded'
+                              : 'Challenge will be assigned for free (no wallet deduction)'
+                            }
+                          </small>
+                        </label>
+                      </div>
+                    </div>
+
                     {challengeAssignData.challengeId && challengeAssignData.accountSize && (
-                      <div className="alert alert-info">
+                      <div className={`alert ${challengeAssignData.deductFromWallet ? 'alert-warning' : 'alert-success'}`}>
                         <strong>Challenge Details:</strong><br/>
-                        Price: ₹{challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize.get(challengeAssignData.accountSize) || 'N/A'}
+                        Price: ₹{challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || 'N/A'}<br/>
+                        <strong>Assignment Type:</strong> {challengeAssignData.deductFromWallet ? 'Paid (Amount will be deducted from wallet)' : 'Free (No wallet deduction)'}
                       </div>
                     )}
                   </>
@@ -2290,11 +2355,15 @@ const AdminUsers = () => {
                 </button>
                 <button 
                   type="button" 
-                  className="btn btn-warning"
+                  className={`btn ${challengeAssignData.deductFromWallet ? 'btn-warning' : 'btn-success'}`}
                   onClick={assignChallenge}
-                  disabled={!challengeAssignData.challengeId || !challengeAssignData.accountSize || !challengeAssignData.platform}
+                  disabled={!challengeAssignData.challengeId || !challengeAssignData.accountSize || !challengeAssignData.platform || loading}
                 >
-                  Assign Challenge
+                  {loading ? 'Assigning...' : 
+                    challengeAssignData.deductFromWallet ? 
+                      `Deduct ₹${challengeAssignData.accountSize ? challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || '0' : '0'} & Assign` : 
+                      'Assign for Free'
+                  }
                 </button>
               </div>
             </div>

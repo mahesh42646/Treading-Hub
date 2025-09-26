@@ -107,8 +107,16 @@ const AdminLayout = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+      <div className="d-flex justify-content-center align-items-center" style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+        color: 'white'
+      }}>
+        <div className="spinner-border" role="status" style={{ 
+          width: '3rem', 
+          height: '3rem',
+          color: '#3b82f6'
+        }}>
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -120,14 +128,28 @@ const AdminLayout = ({ children }) => {
   }
 
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+    <div className="d-flex" style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+      color: 'white'
+    }}>
       {/* Sidebar */}
-      <div className={`bg-dark text-white ${sidebarOpen ? 'd-block' : 'd-none'} d-lg-block`} style={{ width: '250px', minHeight: '100vh' }}>
-        <div className="d-flex justify-content-between align-items-center p-3 border-bottom border-secondary">
-          <h5 className="mb-0 fw-bold">Admin Panel</h5>
+      <div className={`${sidebarOpen ? 'd-block' : 'd-none'} d-lg-block`} style={{ 
+        width: '250px', 
+        minHeight: '100vh',
+        background: 'rgba(60, 58, 58, 0.03)',
+        border: '1px solid rgba(124, 124, 124, 0.39)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+      }}>
+        <div className="d-flex justify-content-between align-items-center p-3" style={{
+          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+        }}>
+          <h5 className="mb-0 fw-bold text-white">Admin Panel</h5>
           <button
             onClick={() => setSidebarOpen(false)}
             className="btn btn-link text-white d-lg-none p-0"
+            style={{ color: '#e2e8f0' }}
           >
             <FaTimes size={20} />
           </button>
@@ -144,14 +166,28 @@ const AdminLayout = ({ children }) => {
                   <Link
                     href={item.path}
                     className={`nav-link d-flex align-items-center text-decoration-none ${isActive
-                        ? 'bg-primary text-white'
-                        : 'text-white-50 hover-bg-secondary'
+                        ? 'text-white'
+                        : 'text-white-50'
                       }`}
                     onClick={() => setSidebarOpen(false)}
                     style={{
                       padding: '0.75rem 1rem',
                       borderRadius: '0.375rem',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      background: isActive ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                      border: isActive ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.target.style.background = 'rgba(59, 130, 246, 0.1)';
+                        e.target.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.target.style.background = 'transparent';
+                        e.target.style.border = '1px solid transparent';
+                      }
                     }}
                   >
                     <Icon className="me-3" size={16} />
@@ -163,10 +199,19 @@ const AdminLayout = ({ children }) => {
           </ul>
         </nav>
 
-        <div className="position-absolute bottom-0 start-0 end-0 p-3 border-top border-secondary">
+        <div className="position-absolute bottom-0 start-0 end-0 p-3" style={{
+          borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+        }}>
           <button
             onClick={handleLogout}
-            className="btn btn-outline-danger  d-flex align-items-center justify-content-center"
+            className="btn d-flex align-items-center justify-content-center w-100"
+            style={{
+              background: 'rgba(239, 68, 68, 0.2)',
+              border: '1px solid rgba(239, 68, 68, 0.5)',
+              color: '#ef4444',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}
           >
             <FaSignOutAlt className="me-2" size={16} />
             Logout
@@ -177,22 +222,28 @@ const AdminLayout = ({ children }) => {
       {/* Main content */}
       <div className="flex-grow-1">
         {/* Top bar */}
-        <div className="bg-white shadow-sm border-bottom p-3">
+        <div className="p-3" style={{
+          background: 'rgba(60, 58, 58, 0.03)',
+          border: '1px solid rgba(124, 124, 124, 0.39)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+        }}>
           <div className="d-flex justify-content-between align-items-center">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="btn btn-link text-dark d-lg-none p-0"
+              className="btn btn-link d-lg-none p-0"
+              style={{ color: '#e2e8f0' }}
             >
               <FaBars size={20} />
             </button>
             <div className="d-flex align-items-center">
-              <span className="text-muted">Welcome, Admin</span>
+              <span className="text-white-50">Welcome, Admin</span>
             </div>
           </div>
         </div>
 
         {/* Page content */}
-        <main className="p-4">
+        <main className="p-4" style={{ color: 'white' }}>
           {children}
         </main>
       </div>

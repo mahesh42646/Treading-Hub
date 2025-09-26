@@ -88,21 +88,46 @@ const AdminTicketsPage = () => {
   }, [filters.status, filters.category]);
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid py-4" style={{ color: 'white' }}>
       <div className="row mb-3">
         <div className="col-12 d-flex align-items-center justify-content-between">
-          <h2 className="fw-bold mb-0">Support Tickets</h2>
-          <button className="btn btn-outline-secondary" onClick={loadTickets} disabled={loading}>
+          <h2 className="fw-bold mb-0 text-white">Support Tickets</h2>
+          <button 
+            className="btn" 
+            onClick={loadTickets} 
+            disabled={loading}
+            style={{
+              background: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.5)',
+              color: '#3b82f6',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}
+          >
             {loading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
       </div>
 
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-body">
+      <div className="card border-0 mb-4" style={{
+        background: 'rgba(60, 58, 58, 0.03)',
+        border: '1px solid rgba(124, 124, 124, 0.39)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+      }}>
+        <div className="card-body" style={{ color: '#e2e8f0' }}>
           <div className="row g-2">
             <div className="col-md-3">
-              <select className="form-select" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+              <select 
+                className="form-select" 
+                value={filters.status} 
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
+              >
                 <option value="">All Statuses</option>
                 <option value="open">Open</option>
                 <option value="in_progress">In Progress</option>
@@ -111,7 +136,16 @@ const AdminTicketsPage = () => {
               </select>
             </div>
             <div className="col-md-3">
-              <select className="form-select" value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })}>
+              <select 
+                className="form-select" 
+                value={filters.category} 
+                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
+              >
                 <option value="">All Categories</option>
                 <option value="general">General</option>
                 <option value="technical">Technical</option>
@@ -129,6 +163,11 @@ const AdminTicketsPage = () => {
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 onKeyDown={(e) => { if (e.key === 'Enter') loadTickets(); }}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
               />
             </div>
           </div>
@@ -137,36 +176,70 @@ const AdminTicketsPage = () => {
 
       <div className="row">
         <div className="col-lg-6 mb-4">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body p-0">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body p-0" style={{ color: '#e2e8f0' }}>
               <div className="table-responsive">
-                <table className="table table-hover mb-0">
-                  <thead>
+                <table className="table table-hover mb-0" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <thead style={{
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
                     <tr>
-                      <th>Ticket</th>
-                      <th>Subject</th>
-                      <th>Category</th>
-                      <th>Status</th>
-                      <th>Last Activity</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Ticket</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Subject</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Category</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Last Activity</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ background: 'transparent' }}>
                     {tickets.map((t) => (
-                      <tr key={t._id} onClick={() => loadTicket(t.ticketId)} style={{ cursor: 'pointer' }} className={selected?.ticket?.ticketId === t.ticketId ? 'table-active' : ''}>
-                        <td><code>{t.ticketId}</code><br/><small className="text-muted">{t.userEmail}</small></td>
-                        <td>{t.subject}</td>
-                        <td><span className="badge bg-info">{t.category}</span></td>
-                        <td>
-                          <span className={`badge ${t.status === 'open' ? 'bg-warning' : t.status === 'in_progress' ? 'bg-primary' : t.status === 'resolved' ? 'bg-success' : 'bg-secondary'}`}>
+                      <tr 
+                        key={t._id} 
+                        onClick={() => loadTicket(t.ticketId)} 
+                        style={{ 
+                          cursor: 'pointer',
+                          background: selected?.ticket?.ticketId === t.ticketId ? 'rgba(59, 130, 246, 0.1)' : 'rgba(60, 58, 58, 0.03)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}
+                      >
+                        <td className="text-white" style={{ background: 'transparent' }}>
+                          <code>{t.ticketId}</code><br/>
+                          <small className="text-white-50">{t.userEmail}</small>
+                        </td>
+                        <td className="text-white" style={{ background: 'transparent' }}>{t.subject}</td>
+                        <td style={{ background: 'transparent' }}>
+                          <span className="badge" style={{
+                            background: 'rgba(59, 130, 246, 0.2)',
+                            border: '1px solid rgba(59, 130, 246, 0.5)',
+                            color: '#3b82f6'
+                          }}>{t.category}</span>
+                        </td>
+                        <td style={{ background: 'transparent' }}>
+                          <span className={`badge ${
+                            t.status === 'open' ? 'bg-warning' : 
+                            t.status === 'in_progress' ? 'bg-primary' : 
+                            t.status === 'resolved' ? 'bg-success' : 'bg-secondary'
+                          }`}>
                             {t.status}
                           </span>
                         </td>
-                        <td><small className="text-muted">{new Date(t.lastActivity || t.createdAt).toLocaleString()}</small></td>
+                        <td className="text-white-50" style={{ background: 'transparent' }}>
+                          <small>{new Date(t.lastActivity || t.createdAt).toLocaleString()}</small>
+                        </td>
                       </tr>
                     ))}
                     {tickets.length === 0 && (
                       <tr>
-                        <td colSpan="5" className="text-center text-muted py-4">No tickets found</td>
+                        <td colSpan="5" className="text-center text-white-50 py-4" style={{ background: 'transparent' }}>No tickets found</td>
                       </tr>
                     )}
                   </tbody>
@@ -177,17 +250,39 @@ const AdminTicketsPage = () => {
         </div>
 
         <div className="col-lg-6 mb-4">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               {selected?.ticket ? (
                 <>
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                      <h5 className="card-title mb-1">{selected.ticket.subject}</h5>
-                      <div className="text-muted"><code>{selected.ticket.ticketId}</code> • <span className="badge bg-info">{selected.ticket.category}</span></div>
+                      <h5 className="card-title mb-1 text-white">{selected.ticket.subject}</h5>
+                      <div className="text-white-50">
+                        <code>{selected.ticket.ticketId}</code> • 
+                        <span className="badge ms-1" style={{
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.5)',
+                          color: '#3b82f6'
+                        }}>{selected.ticket.category}</span>
+                      </div>
                     </div>
                     <div>
-                      <select className="form-select" value={selected.ticket.status} onChange={(e) => updateStatus(e.target.value)} disabled={updating}>
+                      <select 
+                        className="form-select" 
+                        value={selected.ticket.status} 
+                        onChange={(e) => updateStatus(e.target.value)} 
+                        disabled={updating}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
+                      >
                         <option value="open">Open</option>
                         <option value="in_progress">In Progress</option>
                         <option value="resolved">Resolved</option>
@@ -197,21 +292,26 @@ const AdminTicketsPage = () => {
                   </div>
 
                   <div className="mb-3">
-                    <strong>User:</strong> {selected.ticket.userEmail}
+                    <strong className="text-white">User:</strong> <span className="text-white-50">{selected.ticket.userEmail}</span>
                   </div>
 
                   {selected.user && (
-                    <div className="mb-3 p-3 bg-light rounded">
-                      <div className="fw-bold mb-2">User Details</div>
+                    <div className="mb-3 p-3 rounded" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                    }}>
+                      <div className="fw-bold mb-2 text-white">User Details</div>
                       <div className="row">
                         <div className="col-md-6">
-                          <div><strong>Email:</strong> {selected.user.email}</div>
-                          <div><strong>UID:</strong> {selected.user.uid}</div>
-                          <div><strong>Phone:</strong> {selected.user.phone || 'N/A'}</div>
+                          <div><strong className="text-white">Email:</strong> <span className="text-white-50">{selected.user.email}</span></div>
+                          <div><strong className="text-white">UID:</strong> <span className="text-white-50">{selected.user.uid}</span></div>
+                          <div><strong className="text-white">Phone:</strong> <span className="text-white-50">{selected.user.phone || 'N/A'}</span></div>
                         </div>
                         <div className="col-md-6">
-                          <div><strong>KYC Status:</strong> {selected.user.kyc?.status || 'not_applied'}</div>
-                          {selected.user.kyc?.panCardNumber && <div><strong>PAN:</strong> {selected.user.kyc.panCardNumber}</div>}
+                          <div><strong className="text-white">KYC Status:</strong> <span className="text-white-50">{selected.user.kyc?.status || 'not_applied'}</span></div>
+                          {selected.user.kyc?.panCardNumber && <div><strong className="text-white">PAN:</strong> <span className="text-white-50">{selected.user.kyc.panCardNumber}</span></div>}
                         </div>
                       </div>
                       {(selected.user.kyc?.panCardImage || selected.user.kyc?.profilePhoto) && (
@@ -234,26 +334,54 @@ const AdminTicketsPage = () => {
                   )}
 
                   <div className="mb-3">
-                    <div className="fw-bold mb-2">Conversation</div>
-                    <div className="border rounded p-2" style={{ maxHeight: 280, overflow: 'auto' }}>
+                    <div className="fw-bold mb-2 text-white">Conversation</div>
+                    <div className="rounded p-2" style={{ 
+                      maxHeight: 280, 
+                      overflow: 'auto',
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                    }}>
                       {selected.ticket.responses?.map((r, idx) => (
                         <div key={idx} className={`p-2 mb-2 rounded ${r.from === 'admin' ? 'bg-primary bg-opacity-10' : 'bg-secondary bg-opacity-10'}`}>
-                          <div className="small text-muted mb-1">{r.from.toUpperCase()} • {new Date(r.timestamp).toLocaleString()}</div>
-                          <div>{r.message}</div>
+                          <div className="small text-white-50 mb-1">{r.from.toUpperCase()} • {new Date(r.timestamp).toLocaleString()}</div>
+                          <div className="text-white">{r.message}</div>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div className="input-group">
-                    <input className="form-control" placeholder="Type a reply..." value={reply} onChange={(e) => setReply(e.target.value)} />
-                    <button className="btn btn-primary" onClick={sendReply} disabled={updating || !reply.trim()}>
+                    <input 
+                      className="form-control" 
+                      placeholder="Type a reply..." 
+                      value={reply} 
+                      onChange={(e) => setReply(e.target.value)}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
+                    />
+                    <button 
+                      className="btn" 
+                      onClick={sendReply} 
+                      disabled={updating || !reply.trim()}
+                      style={{
+                        background: 'rgba(59, 130, 246, 0.2)',
+                        border: '1px solid rgba(59, 130, 246, 0.5)',
+                        color: '#3b82f6',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}
+                    >
                       {updating ? 'Sending...' : 'Send Reply'}
                     </button>
                   </div>
                 </>
               ) : (
-                <div className="text-center text-muted">Select a ticket to view details</div>
+                <div className="text-center text-white-50">Select a ticket to view details</div>
               )}
             </div>
           </div>

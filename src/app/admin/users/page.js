@@ -595,8 +595,12 @@ const AdminUsers = () => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex justify-content-center align-items-center" style={{ 
+        minHeight: '50vh',
+        background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+        color: 'white'
+      }}>
+        <div className="spinner-border" role="status" style={{ color: '#3b82f6' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -604,24 +608,25 @@ const AdminUsers = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid py-4" style={{ color: 'white' }}>
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h2 className="fw-bold mb-1">
+              <h2 className="fw-bold mb-1 text-white">
                 {activeTab === 'details' ? (
                   <button 
                     className="btn btn-link p-0 me-3"
                     onClick={() => setActiveTab('users')}
+                    style={{ color: '#e2e8f0' }}
                   >
                     <FaArrowLeft />
                   </button>
                 ) : null}
                 User Management
               </h2>
-              <p className="text-muted mb-0">
+              <p className="text-white-50 mb-0">
                 {activeTab === 'details' 
                   ? `Managing: ${selectedUser?.email || 'User'}` 
                   : 'Manage users, KYC approvals, and wallet balances'
@@ -632,32 +637,60 @@ const AdminUsers = () => {
               <div className="d-flex gap-2">
                 {/* Plan actions removed */}
                 <button 
-                  className="btn btn-outline-warning"
+                  className="btn"
                   onClick={() => setShowChallengeManagementModal(true)}
+                  style={{
+                    background: 'rgba(251, 191, 36, 0.2)',
+                    border: '1px solid rgba(251, 191, 36, 0.5)',
+                    color: '#fbbf24',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                  }}
                 >
                   <FaTrophy className="me-2" />
                   Manage Challenges
                 </button>
                 <button 
-                  className="btn btn-outline-secondary"
+                  className="btn"
                   onClick={() => {
                     setShowTransactionsModal(true);
                     fetchUserTransactions(selectedUser.uid);
+                  }}
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                   }}
                 >
                   <FaReceipt className="me-2" />
                   View Transactions
                 </button>
                 <button 
-                  className="btn btn-outline-success"
+                  className="btn"
                   onClick={() => setShowNotificationModal(true)}
+                  style={{
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    border: '1px solid rgba(34, 197, 94, 0.5)',
+                    color: '#22c55e',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                  }}
                 >
                   <FaBell className="me-2" />
                   Send Notification
                 </button>
                 <button 
-                  className="btn btn-outline-warning"
+                  className="btn"
                   onClick={() => setWalletEditMode(!walletEditMode)}
+                  style={{
+                    background: 'rgba(251, 191, 36, 0.2)',
+                    border: '1px solid rgba(251, 191, 36, 0.5)',
+                    color: '#fbbf24',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                  }}
                 >
                   <FaWallet className="me-2" />
                   {walletEditMode ? 'Cancel Edit' : 'Edit Wallet'}
@@ -672,12 +705,21 @@ const AdminUsers = () => {
       {activeTab === 'users' && (
         <>
           {/* Search and Page Size */}
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body">
+          <div className="card border-0 mb-4" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="row g-3 align-items-center">
                 <div className="col-md-8">
                   <div className="input-group">
-                    <span className="input-group-text">
+                    <span className="input-group-text" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}>
                       <FaSearch />
                     </span>
                     <input
@@ -686,15 +728,25 @@ const AdminUsers = () => {
                       placeholder="Search users by email or name"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                     />
                   </div>
                 </div>
                 <div className="col-md-4">
                   <div className="d-flex align-items-center justify-content-md-end gap-2">
-                    <label className="form-label mb-0">Rows:</label>
+                    <label className="form-label mb-0 text-white-50">Rows:</label>
                     <select
                       className="form-select"
-                      style={{ maxWidth: '120px' }}
+                      style={{ 
+                        maxWidth: '120px',
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                       value={pageSize}
                       onChange={(e) => {
                         setPageSize(parseInt(e.target.value));
@@ -713,33 +765,52 @@ const AdminUsers = () => {
           </div>
 
           {/* Users Table */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
+          <div className="card border-0" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
+                <table className="table table-hover" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <thead style={{
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
                     <tr>
-                      <th>User</th>
-                      <th>Profile Status</th>
-                      <th>KYC Status</th>
-                      <th>Wallet Balance</th>
-                      <th>Referrals</th>
-                      <th>Joined</th>
-                      <th>Actions</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>User</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Profile Status</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>KYC Status</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Wallet Balance</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Referrals</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Joined</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ background: 'transparent' }}>
                     {users.map((user) => (
-                      <tr key={user._id}>
-                        <td>
+                      <tr key={user._id} style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <td className="text-white" style={{ background: 'transparent' }}>
                           <div className="d-flex align-items-center">
-                            <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                              <span className="text-primary fw-bold">{user.email?.charAt(0).toUpperCase()}</span>
+                            <div className="rounded-circle d-flex align-items-center justify-content-center me-2" style={{ 
+                              width: '32px', 
+                              height: '32px',
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              border: '1px solid rgba(59, 130, 246, 0.5)'
+                            }}>
+                              <span className="fw-bold" style={{ color: '#3b82f6' }}>{user.email?.charAt(0).toUpperCase()}</span>
                             </div>
                             <div>
-                              <strong>{user.email}</strong>
+                              <strong className="text-white">{user.email}</strong>
                               <br />
-                              <small className="text-muted">UID: {user.uid}</small>
+                              <small className="text-white-50">UID: {user.uid}</small>
                             </div>
                           </div>
                         </td>
@@ -832,33 +903,64 @@ const AdminUsers = () => {
 
               {/* User Count, Pagination and Actions */}
               <div className="mt-3 d-flex justify-content-between align-items-center">
-                <span className="text-muted">
+                <span className="text-white-50">
                   Showing {users.length} users (page {currentPage} of {totalPages})
                 </span>
                 <div className="d-flex align-items-center gap-2">
                   <nav aria-label="Users pagination">
                     <ul className="pagination mb-0">
                       <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Prev</button>
+                        <button 
+                          className="page-link" 
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          style={{
+                            background: 'rgba(60, 58, 58, 0.03)',
+                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            color: '#e2e8f0'
+                          }}
+                        >Prev</button>
                       </li>
                       {Array.from({ length: totalPages }).slice(0, 7).map((_, idx) => {
                         const pageNum = idx + 1;
                         return (
                           <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
-                            <button className="page-link" onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>
+                            <button 
+                              className="page-link" 
+                              onClick={() => setCurrentPage(pageNum)}
+                              style={{
+                                background: currentPage === pageNum ? 'rgba(59, 130, 246, 0.2)' : 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: currentPage === pageNum ? '#3b82f6' : '#e2e8f0'
+                              }}
+                            >{pageNum}</button>
                           </li>
                         );
                       })}
                       <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+                        <button 
+                          className="page-link" 
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          style={{
+                            background: 'rgba(60, 58, 58, 0.03)',
+                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            color: '#e2e8f0'
+                          }}
+                        >Next</button>
                       </li>
                     </ul>
                   </nav>
                   <button 
-                    className="btn btn-outline-primary btn-sm"
+                    className="btn btn-sm"
                     onClick={() => {
                       refreshReferralCounts();
                       fetchUsers();
+                    }}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                     }}
                   >
                     <FaSync className="me-1" />

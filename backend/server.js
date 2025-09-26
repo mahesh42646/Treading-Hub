@@ -58,6 +58,49 @@ app.get('/api/check-team-files', (req, res) => {
   }
 });
 
+// Move team image to correct directory
+app.post('/api/fix-team-image', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const filename = 'image-1758868079606-254985733.png';
+  
+  try {
+    const sourcePath = path.join(__dirname, 'uploads', filename);
+    const teamDir = path.join(__dirname, 'uploads', 'team');
+    const destPath = path.join(teamDir, filename);
+    
+    // Create team directory if it doesn't exist
+    if (!fs.existsSync(teamDir)) {
+      fs.mkdirSync(teamDir, { recursive: true });
+    }
+    
+    // Check if source file exists
+    if (!fs.existsSync(sourcePath)) {
+      return res.json({ 
+        success: false, 
+        message: 'Source file not found',
+        sourcePath: sourcePath
+      });
+    }
+    
+    // Move the file
+    fs.renameSync(sourcePath, destPath);
+    
+    res.json({ 
+      success: true, 
+      message: 'File moved successfully',
+      from: sourcePath,
+      to: destPath,
+      newUrl: `/api/uploads/team/${filename}`
+    });
+  } catch (error) {
+    res.json({ 
+      success: false, 
+      error: error.message
+    });
+  }
+});
+
 // Serve uploaded files
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 

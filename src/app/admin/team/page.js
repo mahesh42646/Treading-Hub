@@ -114,7 +114,7 @@ const AdminTeam = () => {
       isActive: member.isActive,
       priority: member.priority
     });
-    setImagePreview(member.image ? `${process.env.NEXT_PUBLIC_API_URL}${member.image}` : null);
+    setImagePreview(member.image ? `${process.env.NEXT_PUBLIC_API_URL}/api${member.image}` : null);
     setSelectedImage(null);
     setShowModal(true);
   };
@@ -186,7 +186,7 @@ const AdminTeam = () => {
                   {member.image ? (
                     <div className="position-relative" style={{ width: '80px', height: '80px' }}>
                       <Image 
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${member.image}`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/api${member.image}`}
                         alt={member.name}
                         className="rounded-circle"
                         style={{ objectFit: 'cover' }}

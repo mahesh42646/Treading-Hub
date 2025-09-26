@@ -2318,20 +2318,26 @@ router.put('/user-wallet/:uid', verifyAdminAuth, async (req, res) => {
         userId: user._id,
         type: action === 'add' ? 'admin_credit' : 'admin_debit',
         amount: Math.abs(parseFloat(amount)),
+        balanceAfter: walletBalance !== undefined ? parseFloat(walletBalance) : profile.wallet.walletBalance,
         description: reason || `Admin ${action} - Manual wallet adjustment`,
         status: 'completed',
+        source: 'admin',
+        category: 'adjustment',
         metadata: {
           adminAction: true,
           adminId: req.admin._id,
           reason: reason
         },
-        processedAt: new Date()
+        processedAt: new Date(),
+        processedBy: 'admin'
       });
 
       await transaction.save();
     }
 
-    await profile.save();
+    // Mark the nested field as modified and save the user document
+    user.markModified('profile.wallet');
+    await user.save();
 
     res.json({
       success: true,

@@ -57,6 +57,7 @@ const AdminUsers = () => {
   const [userChallenges, setUserChallenges] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [showChallengeAssignModal, setShowChallengeAssignModal] = useState(false);
+  const [loadingChallenges, setLoadingChallenges] = useState(false);
   const [challengeAssignData, setChallengeAssignData] = useState({
     challengeId: '',
     accountSize: '',
@@ -427,6 +428,7 @@ const AdminUsers = () => {
   // Challenge management functions
   const fetchUserChallenges = async (uid) => {
     try {
+      setLoadingChallenges(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${uid}/challenges`, {
         credentials: 'include'
       });
@@ -434,9 +436,15 @@ const AdminUsers = () => {
       if (response.ok) {
         const data = await response.json();
         setUserChallenges(data.challenges || []);
+      } else {
+        console.error('Failed to fetch user challenges');
+        setUserChallenges([]);
       }
     } catch (error) {
       console.error('Error fetching user challenges:', error);
+      setUserChallenges([]);
+    } finally {
+      setLoadingChallenges(false);
     }
   };
 
@@ -638,7 +646,10 @@ const AdminUsers = () => {
                 {/* Plan actions removed */}
                 <button 
                   className="btn"
-                  onClick={() => setShowChallengeManagementModal(true)}
+                  onClick={() => {
+                    setShowChallengeManagementModal(true);
+                    fetchUserChallenges(selectedUser.uid);
+                  }}
                   style={{
                     background: 'rgba(251, 191, 36, 0.2)',
                     border: '1px solid rgba(251, 191, 36, 0.5)',
@@ -1233,7 +1244,10 @@ const AdminUsers = () => {
                   <div className="d-flex gap-2">
                     <button 
                       className="btn btn-outline-warning"
-                      onClick={() => setShowChallengeManagementModal(true)}
+                      onClick={() => {
+                        setShowChallengeManagementModal(true);
+                        fetchUserChallenges(selectedUser.uid);
+                      }}
                     >
                       <FaEdit className="me-1" />
                       Manage All Challenges
@@ -1257,7 +1271,7 @@ const AdminUsers = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {userChallenges.map((challenge, idx) => (
+                        {(userChallenges || []).map((challenge, idx) => (
                           <tr key={idx}>
                             <td>
                               <strong>{challenge.name}</strong>
@@ -1342,7 +1356,10 @@ const AdminUsers = () => {
                     <p className="text-muted">No challenges assigned to this user</p>
                     <button 
                       className="btn btn-warning"
-                      onClick={() => setShowChallengeManagementModal(true)}
+                      onClick={() => {
+                        setShowChallengeManagementModal(true);
+                        fetchUserChallenges(selectedUser.uid);
+                      }}
                     >
                       <FaPlus className="me-2" />
                       Assign First Challenge
@@ -2002,7 +2019,7 @@ const AdminUsers = () => {
               </div>
               <div className="modal-body">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6>Current Challenges ({userChallenges.length})</h6>
+                  <h6>Current Challenges ({userChallenges?.length || 0})</h6>
                   <button 
                     className="btn btn-warning btn-sm"
                     onClick={() => setShowChallengeAssignModal(true)}
@@ -2012,7 +2029,14 @@ const AdminUsers = () => {
                   </button>
                 </div>
                 
-                {userChallenges && userChallenges.length > 0 ? (
+                {loadingChallenges ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-warning" role="status">
+                      <span className="visually-hidden">Loading challenges...</span>
+                    </div>
+                    <p className="mt-2 text-muted">Loading challenges...</p>
+                  </div>
+                ) : userChallenges && userChallenges.length > 0 ? (
                   <div className="table-responsive">
                     <table className="table table-hover">
                       <thead>
@@ -2028,7 +2052,7 @@ const AdminUsers = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {userChallenges.map((challenge, idx) => (
+                        {(userChallenges || []).map((challenge, idx) => (
                           <tr key={idx}>
                             <td><strong>{challenge.name}</strong></td>
                             <td>

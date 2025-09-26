@@ -2228,11 +2228,13 @@ const AdminUsers = () => {
                         })}
                       >
                         <option value="">Select account size...</option>
-                        {(challenges.find(c => c._id === challengeAssignData.challengeId)?.accountSizes || []).map(size => (
-                          <option key={size} value={size}>
-                            ${size.toLocaleString()}
-                          </option>
-                        ))}
+                        {challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize ? 
+                          Object.keys(challenges.find(c => c._id === challengeAssignData.challengeId).pricesByAccountSize).map(size => (
+                            <option key={size} value={size}>
+                              ${parseInt(size).toLocaleString()}
+                            </option>
+                          )) : []
+                        }
                       </select>
                     </div>
 

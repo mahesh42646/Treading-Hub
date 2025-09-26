@@ -22,13 +22,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: '0fare.com',
         port: '',
-        pathname: '/uploads/**',
+        pathname: '/api/api/uploads/**',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '9988',
-        pathname: '/uploads/**',
+        pathname: '/api/uploads/**',
       },
     ],
     // Allow unoptimized images for local development

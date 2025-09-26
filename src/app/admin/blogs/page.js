@@ -146,7 +146,7 @@ const AdminBlogs = () => {
       isPublished: blog.isPublished,
       isFeatured: blog.isFeatured || false
     });
-    setImagePreview(blog.featuredImage ? `${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}` : '');
+    setImagePreview(blog.featuredImage ? `${process.env.NEXT_PUBLIC_API_URL}/api${blog.featuredImage}` : '');
     setSelectedImage(null);
     setShowModal(true);
   };

@@ -72,7 +72,7 @@ const BlogPage = () => {
                       {blog.featuredImage && (
                         <div className="position-relative" style={{ height: '200px', overflow: 'hidden' }}>
                           <Image 
-                            src={`${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/api${blog.featuredImage}`}
                             className="card-img-top" 
                             alt={blog.title}
                             style={{ objectFit: 'cover' }}

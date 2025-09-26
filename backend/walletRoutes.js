@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const { verifyAdminAuth } = require('./adminAuth');
 
 // Initialize Razorpay (only if environment variables are available)
 let razorpay = null;
@@ -612,7 +613,7 @@ router.post('/upi-deposit', async (req, res) => {
 });
 
 // Admin: list UPI deposits for a user
-router.get('/admin/upi-deposits/:uid', async (req, res) => {
+router.get('/admin/upi-deposits/:uid', verifyAdminAuth, async (req, res) => {
   try {
     const { uid } = req.params;
     const user = await User.findOne({ uid });
@@ -638,7 +639,7 @@ router.get('/upi-deposits/:uid', async (req, res) => {
 });
 
 // Admin: process UPI deposit (complete or reject)
-router.put('/admin/upi-deposits/:uid/:depositId', async (req, res) => {
+router.put('/admin/upi-deposits/:uid/:depositId', verifyAdminAuth, async (req, res) => {
   try {
     const { uid, depositId } = req.params;
     const { action, adminNote } = req.body; // action: 'complete' | 'reject'

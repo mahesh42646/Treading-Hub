@@ -2151,15 +2151,19 @@ router.post('/user-wallet-action/:uid', verifyAdminAuth, async (req, res) => {
       userId: user._id,
       type: action === 'add' ? 'admin_credit' : 'admin_debit',
       amount: parseFloat(amount),
+      balanceAfter: newBalance,
       description: reason || `Admin ${action} - ${wallet} balance`,
       status: 'completed',
+      source: 'admin',
+      category: 'adjustment',
       metadata: {
         adminAction: true,
         adminId: req.admin._id,
         walletType: wallet,
         reason: reason
       },
-      processedAt: new Date()
+      processedAt: new Date(),
+      processedBy: 'admin'
     });
 
     console.log('Saving transaction...');

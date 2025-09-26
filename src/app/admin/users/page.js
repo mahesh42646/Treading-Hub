@@ -2323,7 +2323,7 @@ const AdminUsers = () => {
                           })}
                         />
                         <label className="form-check-label" htmlFor="deductFromWallet">
-                          <strong>Deduct ₹{challengeAssignData.accountSize ? challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || '0' : '0'} from user's wallet</strong>
+                          <strong>Deduct ₹{challengeAssignData.accountSize ? challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || '0' : '0'} from user&apos;s wallet</strong>
                           <br />
                           <small className="text-muted">
                             {challengeAssignData.deductFromWallet 

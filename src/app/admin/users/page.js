@@ -58,6 +58,7 @@ const AdminUsers = () => {
   const [challenges, setChallenges] = useState([]);
   const [showChallengeAssignModal, setShowChallengeAssignModal] = useState(false);
   const [loadingChallenges, setLoadingChallenges] = useState(false);
+  const [loadingChallengeList, setLoadingChallengeList] = useState(false);
   const [challengeAssignData, setChallengeAssignData] = useState({
     challengeId: '',
     accountSize: '',
@@ -137,15 +138,22 @@ const AdminUsers = () => {
 
   const fetchChallenges = useCallback(async () => {
     try {
+      setLoadingChallengeList(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenges`, {
         credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
         setChallenges(data.challenges || []);
+      } else {
+        console.error('Failed to fetch challenges');
+        setChallenges([]);
       }
     } catch (error) {
       console.error('Error fetching challenges:', error);
+      setChallenges([]);
+    } finally {
+      setLoadingChallengeList(false);
     }
   }, []);
 
@@ -2022,7 +2030,10 @@ const AdminUsers = () => {
                   <h6>Current Challenges ({userChallenges?.length || 0})</h6>
                   <button 
                     className="btn btn-warning btn-sm"
-                    onClick={() => setShowChallengeAssignModal(true)}
+                    onClick={() => {
+                      setShowChallengeAssignModal(true);
+                      fetchChallenges();
+                    }}
                   >
                     <FaPlus className="me-1" />
                     Assign New Challenge
@@ -2135,7 +2146,10 @@ const AdminUsers = () => {
                     <p className="text-muted">No challenges assigned to this user</p>
                     <button 
                       className="btn btn-warning"
-                      onClick={() => setShowChallengeAssignModal(true)}
+                      onClick={() => {
+                        setShowChallengeAssignModal(true);
+                        fetchChallenges();
+                      }}
                     >
                       <FaPlus className="me-2" />
                       Assign First Challenge
@@ -2180,14 +2194,25 @@ const AdminUsers = () => {
                       ...challengeAssignData,
                       challengeId: e.target.value
                     })}
+                    disabled={loadingChallengeList}
                   >
-                    <option value="">Choose a challenge...</option>
-                    {challenges.filter(c => c.isActive).map(challenge => (
+                    <option value="">
+                      {loadingChallengeList ? 'Loading challenges...' : 'Choose a challenge...'}
+                    </option>
+                    {(challenges || []).filter(c => c.isActive).map(challenge => (
                       <option key={challenge._id} value={challenge._id}>
                         {challenge.name} - {challenge.type}
                       </option>
                     ))}
                   </select>
+                  {loadingChallengeList && (
+                    <div className="form-text">
+                      <div className="spinner-border spinner-border-sm me-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      Loading challenges...
+                    </div>
+                  )}
                 </div>
 
                 {challengeAssignData.challengeId && (
@@ -2203,7 +2228,7 @@ const AdminUsers = () => {
                         })}
                       >
                         <option value="">Select account size...</option>
-                        {challenges.find(c => c._id === challengeAssignData.challengeId)?.accountSizes.map(size => (
+                        {(challenges.find(c => c._id === challengeAssignData.challengeId)?.accountSizes || []).map(size => (
                           <option key={size} value={size}>
                             ${size.toLocaleString()}
                           </option>
@@ -2222,7 +2247,7 @@ const AdminUsers = () => {
                         })}
                       >
                         <option value="">Select platform...</option>
-                        {challenges.find(c => c._id === challengeAssignData.challengeId)?.platforms.map(platform => (
+                        {(challenges.find(c => c._id === challengeAssignData.challengeId)?.platforms || []).map(platform => (
                           <option key={platform} value={platform}>
                             {platform}
                           </option>

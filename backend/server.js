@@ -17,6 +17,47 @@ app.use(express.json({ limit: '1gb' }));
 app.use(express.urlencoded({ extended: true, limit: '1gb' }));
 app.use(cookieParser());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uploadsPath: require('path').join(__dirname, 'uploads')
+  });
+});
+
+// Simple team files check
+app.get('/api/check-team-files', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const teamDir = path.join(__dirname, 'uploads', 'team');
+  
+  try {
+    if (fs.existsSync(teamDir)) {
+      const files = fs.readdirSync(teamDir);
+      res.json({ 
+        success: true, 
+        message: 'Team directory exists',
+        files: files,
+        count: files.length
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        message: 'Team directory does not exist',
+        path: teamDir
+      });
+    }
+  } catch (error) {
+    res.json({ 
+      success: false, 
+      error: error.message,
+      path: teamDir
+    });
+  }
+});
+
 // Serve uploaded files
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 

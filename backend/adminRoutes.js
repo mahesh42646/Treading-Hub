@@ -839,7 +839,7 @@ router.post('/team', verifyAdminAuth, upload.single('image'), async (req, res) =
   try {
     const teamData = req.body;
     if (req.file) {
-      teamData.image = `/uploads/${req.file.filename}`;
+      teamData.image = `/uploads/team/${req.file.filename}`;
     }
     const member = new Team(teamData);
     await member.save();
@@ -853,7 +853,7 @@ router.put('/team/:id', verifyAdminAuth, upload.single('image'), async (req, res
   try {
     const teamData = req.body;
     if (req.file) {
-      teamData.image = `/uploads/${req.file.filename}`;
+      teamData.image = `/uploads/team/${req.file.filename}`;
     }
     const member = await Team.findByIdAndUpdate(req.params.id, teamData, { new: true });
     res.json({ success: true, member });
@@ -1040,8 +1040,14 @@ router.post('/blogs', verifyAdminAuth, upload.single('featuredImage'), async (re
   try {
     const blogData = req.body;
     if (req.file) {
-      blogData.featuredImage = `/uploads/${req.file.filename}`;
+      blogData.featuredImage = `/uploads/blogs/${req.file.filename}`;
     }
+    
+    // Process tags if provided as string
+    if (blogData.tags && typeof blogData.tags === 'string') {
+      blogData.tags = blogData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    }
+    
     const blog = new Blog(blogData);
     await blog.save();
     res.json({ success: true, blog });
@@ -1054,8 +1060,14 @@ router.put('/blogs/:id', verifyAdminAuth, upload.single('featuredImage'), async 
   try {
     const blogData = req.body;
     if (req.file) {
-      blogData.featuredImage = `/uploads/${req.file.filename}`;
+      blogData.featuredImage = `/uploads/blogs/${req.file.filename}`;
     }
+    
+    // Process tags if provided as string
+    if (blogData.tags && typeof blogData.tags === 'string') {
+      blogData.tags = blogData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    }
+    
     const blog = await Blog.findByIdAndUpdate(req.params.id, blogData, { new: true });
     res.json({ success: true, blog });
   } catch (error) {

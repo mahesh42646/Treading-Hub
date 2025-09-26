@@ -68,30 +68,47 @@ const BlogPage = () => {
               <div className="row">
                 {blogs.map((blog) => (
                   <div key={blog._id} className="col-md-6 col-lg-4 mb-4">
-                    <div className="card h-100 shadow-sm">
+                    <div className="card h-100 shadow-sm border-0">
                       {blog.featuredImage && (
-                        <Image 
-                          src={blog.featuredImage} 
-                          className="card-img-top" 
-                          alt={blog.title}
-                          style={{ height: '200px', objectFit: 'cover' }}
-                          width={400}
-                          height={200}
-                        />
+                        <div className="position-relative" style={{ height: '200px', overflow: 'hidden' }}>
+                          <Image 
+                            src={`${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}`}
+                            className="card-img-top" 
+                            alt={blog.title}
+                            style={{ objectFit: 'cover' }}
+                            fill
+                          />
+                        </div>
                       )}
-                      <div className="card-body">
+                      <div className="card-body d-flex flex-column">
+                        <div className="mb-2">
+                          <span className="badge bg-primary me-2">{blog.category}</span>
+                          {blog.isFeatured && <span className="badge bg-warning">Featured</span>}
+                        </div>
                         <h5 className="card-title">{blog.title}</h5>
-                        <p className="card-text text-muted">
+                        <p className="card-text text-muted flex-grow-1">
                           {blog.excerpt || blog.content.substring(0, 150)}...
                         </p>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted">
-                            {new Date(blog.createdAt).toLocaleDateString()}
-                          </small>
+                        <div className="d-flex justify-content-between align-items-center mt-auto">
+                          <div>
+                            <small className="text-muted d-block">By {blog.author}</small>
+                            <small className="text-muted">
+                              {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}
+                            </small>
+                          </div>
                           <button className="btn btn-outline-primary btn-sm">
                             Read More
                           </button>
                         </div>
+                        {blog.tags && blog.tags.length > 0 && (
+                          <div className="mt-2">
+                            {blog.tags.slice(0, 3).map((tag, index) => (
+                              <span key={index} className="badge bg-light text-dark me-1 small">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

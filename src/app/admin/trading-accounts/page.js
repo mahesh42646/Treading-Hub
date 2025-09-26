@@ -287,8 +287,12 @@ const AdminTradingAccounts = () => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex justify-content-center align-items-center" style={{ 
+        minHeight: '50vh',
+        background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+        color: 'white'
+      }}>
+        <div className="spinner-border" role="status" style={{ color: '#3b82f6' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -296,18 +300,25 @@ const AdminTradingAccounts = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid py-4" style={{ color: 'white' }}>
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h2 className="fw-bold mb-1">Trading Accounts Management</h2>
-              <p className="text-muted mb-0">Manage trading accounts and assign them to users</p>
+              <h2 className="fw-bold mb-1 text-white">Trading Accounts Management</h2>
+              <p className="text-white-50 mb-0">Manage trading accounts and assign them to users</p>
             </div>
             <button 
-              className="btn btn-primary"
+              className="btn"
               onClick={() => setShowCreateModal(true)}
+              style={{
+                background: 'rgba(59, 130, 246, 0.2)',
+                border: '1px solid rgba(59, 130, 246, 0.5)',
+                color: '#3b82f6',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}
             >
               <FaPlus className="me-2" />
               Create Account
@@ -317,12 +328,21 @@ const AdminTradingAccounts = () => {
       </div>
 
       {/* Filters */}
-      <div className="card border-0 shadow-sm mb-4">
+      <div className="card border-0 mb-4" style={{
+        background: 'rgba(60, 58, 58, 0.03)',
+        border: '1px solid rgba(124, 124, 124, 0.39)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+      }}>
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
               <div className="input-group">
-                <span className="input-group-text">
+                <span className="input-group-text" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: 'white'
+                }}>
                   <FaSearch />
                 </span>
                 <input
@@ -331,6 +351,11 @@ const AdminTradingAccounts = () => {
                   placeholder="Search by account name or broker"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: 'white'
+                  }}
                 />
               </div>
             </div>
@@ -339,10 +364,15 @@ const AdminTradingAccounts = () => {
                 className="form-select"
                 value={filterAssigned}
                 onChange={(e) => setFilterAssigned(e.target.value)}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: 'white'
+                }}
               >
-                <option value="">All Accounts</option>
-                <option value="true">Assigned</option>
-                <option value="false">Available</option>
+                <option value="" style={{ background: '#1f2937', color: 'white' }}>All Accounts</option>
+                <option value="true" style={{ background: '#1f2937', color: 'white' }}>Assigned</option>
+                <option value="false" style={{ background: '#1f2937', color: 'white' }}>Available</option>
               </select>
             </div>
             <div className="col-md-3">
@@ -352,15 +382,25 @@ const AdminTradingAccounts = () => {
                 placeholder="Filter by broker"
                 value={filterBroker}
                 onChange={(e) => setFilterBroker(e.target.value)}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: 'white'
+                }}
               />
             </div>
             <div className="col-md-2">
               <button 
-                className="btn btn-outline-secondary w-100"
+                className="btn w-100"
                 onClick={() => {
                   setSearchTerm('');
                   setFilterAssigned('');
                   setFilterBroker('');
+                }}
+                style={{
+                  background: 'rgba(124, 124, 124, 0.2)',
+                  border: '1px solid rgba(124, 124, 124, 0.5)',
+                  color: '#9ca3af'
                 }}
               >
                 <FaFilter className="me-1" />
@@ -372,57 +412,75 @@ const AdminTradingAccounts = () => {
       </div>
 
       {/* Accounts Table */}
-      <div className="card border-0 shadow-sm">
+      <div className="card border-0" style={{
+        background: 'rgba(60, 58, 58, 0.03)',
+        border: '1px solid rgba(124, 124, 124, 0.39)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+      }}>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-hover">
-              <thead>
+            <table className="table table-hover" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <thead style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <tr>
-                  <th>Account Details</th>
-                  <th>Broker</th>
-                  <th>Platform</th>
-                  <th>Type</th>
-                  <th>Balance</th>
-                  <th>Status</th>
-                  <th>Assigned To</th>
-                  <th>Actions</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Account Details</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Broker</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Platform</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Balance</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Assigned To</th>
+                  <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ background: 'transparent' }}>
                 {accounts.map((account) => (
-                  <tr key={account._id}>
-                    <td>
+                  <tr key={account._id} style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
+                    <td className="text-white" style={{ background: 'transparent' }}>
                       <div>
                         <strong>{account.accountName}</strong><br/>
-                        <small className="text-muted">ID: {account.loginId}</small>
+                        <small className="text-white-50">ID: {account.loginId}</small>
                       </div>
                     </td>
-                    <td>
+                    <td className="text-white" style={{ background: 'transparent' }}>
                       <div>
                         <strong>{account.brokerName}</strong><br/>
-                        <small className="text-muted">{account.serverId}</small>
+                        <small className="text-white-50">{account.serverId}</small>
                       </div>
                     </td>
-                    <td>
-                      <span className="badge bg-primary">{account.platform}</span>
+                    <td style={{ background: 'transparent' }}>
+                      <span className="badge" style={{
+                        background: 'rgba(59, 130, 246, 0.2)',
+                        border: '1px solid rgba(59, 130, 246, 0.5)',
+                        color: '#3b82f6'
+                      }}>{account.platform}</span>
                     </td>
-                    <td>
+                    <td style={{ background: 'transparent' }}>
                       {getAccountTypeBadge(account.accountType)}
                     </td>
-                    <td>
+                    <td className="text-white" style={{ background: 'transparent' }}>
                       <div>
                         <strong>{account.currency} {account.balance.toLocaleString()}</strong><br/>
-                        <small className="text-muted">Leverage: {account.leverage}</small>
+                        <small className="text-white-50">Leverage: {account.leverage}</small>
                       </div>
                     </td>
-                    <td>
+                    <td style={{ background: 'transparent' }}>
                       {getStatusBadge(account.isAssigned)}
                     </td>
-                    <td>
+                    <td className="text-white" style={{ background: 'transparent' }}>
                       {account.isAssigned ? (
                         <div>
                           <strong>{account.assignedTo?.userEmail || 'Unknown'}</strong><br/>
-                          <small className="text-muted">
+                          <small className="text-white-50">
                             {account.assignedTo?.assignedAt ? 
                               new Date(account.assignedTo.assignedAt).toLocaleDateString() : 
                               'N/A'
@@ -430,39 +488,59 @@ const AdminTradingAccounts = () => {
                           </small>
                         </div>
                       ) : (
-                        <span className="text-muted">Not assigned</span>
+                        <span className="text-white-50">Not assigned</span>
                       )}
                     </td>
-                    <td>
+                    <td style={{ background: 'transparent' }}>
                       <div className="btn-group btn-group-sm">
                         {!account.isAssigned ? (
                           <button 
-                            className="btn btn-outline-success"
+                            className="btn"
                             onClick={() => {
                               setSelectedAccount(account);
                               setShowAssignModal(true);
+                            }}
+                            style={{
+                              background: 'rgba(16, 185, 129, 0.2)',
+                              border: '1px solid rgba(16, 185, 129, 0.5)',
+                              color: '#10b981'
                             }}
                           >
                             <FaUser />
                           </button>
                         ) : (
                           <button 
-                            className="btn btn-outline-warning"
+                            className="btn"
                             onClick={() => handleUnassignAccount(account._id)}
+                            style={{
+                              background: 'rgba(245, 158, 11, 0.2)',
+                              border: '1px solid rgba(245, 158, 11, 0.5)',
+                              color: '#f59e0b'
+                            }}
                           >
                             <FaUserCheck />
                           </button>
                         )}
                         <button 
-                          className="btn btn-outline-primary"
+                          className="btn"
                           onClick={() => handleEditAccount(account)}
                           title="Edit Account"
+                          style={{
+                            background: 'rgba(59, 130, 246, 0.2)',
+                            border: '1px solid rgba(59, 130, 246, 0.5)',
+                            color: '#3b82f6'
+                          }}
                         >
                           <FaEdit />
                         </button>
                         <button 
-                          className="btn btn-outline-danger"
+                          className="btn"
                           onClick={() => handleDeleteAccount(account._id)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.2)',
+                            border: '1px solid rgba(239, 68, 68, 0.5)',
+                            color: '#ef4444'
+                          }}
                         >
                           <FaTrash />
                         </button>
@@ -482,6 +560,11 @@ const AdminTradingAccounts = () => {
                   className="page-link" 
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: 'white'
+                  }}
                 >
                   Previous
                 </button>
@@ -491,6 +574,11 @@ const AdminTradingAccounts = () => {
                   <button 
                     className="page-link" 
                     onClick={() => setCurrentPage(page)}
+                    style={{
+                      background: currentPage === page ? 'rgba(59, 130, 246, 0.2)' : 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: currentPage === page ? '#3b82f6' : 'white'
+                    }}
                   >
                     {page}
                   </button>
@@ -501,6 +589,11 @@ const AdminTradingAccounts = () => {
                   className="page-link" 
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: 'white'
+                  }}
                 >
                   Next
                 </button>
@@ -514,152 +607,233 @@ const AdminTradingAccounts = () => {
       {showCreateModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Create Trading Account</h5>
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Create Trading Account</h5>
                 <button 
                   type="button" 
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowCreateModal(false)}
                 ></button>
               </div>
               <form onSubmit={handleCreateAccount}>
-                <div className="modal-body">
+                <div className="modal-body" style={{ color: 'white' }}>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Account Name</label>
+                      <label className="form-label text-white-50">Account Name</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.accountName}
                         onChange={(e) => setFormData({...formData, accountName: e.target.value})}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Broker Name</label>
+                      <label className="form-label text-white-50">Broker Name</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.brokerName}
                         onChange={(e) => setFormData({...formData, brokerName: e.target.value})}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Server ID</label>
+                      <label className="form-label text-white-50">Server ID</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.serverId}
                         onChange={(e) => setFormData({...formData, serverId: e.target.value})}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Login ID</label>
+                      <label className="form-label text-white-50">Login ID</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.loginId}
                         onChange={(e) => setFormData({...formData, loginId: e.target.value})}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Password</label>
+                      <label className="form-label text-white-50">Password</label>
                       <input
                         type="password"
                         className="form-control"
                         value={formData.password}
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Server Address</label>
+                      <label className="form-label text-white-50">Server Address</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.serverAddress}
                         onChange={(e) => setFormData({...formData, serverAddress: e.target.value})}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Platform</label>
+                      <label className="form-label text-white-50">Platform</label>
                       <select
                         className="form-select"
                         value={formData.platform}
                         onChange={(e) => setFormData({...formData, platform: e.target.value})}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="MT4">MT4</option>
-                        <option value="MT5">MT5</option>
-                        <option value="TradingView">TradingView</option>
-                        <option value="Custom">Custom</option>
+                        <option value="MT4" style={{ background: '#1f2937', color: 'white' }}>MT4</option>
+                        <option value="MT5" style={{ background: '#1f2937', color: 'white' }}>MT5</option>
+                        <option value="TradingView" style={{ background: '#1f2937', color: 'white' }}>TradingView</option>
+                        <option value="Custom" style={{ background: '#1f2937', color: 'white' }}>Custom</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Account Type</label>
+                      <label className="form-label text-white-50">Account Type</label>
                       <select
                         className="form-select"
                         value={formData.accountType}
                         onChange={(e) => setFormData({...formData, accountType: e.target.value})}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="Demo">Demo</option>
-                        <option value="Live">Live</option>
+                        <option value="Demo" style={{ background: '#1f2937', color: 'white' }}>Demo</option>
+                        <option value="Live" style={{ background: '#1f2937', color: 'white' }}>Live</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Balance</label>
+                      <label className="form-label text-white-50">Balance</label>
                       <input
                         type="number"
                         className="form-control"
                         value={formData.balance}
                         onChange={(e) => setFormData({...formData, balance: parseFloat(e.target.value) || 0})}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Leverage</label>
+                      <label className="form-label text-white-50">Leverage</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.leverage}
                         onChange={(e) => setFormData({...formData, leverage: e.target.value})}
                         placeholder="1:100"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Currency</label>
+                      <label className="form-label text-white-50">Currency</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.currency}
                         onChange={(e) => setFormData({...formData, currency: e.target.value})}
                         placeholder="USD"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-12 mb-3">
-                      <label className="form-label">Notes</label>
+                      <label className="form-label text-white-50">Notes</label>
                       <textarea
                         className="form-control"
                         rows="3"
                         value={formData.notes}
                         onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer" style={{
+                  background: 'rgba(30, 30, 30, 0.8)',
+                  borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <button 
                     type="button" 
-                    className="btn btn-secondary"
+                    className="btn"
                     onClick={() => setShowCreateModal(false)}
+                    style={{
+                      background: 'rgba(124, 124, 124, 0.2)',
+                      border: '1px solid rgba(124, 124, 124, 0.5)',
+                      color: '#9ca3af'
+                    }}
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="btn btn-primary"
+                    className="btn"
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6'
+                    }}
                   >
                     Create Account
                   </button>
@@ -674,23 +848,31 @@ const AdminTradingAccounts = () => {
       {showAssignModal && selectedAccount && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Assign Trading Account</h5>
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Assign Trading Account</h5>
                 <button 
                   type="button" 
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowAssignModal(false)}
                 ></button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body" style={{ color: 'white' }}>
                 <div className="mb-3">
-                  <strong>Account:</strong> {selectedAccount.accountName}<br/>
-                  <strong>Broker:</strong> {selectedAccount.brokerName}<br/>
-                  <strong>Platform:</strong> {selectedAccount.platform}
+                  <strong className="text-white">Account:</strong> <span className="text-white">{selectedAccount.accountName}</span><br/>
+                  <strong className="text-white">Broker:</strong> <span className="text-white">{selectedAccount.brokerName}</span><br/>
+                  <strong className="text-white">Platform:</strong> <span className="text-white">{selectedAccount.platform}</span>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label">Select User</label>
+                  <label className="form-label text-white-50">Select User</label>
                   <select 
                     className="form-select"
                     value={selectedUserUid}
@@ -710,10 +892,15 @@ const AdminTradingAccounts = () => {
                         } catch (_) {}
                       }
                     }}
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: 'white'
+                    }}
                   >
-                    <option value="">Choose a user</option>
+                    <option value="" style={{ background: '#1f2937', color: 'white' }}>Choose a user</option>
                     {users.filter(u => (u.challengesCount ? u.challengesCount > 0 : true)).map(user => (
-                      <option key={user._id} value={user.uid}>
+                      <option key={user._id} value={user.uid} style={{ background: '#1f2937', color: 'white' }}>
                         {user.email} ({user.uid})
                       </option>
                     ))}
@@ -721,35 +908,53 @@ const AdminTradingAccounts = () => {
                 </div>
                 {selectedUserUid && (
                   <div className="mb-3">
-                    <label className="form-label">Select Challenge</label>
+                    <label className="form-label text-white-50">Select Challenge</label>
                     <select
                       className="form-select"
                       value={selectedChallengeEntryId}
                       onChange={(e) => setSelectedChallengeEntryId(e.target.value)}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}
                     >
-                      <option value="">Choose a challenge</option>
+                      <option value="" style={{ background: '#1f2937', color: 'white' }}>Choose a challenge</option>
                       {userChallenges.map(ch => (
-                        <option key={ch._id} value={ch._id}>
+                        <option key={ch._id} value={ch._id} style={{ background: '#1f2937', color: 'white' }}>
                           {ch.name} — ${'{'}Number(ch.accountSize).toLocaleString(){'}'} — {ch.status}
                         </option>
                       ))}
                     </select>
-                    <small className="text-muted">Only assigns this account to the selected challenge entry.</small>
+                    <small className="text-white-50">Only assigns this account to the selected challenge entry.</small>
                   </div>
                 )}
               </div>
-              <div className="modal-footer">
+              <div className="modal-footer" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <button 
                   type="button" 
-                  className="btn btn-secondary"
+                  className="btn"
                   onClick={() => setShowAssignModal(false)}
+                  style={{
+                    background: 'rgba(124, 124, 124, 0.2)',
+                    border: '1px solid rgba(124, 124, 124, 0.5)',
+                    color: '#9ca3af'
+                  }}
                 >
                   Cancel
                 </button>
                 <button 
                   type="button" 
-                  className="btn btn-primary"
+                  className="btn"
                   onClick={() => handleAssignAccount(selectedUserUid, selectedChallengeEntryId)}
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}
                 >
                   Assign Account
                 </button>
@@ -763,12 +968,20 @@ const AdminTradingAccounts = () => {
       {showEditModal && editingAccount && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit Trading Account</h5>
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Edit Trading Account</h5>
                 <button 
                   type="button" 
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingAccount(null);
@@ -776,155 +989,227 @@ const AdminTradingAccounts = () => {
                 ></button>
               </div>
               <form onSubmit={handleUpdateAccount}>
-                <div className="modal-body">
+                <div className="modal-body" style={{ color: 'white' }}>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Account Name</label>
+                      <label className="form-label text-white-50">Account Name</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.accountName}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, accountName: e.target.value }))}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Broker Name</label>
+                      <label className="form-label text-white-50">Broker Name</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.brokerName}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, brokerName: e.target.value }))}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Server ID</label>
+                      <label className="form-label text-white-50">Server ID</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.serverId}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, serverId: e.target.value }))}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Login ID</label>
+                      <label className="form-label text-white-50">Login ID</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.loginId}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, loginId: e.target.value }))}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Password</label>
+                      <label className="form-label text-white-50">Password</label>
                       <input
                         type="password"
                         className="form-control"
                         value={editFormData.password}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Server Address</label>
+                      <label className="form-label text-white-50">Server Address</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.serverAddress}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, serverAddress: e.target.value }))}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Platform</label>
+                      <label className="form-label text-white-50">Platform</label>
                       <select
                         className="form-select"
                         value={editFormData.platform}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, platform: e.target.value }))}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="MT5">MetaTrader 5</option>
-                        <option value="MT4">MetaTrader 4</option>
-                        <option value="cTrader">cTrader</option>
-                        <option value="MatchTrader">MatchTrader</option>
+                        <option value="MT5" style={{ background: '#1f2937', color: 'white' }}>MetaTrader 5</option>
+                        <option value="MT4" style={{ background: '#1f2937', color: 'white' }}>MetaTrader 4</option>
+                        <option value="cTrader" style={{ background: '#1f2937', color: 'white' }}>cTrader</option>
+                        <option value="MatchTrader" style={{ background: '#1f2937', color: 'white' }}>MatchTrader</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Account Type</label>
+                      <label className="form-label text-white-50">Account Type</label>
                       <select
                         className="form-select"
                         value={editFormData.accountType}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, accountType: e.target.value }))}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="Demo">Demo</option>
-                        <option value="Live">Live</option>
+                        <option value="Demo" style={{ background: '#1f2937', color: 'white' }}>Demo</option>
+                        <option value="Live" style={{ background: '#1f2937', color: 'white' }}>Live</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">Balance</label>
+                      <label className="form-label text-white-50">Balance</label>
                       <input
                         type="number"
                         className="form-control"
                         value={editFormData.balance}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, balance: parseFloat(e.target.value) || 0 }))}
                         step="0.01"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Leverage</label>
+                      <label className="form-label text-white-50">Leverage</label>
                       <input
                         type="text"
                         className="form-control"
                         value={editFormData.leverage}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, leverage: e.target.value }))}
                         placeholder="1:100"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Currency</label>
+                      <label className="form-label text-white-50">Currency</label>
                       <select
                         className="form-select"
                         value={editFormData.currency}
                         onChange={(e) => setEditFormData(prev => ({ ...prev, currency: e.target.value }))}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                        <option value="INR">INR</option>
+                        <option value="USD" style={{ background: '#1f2937', color: 'white' }}>USD</option>
+                        <option value="EUR" style={{ background: '#1f2937', color: 'white' }}>EUR</option>
+                        <option value="GBP" style={{ background: '#1f2937', color: 'white' }}>GBP</option>
+                        <option value="INR" style={{ background: '#1f2937', color: 'white' }}>INR</option>
                       </select>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Notes</label>
+                    <label className="form-label text-white-50">Notes</label>
                     <textarea
                       className="form-control"
                       rows="3"
                       value={editFormData.notes}
                       onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}
                     />
                   </div>
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer" style={{
+                  background: 'rgba(30, 30, 30, 0.8)',
+                  borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn"
                     onClick={() => {
                       setShowEditModal(false);
                       setEditingAccount(null);
                     }}
+                    style={{
+                      background: 'rgba(124, 124, 124, 0.2)',
+                      border: '1px solid rgba(124, 124, 124, 0.5)',
+                      color: '#9ca3af'
+                    }}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}>
                     Update Account
                   </button>
                 </div>

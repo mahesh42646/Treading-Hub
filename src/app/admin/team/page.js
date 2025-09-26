@@ -18,6 +18,8 @@ const AdminTeam = () => {
     isActive: true,
     priority: 1
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const fetchTeam = async () => {
     try {
@@ -40,6 +42,18 @@ const AdminTeam = () => {
     fetchTeam();
   }, []);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -50,18 +64,26 @@ const AdminTeam = () => {
       
       const method = editingMember ? 'PUT' : 'POST';
       
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+      
+      if (selectedImage) {
+        formDataToSend.append('image', selectedImage);
+      }
+      
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       if (response.ok) {
         setShowModal(false);
         setEditingMember(null);
+        setSelectedImage(null);
+        setImagePreview(null);
         setFormData({
           name: '',
           position: '',
@@ -91,6 +113,8 @@ const AdminTeam = () => {
       isActive: member.isActive,
       priority: member.priority
     });
+    setImagePreview(member.image ? `${process.env.NEXT_PUBLIC_API_URL}${member.image}` : null);
+    setSelectedImage(null);
     setShowModal(true);
   };
 
@@ -132,6 +156,8 @@ const AdminTeam = () => {
           className="btn btn-primary"
           onClick={() => {
             setEditingMember(null);
+            setSelectedImage(null);
+            setImagePreview(null);
             setFormData({
               name: '',
               position: '',
@@ -156,9 +182,18 @@ const AdminTeam = () => {
             <div className="card border-0 shadow-sm h-100">
               <div className="card-body text-center">
                 <div className="mb-3">
-                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style={{ width: '80px', height: '80px' }}>
-                    <span className="h4 text-primary mb-0">{member.name.charAt(0).toUpperCase()}</span>
-                  </div>
+                  {member.image ? (
+                    <img 
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${member.image}`}
+                      alt={member.name}
+                      className="rounded-circle"
+                      style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style={{ width: '80px', height: '80px' }}>
+                      <span className="h4 text-primary mb-0">{member.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                 </div>
                 <h5 className="card-title mb-1">{member.name}</h5>
                 <p className="text-muted mb-2">{member.position}</p>
@@ -214,6 +249,26 @@ const AdminTeam = () => {
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Profile Image</label>
+                    <input
+                      type="file"
+                      className="form-control"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="rounded-circle"
+                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">

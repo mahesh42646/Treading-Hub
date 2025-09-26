@@ -142,8 +142,12 @@ export default function AdminWithdrawals() {
 
   if (authLoading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex justify-content-center align-items-center" style={{ 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+        color: 'white'
+      }}>
+        <div className="spinner-border" role="status" style={{ color: '#3b82f6' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -152,8 +156,12 @@ export default function AdminWithdrawals() {
 
   if (!isAuthenticated) {
     return (
-      <div className="container-fluid py-4">
-        <div className="alert alert-danger">
+      <div className="container-fluid py-4" style={{ color: 'white' }}>
+        <div className="alert" style={{
+          background: 'rgba(239, 68, 68, 0.2)',
+          border: '1px solid rgba(239, 68, 68, 0.5)',
+          color: '#ef4444'
+        }}>
           <h4>Access Denied</h4>
           <p>You need to be logged in as an admin to access this page.</p>
         </div>
@@ -162,19 +170,26 @@ export default function AdminWithdrawals() {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid py-4" style={{ color: 'white' }}>
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h2 className="fw-bold mb-1">Withdrawal Management</h2>
-              <p className="text-muted mb-0">Manage user withdrawal requests</p>
+              <h2 className="fw-bold mb-1 text-white">Withdrawal Management</h2>
+              <p className="text-white-50 mb-0">Manage user withdrawal requests</p>
             </div>
             <button 
-              className="btn btn-primary"
+              className="btn"
               onClick={fetchWithdrawals}
               disabled={loading}
+              style={{
+                background: 'rgba(59, 130, 246, 0.2)',
+                border: '1px solid rgba(59, 130, 246, 0.5)',
+                color: '#3b82f6',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}
             >
               <i className="bi bi-arrow-clockwise me-2"></i>
               Refresh
@@ -186,39 +201,59 @@ export default function AdminWithdrawals() {
       {/* Filters */}
       <div className="row mb-4">
         <div className="col-12">
-          <div className="card">
+          <div className="card" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-md-4">
-                  <label className="form-label">Status</label>
+                  <label className="form-label text-white-50">Status</label>
                   <select 
                     className="form-select"
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: 'white'
+                    }}
                   >
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="completed">Completed</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="" style={{ background: '#1f2937', color: 'white' }}>All Status</option>
+                    <option value="pending" style={{ background: '#1f2937', color: 'white' }}>Pending</option>
+                    <option value="approved" style={{ background: '#1f2937', color: 'white' }}>Approved</option>
+                    <option value="completed" style={{ background: '#1f2937', color: 'white' }}>Completed</option>
+                    <option value="rejected" style={{ background: '#1f2937', color: 'white' }}>Rejected</option>
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Type</label>
+                  <label className="form-label text-white-50">Type</label>
                   <select 
                     className="form-select"
                     value={filters.type}
                     onChange={(e) => setFilters({...filters, type: e.target.value})}
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: 'white'
+                    }}
                   >
-                    <option value="">All Types</option>
-                    <option value="wallet">Wallet</option>
-                    <option value="referral">Referral</option>
+                    <option value="" style={{ background: '#1f2937', color: 'white' }}>All Types</option>
+                    <option value="wallet" style={{ background: '#1f2937', color: 'white' }}>Wallet</option>
+                    <option value="referral" style={{ background: '#1f2937', color: 'white' }}>Referral</option>
                   </select>
                 </div>
                 <div className="col-md-4 d-flex align-items-end">
                   <button 
-                    className="btn btn-outline-secondary"
+                    className="btn"
                     onClick={() => setFilters({status: '', type: ''})}
+                    style={{
+                      background: 'rgba(124, 124, 124, 0.2)',
+                      border: '1px solid rgba(124, 124, 124, 0.5)',
+                      color: '#9ca3af'
+                    }}
                   >
                     Clear Filters
                   </button>
@@ -232,88 +267,112 @@ export default function AdminWithdrawals() {
       {/* Withdrawals Table */}
       <div className="row">
         <div className="col-12">
-          <div className="card">
+          <div className="card" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body">
               {loading ? (
                 <div className="text-center py-4">
-                  <div className="spinner-border" role="status">
+                  <div className="spinner-border" role="status" style={{ color: '#3b82f6' }}>
                     <span className="visually-hidden">Loading...</span>
                   </div>
                 </div>
               ) : withdrawals.length === 0 ? (
                 <div className="text-center py-5">
-                  <i className="bi bi-arrow-up-circle fs-1 text-muted"></i>
-                  <p className="text-muted mt-3">No withdrawal requests found</p>
+                  <i className="bi bi-arrow-up-circle fs-1" style={{ color: '#9ca3af' }}></i>
+                  <p className="text-white-50 mt-3">No withdrawal requests found</p>
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
+                  <table className="table table-hover" style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
+                    <thead style={{
+                      background: 'rgba(30, 30, 30, 0.8)',
+                      borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                    }}>
                       <tr>
-                        <th>User</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Requested</th>
-                        <th>Bank Details</th>
-                        <th>Actions</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>User</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Requested</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Bank Details</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody style={{ background: 'transparent' }}>
                       {withdrawals.map((withdrawal) => (
-                        <tr key={withdrawal._id}>
-                          <td>
+                        <tr key={withdrawal._id} style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <td className="text-white" style={{ background: 'transparent' }}>
                             <div>
                               <div className="fw-bold">{withdrawal.userId?.email || 'N/A'}</div>
-                              <small className="text-muted">{withdrawal.uid}</small>
+                              <small className="text-white-50">{withdrawal.uid}</small>
                             </div>
                           </td>
-                          <td>
+                          <td style={{ background: 'transparent' }}>
                             <span className={getTypeBadge(withdrawal.type)}>
                               {withdrawal.type === 'wallet' ? 'Wallet' : 'Referral'}
                             </span>
                           </td>
-                          <td className="fw-bold">₹{withdrawal.amount.toFixed(2)}</td>
-                          <td>
+                          <td className="fw-bold text-white" style={{ background: 'transparent' }}>₹{withdrawal.amount.toFixed(2)}</td>
+                          <td style={{ background: 'transparent' }}>
                             <span className={getStatusBadge(withdrawal.status)}>
                               {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                             </span>
                           </td>
-                          <td>{new Date(withdrawal.createdAt).toLocaleDateString()}</td>
-                          <td>
+                          <td className="text-white" style={{ background: 'transparent' }}>{new Date(withdrawal.createdAt).toLocaleDateString()}</td>
+                          <td className="text-white" style={{ background: 'transparent' }}>
                             {withdrawal.type === 'wallet' && withdrawal.accountDetails ? (
                               <div>
                                 <div className="fw-bold">{withdrawal.accountDetails.bankName}</div>
-                                <small className="text-muted">
+                                <small className="text-white-50">
                                   {withdrawal.accountDetails.accountHolderName}
                                 </small>
                                 <br />
-                                <small className="text-muted">
+                                <small className="text-white-50">
                                   ****{withdrawal.accountDetails.accountNumber?.slice(-4)}
                                 </small>
                                 <br />
-                                <small className="text-muted">
+                                <small className="text-white-50">
                                   {withdrawal.accountDetails.ifscCode}
                                 </small>
                               </div>
                             ) : (
-                              <span className="text-muted">-</span>
+                              <span className="text-white-50">-</span>
                             )}
                           </td>
-                          <td>
+                          <td style={{ background: 'transparent' }}>
                             <div className="btn-group" role="group">
                               {withdrawal.status === 'pending' && (
                                 <>
                                   <button 
-                                    className="btn btn-success btn-sm"
+                                    className="btn btn-sm"
                                     onClick={() => openModal(withdrawal, 'approve')}
+                                    style={{
+                                      background: 'rgba(16, 185, 129, 0.2)',
+                                      border: '1px solid rgba(16, 185, 129, 0.5)',
+                                      color: '#10b981'
+                                    }}
                                   >
                                     <i className="bi bi-check-circle me-1"></i>
                                     Approve
                                   </button>
                                   <button 
-                                    className="btn btn-danger btn-sm"
+                                    className="btn btn-sm"
                                     onClick={() => openModal(withdrawal, 'reject')}
+                                    style={{
+                                      background: 'rgba(239, 68, 68, 0.2)',
+                                      border: '1px solid rgba(239, 68, 68, 0.5)',
+                                      color: '#ef4444'
+                                    }}
                                   >
                                     <i className="bi bi-x-circle me-1"></i>
                                     Reject
@@ -322,8 +381,13 @@ export default function AdminWithdrawals() {
                               )}
                               {withdrawal.status === 'approved' && (
                                 <button 
-                                  className="btn btn-primary btn-sm"
+                                  className="btn btn-sm"
                                   onClick={() => openModal(withdrawal, 'complete')}
+                                  style={{
+                                    background: 'rgba(59, 130, 246, 0.2)',
+                                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                                    color: '#3b82f6'
+                                  }}
                                 >
                                   <i className="bi bi-check2-all me-1"></i>
                                   Complete
@@ -346,31 +410,39 @@ export default function AdminWithdrawals() {
       {showModal && selectedWithdrawal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">
                   {actionType === 'approve' && 'Approve Withdrawal'}
                   {actionType === 'reject' && 'Reject Withdrawal'}
                   {actionType === 'complete' && 'Complete Withdrawal'}
                 </h5>
                 <button 
                   type="button" 
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowModal(false)}
                 ></button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body" style={{ color: 'white' }}>
                 <div className="mb-3">
-                  <strong>Withdrawal Details:</strong>
+                  <strong className="text-white">Withdrawal Details:</strong>
                   <ul className="list-unstyled mt-2">
-                    <li><strong>User:</strong> {selectedWithdrawal.userId?.email}</li>
-                    <li><strong>Amount:</strong> ₹{selectedWithdrawal.amount.toFixed(2)}</li>
-                    <li><strong>Type:</strong> {selectedWithdrawal.type}</li>
+                    <li className="text-white"><strong>User:</strong> {selectedWithdrawal.userId?.email}</li>
+                    <li className="text-white"><strong>Amount:</strong> ₹{selectedWithdrawal.amount.toFixed(2)}</li>
+                    <li className="text-white"><strong>Type:</strong> {selectedWithdrawal.type}</li>
                     {selectedWithdrawal.type === 'wallet' && selectedWithdrawal.accountDetails && (
                       <>
-                        <li><strong>Bank:</strong> {selectedWithdrawal.accountDetails.bankName}</li>
-                        <li><strong>Account:</strong> ****{selectedWithdrawal.accountDetails.accountNumber?.slice(-4)}</li>
-                        <li><strong>IFSC:</strong> {selectedWithdrawal.accountDetails.ifscCode}</li>
+                        <li className="text-white"><strong>Bank:</strong> {selectedWithdrawal.accountDetails.bankName}</li>
+                        <li className="text-white"><strong>Account:</strong> ****{selectedWithdrawal.accountDetails.accountNumber?.slice(-4)}</li>
+                        <li className="text-white"><strong>IFSC:</strong> {selectedWithdrawal.accountDetails.ifscCode}</li>
                       </>
                     )}
                   </ul>
@@ -378,7 +450,7 @@ export default function AdminWithdrawals() {
                 
                 {(actionType === 'approve' || actionType === 'reject') && (
                   <div className="mb-3">
-                    <label className="form-label">
+                    <label className="form-label text-white-50">
                       {actionType === 'approve' ? 'Admin Notes (Optional)' : 'Rejection Reason *'}
                     </label>
                     <textarea
@@ -392,33 +464,55 @@ export default function AdminWithdrawals() {
                           : 'Please provide a reason for rejection...'
                       }
                       required={actionType === 'reject'}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}
                     />
                   </div>
                 )}
 
                 {actionType === 'complete' && (
-                  <div className="alert alert-info">
+                  <div className="alert" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}>
                     <i className="bi bi-info-circle me-2"></i>
                     Mark this withdrawal as completed after manually transferring the amount to the user&apos;s account.
                   </div>
                 )}
               </div>
-              <div className="modal-footer">
+              <div className="modal-footer" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <button 
                   type="button" 
-                  className="btn btn-secondary"
+                  className="btn"
                   onClick={() => setShowModal(false)}
+                  style={{
+                    background: 'rgba(124, 124, 124, 0.2)',
+                    border: '1px solid rgba(124, 124, 124, 0.5)',
+                    color: '#9ca3af'
+                  }}
                 >
                   Cancel
                 </button>
                 <button 
                   type="button" 
-                  className={`btn ${
-                    actionType === 'approve' ? 'btn-success' : 
-                    actionType === 'reject' ? 'btn-danger' : 'btn-primary'
-                  }`}
+                  className="btn"
                   onClick={() => handleAction(selectedWithdrawal._id, actionType)}
                   disabled={loading || (actionType === 'reject' && !notes.trim())}
+                  style={{
+                    background: actionType === 'approve' ? 'rgba(16, 185, 129, 0.2)' : 
+                               actionType === 'reject' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                    border: actionType === 'approve' ? '1px solid rgba(16, 185, 129, 0.5)' : 
+                            actionType === 'reject' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(59, 130, 246, 0.5)',
+                    color: actionType === 'approve' ? '#10b981' : 
+                           actionType === 'reject' ? '#ef4444' : '#3b82f6'
+                  }}
                 >
                   {loading ? 'Processing...' : 
                     actionType === 'approve' ? 'Approve' :

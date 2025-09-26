@@ -20,9 +20,11 @@ const AdminBlogs = () => {
     metaDescription: '',
     metaKeywords: '',
     slug: '',
-    isPublished: true
+    isPublished: true,
+    isFeatured: false
   });
   const [imagePreview, setImagePreview] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchBlogs = useCallback(async () => {
     try {
@@ -63,12 +65,16 @@ const AdminBlogs = () => {
     });
   };
 
-  const handleImageChange = (url) => {
-    setFormData({
-      ...formData,
-      featuredImage: url
-    });
-    setImagePreview(url);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -81,18 +87,26 @@ const AdminBlogs = () => {
       
       const method = editingBlog ? 'PUT' : 'POST';
       
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+      
+      if (selectedImage) {
+        formDataToSend.append('featuredImage', selectedImage);
+      }
+      
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       if (response.ok) {
         setShowModal(false);
         setEditingBlog(null);
+        setSelectedImage(null);
+        setImagePreview('');
         setFormData({
           title: '',
           content: '',
@@ -105,9 +119,9 @@ const AdminBlogs = () => {
           metaDescription: '',
           metaKeywords: '',
           slug: '',
-          isPublished: true
+          isPublished: true,
+          isFeatured: false
         });
-        setImagePreview('');
         fetchBlogs();
       }
     } catch (error) {
@@ -129,9 +143,11 @@ const AdminBlogs = () => {
       metaDescription: blog.metaDescription || '',
       metaKeywords: blog.metaKeywords || '',
       slug: blog.slug || '',
-      isPublished: blog.isPublished
+      isPublished: blog.isPublished,
+      isFeatured: blog.isFeatured || false
     });
-    setImagePreview(blog.featuredImage || '');
+    setImagePreview(blog.featuredImage ? `${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}` : '');
+    setSelectedImage(null);
     setShowModal(true);
   };
 
@@ -173,21 +189,23 @@ const AdminBlogs = () => {
           className="btn btn-primary"
           onClick={() => {
             setEditingBlog(null);
+            setSelectedImage(null);
+            setImagePreview('');
             setFormData({
               title: '',
               content: '',
               excerpt: '',
               author: '',
-              category: 'general',
+              category: 'trading',
               tags: '',
               featuredImage: '',
               metaTitle: '',
               metaDescription: '',
               metaKeywords: '',
               slug: '',
-              isPublished: true
+              isPublished: true,
+              isFeatured: false
             });
-            setImagePreview('');
             setShowModal(true);
           }}
         >
@@ -200,12 +218,25 @@ const AdminBlogs = () => {
         {blogs.map((blog) => (
           <div key={blog._id} className="col-lg-6 col-xl-4 mb-4">
             <div className="card border-0 shadow-sm h-100">
+              {blog.featuredImage && (
+                <div className="card-img-top" style={{ height: '200px', overflow: 'hidden' }}>
+                  <img 
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}`}
+                    alt={blog.title}
+                    className="w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
+              )}
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-start mb-2">
                   <span className="badge bg-secondary">{blog.category}</span>
-                  <span className={`badge ${blog.isPublished ? 'bg-success' : 'bg-warning'}`}>
-                    {blog.isPublished ? 'Published' : 'Draft'}
-                  </span>
+                  <div className="d-flex gap-1">
+                    {blog.isFeatured && <span className="badge bg-warning">Featured</span>}
+                    <span className={`badge ${blog.isPublished ? 'bg-success' : 'bg-warning'}`}>
+                      {blog.isPublished ? 'Published' : 'Draft'}
+                    </span>
+                  </div>
                 </div>
                 <h5 className="card-title mb-2">{blog.title}</h5>
                 <p className="text-muted small mb-2">{blog.excerpt}</p>
@@ -268,12 +299,32 @@ const AdminBlogs = () => {
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
                   <div className="mb-3">
+                    <label className="form-label">Featured Image</label>
+                    <input
+                      type="file"
+                      className="form-control"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="img-fluid"
+                          style={{ maxHeight: '200px', borderRadius: '8px' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-3">
                     <label className="form-label">Title</label>
                     <input
                       type="text"
                       className="form-control"
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => handleTitleChange(e.target.value)}
                       required
                     />
                   </div>
@@ -308,24 +359,44 @@ const AdminBlogs = () => {
                           value={formData.category}
                           onChange={(e) => setFormData({...formData, category: e.target.value})}
                         >
-                          <option value="general">General</option>
                           <option value="trading">Trading</option>
+                          <option value="technology">Technology</option>
+                          <option value="finance">Finance</option>
                           <option value="education">Education</option>
                           <option value="news">News</option>
+                          <option value="other">Other</option>
                         </select>
                       </div>
                     </div>
                   </div>
-                  <div className="mb-3">
-                    <label className="form-label">Tags (comma separated)</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={formData.tags}
-                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                      placeholder="trading, education, tips"
-                    />
+                  
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Slug</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={formData.slug}
+                          onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                          placeholder="auto-generated-from-title"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Tags (comma separated)</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={formData.tags}
+                          onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                          placeholder="trading, education, tips"
+                        />
+                      </div>
+                    </div>
                   </div>
+                  
                   <div className="mb-3">
                     <label className="form-label">Content</label>
                     <textarea
@@ -334,19 +405,81 @@ const AdminBlogs = () => {
                       value={formData.content}
                       onChange={(e) => setFormData({...formData, content: e.target.value})}
                       required
+                      placeholder="Write your blog content here..."
                     ></textarea>
                   </div>
-                  <div className="mb-3">
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={formData.isPublished}
-                        onChange={(e) => setFormData({...formData, isPublished: e.target.checked})}
-                      />
-                      <label className="form-check-label">
-                        Publish immediately
-                      </label>
+                  
+                  {/* SEO Fields */}
+                  <div className="accordion mb-3" id="seoAccordion">
+                    <div className="accordion-item">
+                      <h2 className="accordion-header">
+                        <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#seoCollapse">
+                          SEO Settings (Optional)
+                        </button>
+                      </h2>
+                      <div id="seoCollapse" className="accordion-collapse collapse">
+                        <div className="accordion-body">
+                          <div className="mb-3">
+                            <label className="form-label">Meta Title</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.metaTitle}
+                              onChange={(e) => setFormData({...formData, metaTitle: e.target.value})}
+                              placeholder="SEO title for search engines"
+                            />
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">Meta Description</label>
+                            <textarea
+                              className="form-control"
+                              rows="2"
+                              value={formData.metaDescription}
+                              onChange={(e) => setFormData({...formData, metaDescription: e.target.value})}
+                              placeholder="Brief description for search engines"
+                            ></textarea>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">Meta Keywords</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.metaKeywords}
+                              onChange={(e) => setFormData({...formData, metaKeywords: e.target.value})}
+                              placeholder="keywords, separated, by, commas"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={formData.isPublished}
+                          onChange={(e) => setFormData({...formData, isPublished: e.target.checked})}
+                        />
+                        <label className="form-check-label">
+                          Publish immediately
+                        </label>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={formData.isFeatured}
+                          onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})}
+                        />
+                        <label className="form-check-label">
+                          Featured post
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>

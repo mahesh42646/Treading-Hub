@@ -245,8 +245,12 @@ const AdminChallengesPage = () => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex justify-content-center align-items-center" style={{ 
+        height: '50vh',
+        background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
+        color: 'white'
+      }}>
+        <div className="spinner-border" role="status" style={{ color: '#3b82f6' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -254,14 +258,21 @@ const AdminChallengesPage = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid py-4" style={{ color: 'white' }}>
       <div className="row">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="mb-0">Challenges Management</h2>
+            <h2 className="mb-0 text-white">Challenges Management</h2>
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => setShowCreateModal(true)}
+              style={{
+                background: 'rgba(59, 130, 246, 0.2)',
+                border: '1px solid rgba(59, 130, 246, 0.5)',
+                color: '#3b82f6',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}
             >
               <FaPlus className="me-2" />
               Create Challenge
@@ -277,6 +288,11 @@ const AdminChallengesPage = () => {
                 placeholder="Search challenges..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
               />
             </div>
             <div className="col-md-3">
@@ -284,6 +300,11 @@ const AdminChallengesPage = () => {
                 className="form-select"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -293,89 +314,135 @@ const AdminChallengesPage = () => {
           </div>
 
           {/* Challenges Table */}
-          <div className="card">
-            <div className="card-body">
+          <div className="card" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
+                <table className="table table-hover" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <thead style={{
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
                     <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Model</th>
-                      <th>Account Sizes</th>
-                      <th>Platforms</th>
-                      <th>Sale Status</th>
-                      <th>Priority</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Name</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Model</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Account Sizes</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Platforms</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Sale Status</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Priority</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                      <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ background: 'transparent' }}>
                     {(filteredChallenges || []).map((challenge) => (
-                      <tr key={challenge._id}>
-                        <td>
+                      <tr key={challenge._id} style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <td className="text-white" style={{ background: 'transparent' }}>
                           <div>
                             <strong>{challenge.name}</strong>
                             {challenge.description && (
-                              <small className="text-muted d-block">{challenge.description}</small>
+                              <small className="text-white-50 d-block">{challenge.description}</small>
                             )}
                           </div>
                         </td>
-                        <td>
-                          <span className="badge bg-info">{challenge.type}</span>
+                        <td style={{ background: 'transparent' }}>
+                          <span className="badge" style={{
+                            background: 'rgba(59, 130, 246, 0.2)',
+                            border: '1px solid rgba(59, 130, 246, 0.5)',
+                            color: '#3b82f6'
+                          }}>{challenge.type}</span>
                         </td>
-                        <td>{challenge.model}</td>
-                        <td>
+                        <td className="text-white" style={{ background: 'transparent' }}>{challenge.model}</td>
+                        <td style={{ background: 'transparent' }}>
                           {(challenge.accountSizes || []).map(size => (
-                            <span key={size} className="badge bg-secondary me-1">
+                            <span key={size} className="badge me-1" style={{
+                              background: 'rgba(124, 124, 124, 0.2)',
+                              border: '1px solid rgba(124, 124, 124, 0.5)',
+                              color: '#9ca3af'
+                            }}>
                               ${size.toLocaleString()}
                             </span>
                           ))}
                         </td>
-                        <td>
+                        <td style={{ background: 'transparent' }}>
                           {(challenge.platforms || []).map(platform => (
-                            <span key={platform} className="badge bg-light text-dark me-1">
+                            <span key={platform} className="badge me-1" style={{
+                              background: 'rgba(59, 130, 246, 0.1)',
+                              border: '1px solid rgba(59, 130, 246, 0.3)',
+                              color: '#93c5fd'
+                            }}>
                               {platform}
                             </span>
                           ))}
                         </td>
-                        <td>
+                        <td style={{ background: 'transparent' }}>
                           <span className={`badge ${challenge.saleStatus === 'active' ? 'bg-success' : challenge.saleStatus === 'stopped' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
                             {challenge.saleStatus || 'active'}
                           </span>
                         </td>
-                        <td>{challenge.priority}</td>
-                        <td>
+                        <td className="text-white" style={{ background: 'transparent' }}>{challenge.priority}</td>
+                        <td style={{ background: 'transparent' }}>
                           <select
                             className={`form-select form-select-sm ${challenge.saleStatus === 'active' ? 'border-success' : challenge.saleStatus === 'stopped' ? 'border-warning' : 'border-secondary'}`}
                             value={challenge.saleStatus || 'active'}
                             onChange={(e) => handleSaleStatusChange(challenge._id, e.target.value)}
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              color: 'white'
+                            }}
                           >
-                            <option value="active">Active</option>
-                            <option value="stopped">Stopped</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active" style={{ background: '#1f2937', color: 'white' }}>Active</option>
+                            <option value="stopped" style={{ background: '#1f2937', color: 'white' }}>Stopped</option>
+                            <option value="inactive" style={{ background: '#1f2937', color: 'white' }}>Inactive</option>
                           </select>
                         </td>
-                        <td>
+                        <td style={{ background: 'transparent' }}>
                           <div className="btn-group" role="group">
                             <button
-                              className="btn btn-sm btn-outline-primary"
+                              className="btn btn-sm"
                               onClick={() => openEditModal(challenge)}
                               title="Edit"
+                              style={{
+                                background: 'rgba(59, 130, 246, 0.2)',
+                                border: '1px solid rgba(59, 130, 246, 0.5)',
+                                color: '#3b82f6'
+                              }}
                             >
                               <FaEdit />
                             </button>
                             <button
-                              className="btn btn-sm btn-outline-info"
+                              className="btn btn-sm"
                               onClick={() => handleDuplicateChallenge(challenge)}
                               title="Duplicate"
+                              style={{
+                                background: 'rgba(16, 185, 129, 0.2)',
+                                border: '1px solid rgba(16, 185, 129, 0.5)',
+                                color: '#10b981'
+                              }}
                             >
                               <FaCopy />
                             </button>
                             <button
-                              className="btn btn-sm btn-outline-danger"
+                              className="btn btn-sm"
                               onClick={() => handleDeleteChallenge(challenge._id)}
                               title="Delete"
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.2)',
+                                border: '1px solid rgba(239, 68, 68, 0.5)',
+                                color: '#ef4444'
+                              }}
                             >
                               <FaTrash />
                             </button>
@@ -395,12 +462,20 @@ const AdminChallengesPage = () => {
       {showCreateModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Create New Challenge</h5>
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Create New Challenge</h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => {
                     setShowCreateModal(false);
                     resetForm();
@@ -408,10 +483,10 @@ const AdminChallengesPage = () => {
                 ></button>
               </div>
               <form onSubmit={handleCreateChallenge}>
-                <div className="modal-body">
+                <div className="modal-body" style={{ color: 'white' }}>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Challenge Name</label>
+                      <label className="form-label text-white-50">Challenge Name</label>
                       <input
                         type="text"
                         className="form-control"
@@ -419,37 +494,52 @@ const AdminChallengesPage = () => {
                         value={formData.name}
                         onChange={handleInputChange}
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Type</label>
+                      <label className="form-label text-white-50">Type</label>
                       <select
                         className="form-select"
                         name="type"
                         value={formData.type}
                         onChange={handleInputChange}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="One Step">One Step</option>
-                        <option value="Two Step">Two Step</option>
+                        <option value="One Step" style={{ background: '#1f2937', color: 'white' }}>One Step</option>
+                        <option value="Two Step" style={{ background: '#1f2937', color: 'white' }}>Two Step</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3" style={{ display: 'none' }}>
-                      <label className="form-label">Model</label>
+                      <label className="form-label text-white-50">Model</label>
                       <select
                         className="form-select"
                         name="model"
                         value={formData.model}
                         onChange={handleInputChange}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value="Standard">Standard</option>
-                        <option value="Aggressive">Aggressive</option>
+                        <option value="Standard" style={{ background: '#1f2937', color: 'white' }}>Standard</option>
+                        <option value="Aggressive" style={{ background: '#1f2937', color: 'white' }}>Aggressive</option>
                       </select>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Priority</label>
+                      <label className="form-label text-white-50">Priority</label>
                       <input
                         type="number"
                         className="form-control"
@@ -457,35 +547,50 @@ const AdminChallengesPage = () => {
                         value={formData.priority}
                         onChange={handleInputChange}
                         min="1"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Description</label>
+                    <label className="form-label text-white-50">Description</label>
                     <textarea
                       className="form-control"
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
                       rows="3"
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}
                     />
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Profit Target</label>
+                      <label className="form-label text-white-50">Profit Target</label>
                       <select
                         className="form-select"
                         value={(formData.profitTargets && formData.profitTargets[0]) || 10}
                         onChange={(e) => setFormData(prev => ({ ...prev, profitTargets: [parseFloat(e.target.value)] }))}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       >
-                        <option value={8}>8%</option>
-                        <option value={10}>10%</option>
+                        <option value={8} style={{ background: '#1f2937', color: 'white' }}>8%</option>
+                        <option value={10} style={{ background: '#1f2937', color: 'white' }}>10%</option>
                       </select>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Account Sizes</label>
+                      <label className="form-label text-white-50">Account Sizes</label>
                       <div className="d-flex flex-wrap gap-2">
                         {[5000, 10000, 25000, 50000, 100000].map(size => (
                           <label key={size} className="form-check form-check-inline">
@@ -500,13 +605,21 @@ const AdminChallengesPage = () => {
                                   return { ...prev, accountSizes: Array.from(set) };
                                 });
                               }}
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)'
+                              }}
                             />
-                            <span className="form-check-label">${size.toLocaleString()}</span>
+                            <span className="form-check-label text-white">${size.toLocaleString()}</span>
                           </label>
                         ))}
                       </div>
                       <div className="input-group mt-2">
-                        <span className="input-group-text">Add size</span>
+                        <span className="input-group-text" style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}>Add size</span>
                         <input
                           type="number"
                           className="form-control"
@@ -520,11 +633,16 @@ const AdminChallengesPage = () => {
                               }
                             }
                           }}
+                          style={{
+                            background: 'rgba(60, 58, 58, 0.03)',
+                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            color: 'white'
+                          }}
                         />
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Duration (days)</label>
+                      <label className="form-label text-white-50">Duration (days)</label>
                       <input
                         type="number"
                         className="form-control"
@@ -533,12 +651,17 @@ const AdminChallengesPage = () => {
                         onChange={handleInputChange}
                         min="1"
                         required
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Platforms</label>
+                    <label className="form-label text-white-50">Platforms</label>
                     <div className="d-flex flex-wrap gap-2">
                       {['MetaTrader 5', 'MatchTrader', 'cTrader'].map(p => (
                         <label key={p} className="form-check form-check-inline">
@@ -553,13 +676,21 @@ const AdminChallengesPage = () => {
                                 return { ...prev, platforms: Array.from(set) };
                               });
                             }}
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}
                           />
-                          <span className="form-check-label">{p}</span>
+                          <span className="form-check-label text-white">{p}</span>
                         </label>
                       ))}
                     </div>
                     <div className="input-group mt-2">
-                      <span className="input-group-text">Add platform</span>
+                      <span className="input-group-text" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}>Add platform</span>
                       <input
                         type="text"
                         className="form-control"
@@ -573,67 +704,104 @@ const AdminChallengesPage = () => {
                             }
                           }
                         }}
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}
                       />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Coupons</label>
+                    <label className="form-label text-white-50">Coupons</label>
                     <div className="table-responsive">
-                      <table className="table table-sm">
-                        <thead>
+                      <table className="table table-sm" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <thead style={{
+                          background: 'rgba(30, 30, 30, 0.8)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
                           <tr>
-                            <th>Code</th>
-                            <th>Flat Off</th>
-                            <th>% Off</th>
-                            <th>Expires</th>
-                            <th>Active</th>
-                            <th></th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Code</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Flat Off</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>% Off</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Expires</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Active</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}></th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ background: 'transparent' }}>
                           {(formData.coupons || []).map((c, idx) => (
-                            <tr key={idx}>
-                              <td>
+                            <tr key={idx} style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}>
+                              <td style={{ background: 'transparent' }}>
                                 <input className="form-control form-control-sm" value={c.code || ''} onChange={(e) => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons[idx] = { ...coupons[idx], code: e.target.value };
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(60, 58, 58, 0.03)',
+                                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                                  color: 'white'
                                 }} />
                               </td>
-                              <td>
+                              <td style={{ background: 'transparent' }}>
                                 <input type="number" className="form-control form-control-sm" value={c.discountFlat || 0} onChange={(e) => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons[idx] = { ...coupons[idx], discountFlat: parseFloat(e.target.value) || 0 };
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(60, 58, 58, 0.03)',
+                                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                                  color: 'white'
                                 }} />
                               </td>
-                              <td>
+                              <td style={{ background: 'transparent' }}>
                                 <input type="number" className="form-control form-control-sm" value={c.discountPercent || 0} onChange={(e) => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons[idx] = { ...coupons[idx], discountPercent: parseFloat(e.target.value) || 0 };
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(60, 58, 58, 0.03)',
+                                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                                  color: 'white'
                                 }} />
                               </td>
-                              <td>
+                              <td style={{ background: 'transparent' }}>
                                 <input type="date" className="form-control form-control-sm" value={c.expiresAt ? new Date(c.expiresAt).toISOString().substring(0,10) : ''} onChange={(e) => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons[idx] = { ...coupons[idx], expiresAt: e.target.value ? new Date(e.target.value) : null };
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(60, 58, 58, 0.03)',
+                                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                                  color: 'white'
                                 }} />
                               </td>
-                              <td>
+                              <td style={{ background: 'transparent' }}>
                                 <input type="checkbox" className="form-check-input" checked={c.isActive !== false} onChange={(e) => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons[idx] = { ...coupons[idx], isActive: e.target.checked };
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(60, 58, 58, 0.03)',
+                                  border: '1px solid rgba(124, 124, 124, 0.39)'
                                 }} />
                               </td>
-                              <td>
-                                <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => {
+                              <td style={{ background: 'transparent' }}>
+                                <button type="button" className="btn btn-sm" onClick={() => {
                                   const coupons = [...(formData.coupons || [])];
                                   coupons.splice(idx, 1);
                                   setFormData(prev => ({ ...prev, coupons }));
+                                }} style={{
+                                  background: 'rgba(239, 68, 68, 0.2)',
+                                  border: '1px solid rgba(239, 68, 68, 0.5)',
+                                  color: '#ef4444'
                                 }}>Remove</button>
                               </td>
                             </tr>
@@ -641,15 +809,23 @@ const AdminChallengesPage = () => {
                         </tbody>
                       </table>
                     </div>
-                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setFormData(prev => ({ ...prev, coupons: [...(prev.coupons || []), { code: '', discountFlat: 0, discountPercent: 0, expiresAt: null, isActive: true }] }))}>Add Coupon</button>
+                    <button type="button" className="btn btn-sm" onClick={() => setFormData(prev => ({ ...prev, coupons: [...(prev.coupons || []), { code: '', discountFlat: 0, discountPercent: 0, expiresAt: null, isActive: true }] }))} style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6'
+                    }}>Add Coupon</button>
                   </div>
 
                   {/* Price Configuration */}
                   <div className="mb-3">
-                    <label className="form-label">Prices by Account Size</label>
+                    <label className="form-label text-white-50">Prices by Account Size</label>
                     {(formData.accountSizes || []).map((size) => (
                       <div key={size} className="input-group mb-2">
-                        <span className="input-group-text">${size.toLocaleString()}</span>
+                        <span className="input-group-text" style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: 'white'
+                        }}>${size.toLocaleString()}</span>
                         <input
                           type="number"
                           className="form-control"
@@ -658,6 +834,11 @@ const AdminChallengesPage = () => {
                           placeholder="Enter price"
                           step="0.01"
                           min="0"
+                          style={{
+                            background: 'rgba(60, 58, 58, 0.03)',
+                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            color: 'white'
+                          }}
                         />
                       </div>
                     ))}
@@ -670,32 +851,52 @@ const AdminChallengesPage = () => {
                       name="isActive"
                       checked={formData.isActive}
                       onChange={handleInputChange}
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}
                     />
-                    <label className="form-check-label">Active</label>
+                    <label className="form-check-label text-white">Active</label>
                   </div>
                   <div className="row">
                     <div className="col-md-6">
-                      <label className="form-label">Sale Status</label>
-                      <select className="form-select" name="saleStatus" value={formData.saleStatus} onChange={handleInputChange}>
-                        <option value="active">Active (buying allowed)</option>
-                        <option value="stopped">Stopped (no new purchases)</option>
-                        <option value="inactive">Inactive (hidden)</option>
+                      <label className="form-label text-white-50">Sale Status</label>
+                      <select className="form-select" name="saleStatus" value={formData.saleStatus} onChange={handleInputChange} style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: 'white'
+                      }}>
+                        <option value="active" style={{ background: '#1f2937', color: 'white' }}>Active (buying allowed)</option>
+                        <option value="stopped" style={{ background: '#1f2937', color: 'white' }}>Stopped (no new purchases)</option>
+                        <option value="inactive" style={{ background: '#1f2937', color: 'white' }}>Inactive (hidden)</option>
                       </select>
                     </div>
                   </div>
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer" style={{
+                  background: 'rgba(30, 30, 30, 0.8)',
+                  borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn"
                     onClick={() => {
                       setShowCreateModal(false);
                       resetForm();
                     }}
+                    style={{
+                      background: 'rgba(124, 124, 124, 0.2)',
+                      border: '1px solid rgba(124, 124, 124, 0.5)',
+                      color: '#9ca3af'
+                    }}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}>
                     Create Challenge
                   </button>
                 </div>
@@ -709,12 +910,20 @@ const AdminChallengesPage = () => {
       {showEditModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit Challenge</h5>
+            <div className="modal-content" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header" style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Edit Challenge</h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingChallenge(null);

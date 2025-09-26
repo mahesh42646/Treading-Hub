@@ -83,7 +83,7 @@ const AboutPage = () => {
                       <div className="mb-3">
                         {member.image ? (
                           <Image 
-                            src={member.image} 
+                            src={`${process.env.NEXT_PUBLIC_API_URL}${member.image}`} 
                             alt={member.name}
                             width={120}
                             height={120}

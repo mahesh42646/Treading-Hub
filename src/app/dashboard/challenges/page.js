@@ -125,8 +125,8 @@ export default function ChallengesPage() {
   return (
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3 className="fw-bold mb-0">Challenges</h3>
-        <div className="text-end small text-muted">
+        <h3 className="fw-bold mb-0 text-white">Challenges</h3>
+        <div className="text-end small text-white-50">
           Wallet: ₹{walletBalance.toFixed(2)} · Referral: ₹{referralBalance.toFixed(2)}
         </div>
       </div>
@@ -136,20 +136,37 @@ export default function ChallengesPage() {
           <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
         </div>
       ) : configs.length === 0 ? (
-        <div className="alert alert-info">No challenges available.</div>
+        <div className="alert rounded-4" style={{
+          background: 'rgba(59, 130, 246, 0.1)',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          color: '#e2e8f0'
+        }}>No challenges available.</div>
       ) : (
         <div className="row g-3">
           {(showBuy || myChallenges.length === 0) && (
             <div className="col-lg-4">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-header bg-white border-0">
-                  <h6 className="mb-0">Select Challenge</h6>
+              <div className="card border-0 h-100" style={{
+                background: 'rgba(60, 58, 58, 0.03)',
+                border: '1px solid rgba(124, 124, 124, 0.39)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}>
+                <div className="card-header border-0" style={{
+                  background: 'transparent',
+                  borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <h6 className="mb-0 text-white">Select Challenge</h6>
                 </div>
                 <div className="list-group list-group-flush">
                   {configs.map(cfg => (
                     <button
                       key={cfg._id}
-                      className={`list-group-item list-group-item-action ${selected?._id === cfg._id ? 'active' : ''}`}
+                      className={`list-group-item list-group-item-action border-0 ${selected?._id === cfg._id ? 'active' : ''}`}
+                      style={{
+                        background: selected?._id === cfg._id ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                        color: selected?._id === cfg._id ? '#3b82f6' : '#e2e8f0',
+                        borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}
                       onClick={() => {
                         setSelected(cfg);
                         const firstSize = [...(cfg.pricesByAccountSize ? Object.keys(cfg.pricesByAccountSize) : ['10000'])][0];
@@ -161,10 +178,10 @@ export default function ChallengesPage() {
                     >
                       <div className="d-flex justify-content-between">
                         <div>
-                          <div className="fw-semibold">{cfg.name}</div>
-                          <small className="opacity-75">{cfg.type} · {cfg.model}</small>
+                          <div className="fw-semibold text-white">{cfg.name}</div>
+                          <small className="text-white-50">{cfg.type} · {cfg.model}</small>
                         </div>
-                        <i className="bi bi-trophy"></i>
+                        <i className="bi bi-trophy text-warning"></i>
                       </div>
                     </button>
                   ))}
@@ -175,82 +192,167 @@ export default function ChallengesPage() {
 
           <div className="col-lg-8">
             {showBuy || myChallenges.length === 0 ? selected && (
-              <div className="card border-0 shadow-sm">
-                <div className="card-header bg-white border-0">
-                  <h5 className="mb-0">{selected.name}</h5>
+              <div className="card border-0" style={{
+                background: 'rgba(60, 58, 58, 0.03)',
+                border: '1px solid rgba(124, 124, 124, 0.39)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}>
+                <div className="card-header border-0" style={{
+                  background: 'transparent',
+                  borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <h5 className="mb-0 text-white">{selected.name}</h5>
                 </div>
-                <div className="card-body">
+                <div className="card-body" style={{ color: '#e2e8f0' }}>
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label">Profit Target</label>
+                      <label className="form-label text-white">Profit Target</label>
                       <div className="d-flex gap-2">
                         {selected.profitTargets?.map(pt => (
-                          <button key={pt} className={`btn btn-sm ${Number(profitTarget)===Number(pt)?'btn-primary':'btn-outline-primary'}`} onClick={() => setProfitTarget(pt)}>{pt}%</button>
+                          <button 
+                            key={pt} 
+                            className={`btn btn-sm rounded-4 ${Number(profitTarget)===Number(pt)?'':'btn-outline-'}`} 
+                            style={Number(profitTarget)===Number(pt) ? {
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              color: '#3b82f6'
+                            } : {
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              color: '#e2e8f0'
+                            }}
+                            onClick={() => setProfitTarget(pt)}
+                          >
+                            {pt}%
+                          </button>
                         ))}
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">Account Size</label>
-                      <select className="form-select" value={accountSize} onChange={e=>setAccountSize(e.target.value)}>
+                      <label className="form-label text-white">Account Size</label>
+                      <select 
+                        className="form-select rounded-4" 
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
+                        value={accountSize} 
+                        onChange={e=>setAccountSize(e.target.value)}
+                      >
                         {Object.keys(selected.pricesByAccountSize || {}).map(sz => (
                           <option key={sz} value={sz}>${sz.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</option>
                         ))}
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">Trading Platform</label>
-                      <select className="form-select" value={platform} onChange={e=>setPlatform(e.target.value)}>
+                      <label className="form-label text-white">Trading Platform</label>
+                      <select 
+                        className="form-select rounded-4" 
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
+                        value={platform} 
+                        onChange={e=>setPlatform(e.target.value)}
+                      >
                         {selected.platforms?.map(p => (
                           <option key={p} value={p}>{p}</option>
                         ))}
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">Coupon Code</label>
-                      <input className="form-control" value={couponCode} onChange={e=>setCouponCode(e.target.value)} placeholder="Enter coupon code" />
+                      <label className="form-label text-white">Coupon Code</label>
+                      <input 
+                        className="form-control rounded-4" 
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
+                        value={couponCode} 
+                        onChange={e=>setCouponCode(e.target.value)} 
+                        placeholder="Enter coupon code" 
+                      />
                     </div>
                     <div className="col-md-12">
-                      <label className="form-label">Pay From</label>
+                      <label className="form-label text-white">Pay From</label>
                       <div className="d-flex gap-3">
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" id="payWallet" checked={payFrom==='wallet'} onChange={()=>setPayFrom('wallet')} />
-                          <label className="form-check-label" htmlFor="payWallet">Wallet (₹{walletBalance.toFixed(2)})</label>
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            id="payWallet" 
+                            checked={payFrom==='wallet'} 
+                            onChange={()=>setPayFrom('wallet')}
+                            style={{
+                              accentColor: '#3b82f6'
+                            }}
+                          />
+                          <label className="form-check-label text-white" htmlFor="payWallet">Wallet (₹{walletBalance.toFixed(2)})</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" id="payReferral" checked={payFrom==='referral'} onChange={()=>setPayFrom('referral')} />
-                          <label className="form-check-label" htmlFor="payReferral">Referral (₹{referralBalance.toFixed(2)})</label>
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            id="payReferral" 
+                            checked={payFrom==='referral'} 
+                            onChange={()=>setPayFrom('referral')}
+                            style={{
+                              accentColor: '#3b82f6'
+                            }}
+                          />
+                          <label className="form-check-label text-white" htmlFor="payReferral">Referral (₹{referralBalance.toFixed(2)})</label>
                         </div>
                       </div>
                     </div>
                     {errorMsg ? (
                       <div className="col-12">
-                        <div className="alert alert-danger py-2 mb-0">{errorMsg}</div>
+                        <div className="alert py-2 mb-0 rounded-4" style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          color: '#e2e8f0'
+                        }}>{errorMsg}</div>
                       </div>
                     ) : null}
                   </div>
-                  <hr />
+                  <hr style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} />
                   <div className="row g-3 align-items-start">
                     <div className="col-md-7">
                       <div className="form-check">
-                        <input className="form-check-input" type="checkbox" id="agree" checked={agreeTerms} onChange={()=>setAgreeTerms(v=>!v)} />
-                        <label className="form-check-label" htmlFor="agree">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="agree" 
+                          checked={agreeTerms} 
+                          onChange={()=>setAgreeTerms(v=>!v)}
+                          style={{
+                            accentColor: '#3b82f6'
+                          }}
+                        />
+                        <label className="form-check-label text-white" htmlFor="agree">
                           I agree with the Terms of Use and confirm my information is correct
                         </label>
                       </div>
                     </div>
                     <div className="col-md-5">
-                      <div className="card bg-light border-0">
+                      <div className="card border-0" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
                         <div className="card-body py-3">
-                          <div className="d-flex justify-content-between small">
+                          <div className="d-flex justify-content-between small text-white">
                             <span>{selected.name} — ${Number(accountSize).toLocaleString()}</span>
                             <span>₹{price.toFixed(2)}</span>
                           </div>
-                          <div className="d-flex justify-content-between small opacity-75">
+                          <div className="d-flex justify-content-between small text-white-50">
                             <span>Platform</span>
                             <span>{platform}</span>
                           </div>
-                          <hr className="my-2" />
-                          <div className="d-flex justify-content-between fw-semibold">
+                          <hr className="my-2" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} />
+                          <div className="d-flex justify-content-between fw-semibold text-white">
                             <span>Total</span>
                             <span>₹{price.toFixed(2)}</span>
                           </div>
@@ -258,7 +360,16 @@ export default function ChallengesPage() {
                       </div>
                     </div>
                     <div className="col-12 d-flex justify-content-end">
-                      <button className="btn btn-primary" onClick={purchase} disabled={!canAfford || purchasing || !agreeTerms}>
+                      <button 
+                        className="btn rounded-4" 
+                        style={{
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.5)',
+                          color: '#3b82f6'
+                        }}
+                        onClick={purchase} 
+                        disabled={!canAfford || purchasing || !agreeTerms}
+                      >
                         {purchasing ? 'Processing...' : 'Continue to Payment'}
                       </button>
                     </div>
@@ -266,42 +377,78 @@ export default function ChallengesPage() {
                 </div>
               </div>
             ) : (
-              <div className="card border-0 shadow-sm">
-                <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">My Challenges</h5>
-                  <button className="btn btn-primary btn-sm" onClick={() => setShowBuy(true)}>
+              <div className="card border-0" style={{
+                background: 'rgba(60, 58, 58, 0.03)',
+                border: '1px solid rgba(124, 124, 124, 0.39)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+              }}>
+                <div className="card-header border-0 d-flex justify-content-between align-items-center" style={{
+                  background: 'transparent',
+                  borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
+                  <h5 className="mb-0 text-white">My Challenges</h5>
+                  <button 
+                    className="btn btn-sm rounded-4" 
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6'
+                    }}
+                    onClick={() => setShowBuy(true)}
+                  >
                     New Challenge
                   </button>
                 </div>
-                <div className="card-body">
+                <div className="card-body" style={{ color: '#e2e8f0' }}>
                   {myChallenges.length === 0 ? (
-                    <div className="alert alert-info mb-0">You don’t have any challenges yet.</div>
+                    <div className="alert mb-0 rounded-4" style={{
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      color: '#e2e8f0'
+                    }}>You don't have any challenges yet.</div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead className="table-light">
+                      <table className="table table-hover" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <thead style={{
+                          background: 'rgba(30, 30, 30, 0.8)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
                           <tr>
-                            <th>Name</th>
-                            <th>Account</th>
-                            <th>Platform</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th>Started</th>
-                            <th>Expiry</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Name</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Account</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Platform</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Price</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Started</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Expiry</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ background: 'transparent' }}>
                           {myChallenges.map((ch, idx) => (
-                            <tr key={ch._id || idx}>
-                              <td>{ch.name}</td>
-                              <td>${Number(ch.accountSize).toLocaleString()}</td>
-                              <td>{ch.platform}</td>
-                              <td>₹{Number(ch.price || 0).toFixed(2)}</td>
-                              <td>
-                                <span className={`badge ${ch.status==='active'?'bg-success':'bg-secondary'}`}>{ch.status}</span>
+                            <tr key={ch._id || idx} style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}>
+                              <td className="text-white" style={{ background: 'transparent' }}>{ch.name}</td>
+                              <td className="text-white" style={{ background: 'transparent' }}>${Number(ch.accountSize).toLocaleString()}</td>
+                              <td className="text-white" style={{ background: 'transparent' }}>{ch.platform}</td>
+                              <td className="text-white" style={{ background: 'transparent' }}>₹{Number(ch.price || 0).toFixed(2)}</td>
+                              <td style={{ background: 'transparent' }}>
+                                <span className="badge" style={{
+                                  background: ch.status === 'active' ? 'rgba(34, 197, 94, 0.2)' : 
+                                            ch.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
+                                  color: ch.status === 'active' ? '#22c55e' : 
+                                        ch.status === 'failed' ? '#ef4444' : '#9ca3af',
+                                  border: ch.status === 'active' ? '1px solid rgba(34, 197, 94, 0.5)' : 
+                                         ch.status === 'failed' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
+                                }}>{ch.status}</span>
                               </td>
-                              <td>{ch.startedAt ? new Date(ch.startedAt).toLocaleDateString() : '-'}</td>
-                              <td>{ch.endedAt ? new Date(ch.endedAt).toLocaleDateString() : '-'}</td>
+                              <td className="text-white-50" style={{ background: 'transparent' }}>{ch.startedAt ? new Date(ch.startedAt).toLocaleDateString() : '-'}</td>
+                              <td className="text-white-50" style={{ background: 'transparent' }}>{ch.endedAt ? new Date(ch.endedAt).toLocaleDateString() : '-'}</td>
                             </tr>
                           ))}
                         </tbody>

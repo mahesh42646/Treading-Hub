@@ -46,7 +46,7 @@ const CareersPage = () => {
                   <p className="mb-0">
                     <strong>No current openings</strong><br />
                                          We&apos;re always looking for talented individuals to join our team. 
-                     Please send your resume to <a href="mailto:careers@tradinghub.com">careers@tradinghub.com</a> 
+                     Please send your resume to <a href="mailto:careers@xfundingflow.com">careers@xfundingflow.com</a> 
                      and we&apos;ll keep it on file for future opportunities.
                   </p>
                 </div>
@@ -56,7 +56,7 @@ const CareersPage = () => {
                 <h2 className="h4 mb-4">Contact Us</h2>
                 <p>
                   If you&apos;re interested in joining our team, please reach out to us at{' '}
-                  <a href="mailto:careers@tradinghub.com">careers@tradinghub.com</a> with your resume and a cover letter.
+                  <a href="mailto:careers@xfundingflow.com">careers@xfundingflow.com</a> with your resume and a cover letter.
                 </p>
               </div>
             </div>

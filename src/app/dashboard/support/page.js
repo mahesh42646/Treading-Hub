@@ -114,14 +114,22 @@ const SupportPage = () => {
         <div className="col-12">
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
           <div className="mb-3 mb-md-0">
-            <h1 className="page-title mb-1">Support Center</h1>
-            <p className="page-subtitle text-muted">Get help with your account and trading questions</p>
+            <h1 className="page-title mb-1 text-white">Support Center</h1>
+            <p className="page-subtitle text-white-50">Get help with your account and trading questions</p>
           </div>
           <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="/faq" className="btn btn-outline-primary">
+            <a href="/faq" className="btn rounded-4" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              color: '#e2e8f0'
+            }}>
               <i className="bi bi-question-circle"></i> FAQ
             </a>
-            <a href="/contact" className="btn btn-primary">
+            <a href="/contact" className="btn rounded-4" style={{
+              background: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.5)',
+              color: '#3b82f6'
+            }}>
               <i className="bi bi-envelope"></i> Contact Us
             </a>
           </div>
@@ -130,62 +138,102 @@ const SupportPage = () => {
 
       {/* Alert Message */}
       {message && (
-        <div className={`alert ${message.includes('successfully') ? 'alert-success' : 'alert-danger'} alert-dismissible fade show mb-4`}>
+        <div className={`alert alert-dismissible fade show mb-4 rounded-4`} style={{
+          background: message.includes('successfully') ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: message.includes('successfully') ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#e2e8f0'
+        }}>
           {message}
-          <button type="button" className="btn-close" onClick={() => setMessage('')}></button>
+          <button type="button" className="btn-close btn-close-white" onClick={() => setMessage('')}></button>
         </div>
       )}
 
       <div className="row">
         {/* Quick Help Section */}
         <div className="col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Quick Help</h5>
+          <div className="card h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="card-title mb-0 text-white">Quick Help</h5>
             </div>
             <div className="card-body">
               <div className="mb-4">
-                <h6>Common Issues</h6>
+                <h6 className="text-white">Common Issues</h6>
                 <div className="list-group list-group-flush">
-                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center">
-                    <i className="bi bi-person-circle text-primary me-3"></i>
+                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center" style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e2e8f0'
+                  }}>
+                    <i className="bi bi-person-circle me-3" style={{ color: '#3b82f6' }}></i>
                     <div>
-                      <strong>Account Issues</strong>
-                      <small className="text-muted d-block">Login, registration, profile</small>
+                      <strong className="text-white">Account Issues</strong>
+                      <small className="text-white-50 d-block">Login, registration, profile</small>
                     </div>
                   </a>
-                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center">
-                    <i className="bi bi-credit-card text-primary me-3"></i>
+                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center" style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e2e8f0'
+                  }}>
+                    <i className="bi bi-credit-card me-3" style={{ color: '#3b82f6' }}></i>
                     <div>
-                      <strong>Payment & Billing</strong>
-                      <small className="text-muted d-block">Deposits, withdrawals, fees</small>
+                      <strong className="text-white">Payment & Billing</strong>
+                      <small className="text-white-50 d-block">Deposits, withdrawals, fees</small>
                     </div>
                   </a>
-                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center">
-                    <i className="bi bi-shield-check text-primary me-3"></i>
+                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center" style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e2e8f0'
+                  }}>
+                    <i className="bi bi-shield-check me-3" style={{ color: '#3b82f6' }}></i>
                     <div>
-                      <strong>KYC Verification</strong>
-                      <small className="text-muted d-block">Document verification process</small>
+                      <strong className="text-white">KYC Verification</strong>
+                      <small className="text-white-50 d-block">Document verification process</small>
                     </div>
                   </a>
-                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center">
-                    <i className="bi bi-graph-up text-primary me-3"></i>
+                  <a href="#" className="list-group-item list-group-item-action d-flex align-items-center" style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e2e8f0'
+                  }}>
+                    <i className="bi bi-graph-up me-3" style={{ color: '#3b82f6' }}></i>
                     <div>
-                      <strong>Trading Platform</strong>
-                      <small className="text-muted d-block">Platform usage, features</small>
+                      <strong className="text-white">Trading Platform</strong>
+                      <small className="text-white-50 d-block">Platform usage, features</small>
                     </div>
                   </a>
                 </div>
               </div>
 
-              <div className="alert alert-info">
-                <h6 className="alert-heading">Need Immediate Help?</h6>
-                <p className="mb-2">Our support team is available 24/7</p>
+              <div className="alert" style={{
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: '#e2e8f0'
+              }}>
+                <h6 className="alert-heading text-white">Need Immediate Help?</h6>
+                <p className="mb-2 text-white-50">Our support team is available 24/7</p>
                 <div className="d-flex gap-2">
-                  <a href="mailto:support@tradinghub.com" className="btn btn-sm btn-outline-primary">
+                  <a href="mailto:support@xfundingflow.com" className="btn btn-sm" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}>
                     <i className="bi bi-envelope"></i> Email
                   </a>
-                  <a href="tel:+1234567890" className="btn btn-sm btn-outline-success">
+                  <a href="tel:+1234567890" className="btn btn-sm" style={{
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    border: '1px solid rgba(34, 197, 94, 0.5)',
+                    color: '#22c55e'
+                  }}>
                     <i className="bi bi-telephone"></i> Call
                   </a>
                 </div>
@@ -196,21 +244,34 @@ const SupportPage = () => {
 
         {/* Create Support Ticket */}
         <div className="col-lg-8 mb-4">
-          <div className="card h-100">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Create Support Ticket</h5>
+          <div className="card h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="card-title mb-0 text-white">Create Support Ticket</h5>
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Category</label>
+                    <label className="form-label text-white">Category</label>
                     <select
                       className="form-select"
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
                       required
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                     >
                       <option value="general">General Inquiry</option>
                       <option value="technical">Technical Issue</option>
@@ -221,7 +282,7 @@ const SupportPage = () => {
                     </select>
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Subject</label>
+                    <label className="form-label text-white">Subject</label>
                     <input
                       type="text"
                       className="form-control"
@@ -230,12 +291,17 @@ const SupportPage = () => {
                       onChange={handleInputChange}
                       placeholder="Brief description of your issue"
                       required
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                     />
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Message</label>
+                  <label className="form-label text-white">Message</label>
                   <textarea
                     className="form-control"
                     name="message"
@@ -244,16 +310,26 @@ const SupportPage = () => {
                     rows="6"
                     placeholder="Please provide detailed information about your issue..."
                     required
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                   ></textarea>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Your Information</label>
+                  <label className="form-label text-white">Your Information</label>
                   <div className="row">
                     <div className="col-md-6">
                       <input
                         type="text"
-                        className="form-control bg-light"
+                        className="form-control"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
                         value={profile?.personalInfo?.firstName ? `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}` : user?.email}
                         disabled
                       />
@@ -261,7 +337,12 @@ const SupportPage = () => {
                     <div className="col-md-6">
                       <input
                         type="email"
-                        className="form-control bg-light"
+                        className="form-control"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
                         value={user?.email || ''}
                         disabled
                       />
@@ -270,7 +351,11 @@ const SupportPage = () => {
                 </div>
 
                 <div className="text-end">
-                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                  <button type="submit" className="btn" disabled={loading} style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}>
                     {loading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status"></span>
@@ -290,9 +375,17 @@ const SupportPage = () => {
       {/* Recent Tickets */}
       <div className="row">
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Recent Support Tickets</h5>
+          <div className="card" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="card-title mb-0 text-white">Recent Support Tickets</h5>
             </div>
             <div className="card-body">
               {tickets.length > 0 ? (
@@ -300,29 +393,36 @@ const SupportPage = () => {
                   <table className="table table-hover">
                     <thead>
                       <tr>
-                        <th>Ticket ID</th>
-                        <th>Subject</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                        <th>Action</th>
+                        <th className="text-white-50">Ticket ID</th>
+                        <th className="text-white-50">Subject</th>
+                        <th className="text-white-50">Category</th>
+                        <th className="text-white-50">Status</th>
+                        <th className="text-white-50">Created</th>
+                        <th className="text-white-50">Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {tickets.map((ticket) => (
                         <tr key={ticket._id}>
                           <td>
-                            <span className="badge bg-light text-dark">#{ticket.ticketId}</span>
+                            <span className="badge" style={{
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              color: '#3b82f6'
+                            }}>#{ticket.ticketId}</span>
                           </td>
-                          <td>{ticket.subject}</td>
-                          <td>
-                            <i className={`bi ${getCategoryIcon(ticket.category)} text-primary me-1`}></i>
+                          <td className="text-white">{ticket.subject}</td>
+                          <td className="text-white-50">
+                            <i className={`bi ${getCategoryIcon(ticket.category)} me-1`} style={{ color: '#3b82f6' }}></i>
                             {ticket.category}
                           </td>
                           <td>{getStatusBadge(ticket.status)}</td>
-                          <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                          <td className="text-white-50">{new Date(ticket.createdAt).toLocaleDateString()}</td>
                           <td>
-                            <button className="btn btn-sm btn-outline-primary">
+                            <button className="btn btn-sm" style={{
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              color: '#3b82f6'
+                            }}>
                               View Details
                             </button>
                           </td>
@@ -333,9 +433,9 @@ const SupportPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <i className="bi bi-ticket-detailed text-muted" style={{ fontSize: '3rem' }}></i>
-                  <p className="text-muted mt-3">No support tickets yet</p>
-                  <p className="text-muted small">Create a ticket above if you need help</p>
+                  <i className="bi bi-ticket-detailed text-white-50" style={{ fontSize: '3rem' }}></i>
+                  <p className="text-white-50 mt-3">No support tickets yet</p>
+                  <p className="text-white-50 small">Create a ticket above if you need help</p>
                 </div>
               )}
             </div>
@@ -346,46 +446,81 @@ const SupportPage = () => {
       {/* FAQ Section */}
       <div className="row mt-4">
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Frequently Asked Questions</h5>
+          <div className="card" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="card-title mb-0 text-white">Frequently Asked Questions</h5>
             </div>
             <div className="card-body">
               <div className="accordion" id="faqAccordion">
-                <div className="accordion-item">
+                <div className="accordion-item" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <h2 className="accordion-header">
-                    <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       How do I complete my KYC verification?
                     </button>
                   </h2>
                   <div id="faq1" className="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                    <div className="accordion-body">
+                    <div className="accordion-body" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       To complete KYC verification, go to your profile settings and upload the required documents including PAN card, Aadhaar card, and a recent photograph. Our team will review and verify your documents within 24-48 hours.
                     </div>
                   </div>
                 </div>
                 
-                <div className="accordion-item">
+                <div className="accordion-item" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <h2 className="accordion-header">
-                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       What are the minimum withdrawal requirements?
                     </button>
                   </h2>
                   <div id="faq2" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                    <div className="accordion-body">
+                    <div className="accordion-body" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       The minimum withdrawal amount is ₹500. For referral bonus withdrawals, you must have made at least one deposit to your wallet first.
                     </div>
                   </div>
                 </div>
                 
-                <div className="accordion-item">
+                <div className="accordion-item" style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)'
+                }}>
                   <h2 className="accordion-header">
-                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       How does the referral program work?
                     </button>
                   </h2>
                   <div id="faq3" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                    <div className="accordion-body">
+                    <div className="accordion-body" style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      color: '#e2e8f0'
+                    }}>
                       Share your referral link with friends. When they register using your link and complete their profile and first deposit, you earn ₹200 as a referral bonus. The bonus is added to your referral balance in the wallet.
                     </div>
                   </div>

@@ -128,6 +128,7 @@ const userSchema = new mongoose.Schema({
       brokerName: { type: String, default: null },
       serverId: { type: String, default: null },
       loginId: { type: String, default: null },
+      password: { type: String, default: null },
       serverAddress: { type: String, default: null },
       platform: { type: String, default: null },
       leverage: { type: String, default: null },

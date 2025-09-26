@@ -175,7 +175,7 @@ const FirebaseTest = () => {
                 <strong>Firebase Console Checklist:</strong>
                 <ul className="mb-0 mt-2">
                   <li>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase Console</a></li>
-                  <li>Select project: <strong>tradinghub-43221</strong></li>
+                  <li>Select project: <strong>xfundingflow-43221</strong></li>
                   <li>Go to Authentication → Sign-in method</li>
                   <li>Enable Email/Password authentication</li>
                   <li>Go to Authentication → Templates</li>

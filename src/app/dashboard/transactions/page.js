@@ -105,39 +105,39 @@ export default function DashboardTransactions() {
       case 'refund':
         return 'text-warning';
       case 'plan_purchase':
-        return 'text-info';
+        return 'text-white';
       default:
-        return 'text-muted';
+        return 'text-white';
     }
   };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'pending': { class: 'bg-warning', text: 'Pending' },
-      'completed': { class: 'bg-success', text: 'Completed' },
-      'failed': { class: 'bg-danger', text: 'Failed' },
-      'cancelled': { class: 'bg-secondary', text: 'Cancelled' },
-      'rejected': { class: 'bg-danger', text: 'Rejected' }
+      'pending': { text: 'Pending', bg: 'rgba(251, 191, 36, 0.2)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.5)' },
+      'completed': { text: 'Completed', bg: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.5)' },
+      'failed': { text: 'Failed', bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' },
+      'cancelled': { text: 'Cancelled', bg: 'rgba(124, 124, 124, 0.2)', color: '#9ca3af', border: '1px solid rgba(124, 124, 124, 0.5)' },
+      'rejected': { text: 'Rejected', bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' }
     };
     
-    const config = statusConfig[status] || { class: 'bg-secondary', text: 'Unknown' };
-    return <span className={`badge ${config.class}`}>{config.text}</span>;
+    const config = statusConfig[status] || { text: 'Unknown', bg: 'rgba(124, 124, 124, 0.2)', color: '#9ca3af', border: '1px solid rgba(124, 124, 124, 0.5)' };
+    return <span className="badge" style={{ background: config.bg, color: config.color, border: config.border }}>{config.text}</span>;
   };
 
   const getSourceBadge = (source) => {
     const sourceConfig = {
-      'razorpay': { class: 'bg-primary', text: 'Razorpay' },
-      'wallet': { class: 'bg-info', text: 'Wallet' },
-      'referral': { class: 'bg-success', text: 'Referral' },
-      'admin': { class: 'bg-warning', text: 'Admin' },
-      'trading': { class: 'bg-purple', text: 'Trading' },
-      'plan_purchase': { class: 'bg-info', text: 'Plan Purchase' },
-      'withdrawal': { class: 'bg-secondary', text: 'Withdrawal' },
-      'system': { class: 'bg-dark', text: 'System' }
+      'razorpay': { text: 'Razorpay', bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.5)' },
+      'wallet': { text: 'Wallet', bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.5)' },
+      'referral': { text: 'Referral', bg: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.5)' },
+      'admin': { text: 'Admin', bg: 'rgba(251, 191, 36, 0.2)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.5)' },
+      'trading': { text: 'Trading', bg: 'rgba(147, 51, 234, 0.2)', color: '#9333ea', border: '1px solid rgba(147, 51, 234, 0.5)' },
+      'plan_purchase': { text: 'Plan Purchase', bg: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.5)' },
+      'withdrawal': { text: 'Withdrawal', bg: 'rgba(124, 124, 124, 0.2)', color: '#9ca3af', border: '1px solid rgba(124, 124, 124, 0.5)' },
+      'system': { text: 'System', bg: 'rgba(30, 30, 30, 0.8)', color: '#e2e8f0', border: '1px solid rgba(124, 124, 124, 0.5)' }
     };
     
-    const config = sourceConfig[source] || { class: 'bg-secondary', text: 'Unknown' };
-    return <span className={`badge ${config.class}`}>{config.text}</span>;
+    const config = sourceConfig[source] || { text: 'Unknown', bg: 'rgba(124, 124, 124, 0.2)', color: '#9ca3af', border: '1px solid rgba(124, 124, 124, 0.5)' };
+    return <span className="badge" style={{ background: config.bg, color: config.color, border: config.border }}>{config.text}</span>;
   };
 
   const formatAmount = (amount, type) => {
@@ -165,53 +165,73 @@ export default function DashboardTransactions() {
       
       <div className="row mb-4">
         <div className="col-12">
-          <h2 className="fw-bold mb-3">Transaction History</h2>
+          <h2 className="fw-bold mb-3 text-white">Transaction History</h2>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="row mb-4">
         <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body text-center">
               <div className="text-success mb-2">
                 <i className="bi bi-arrow-down-circle fs-1"></i>
               </div>
-              <h4 className="text-success">₹{summary.totalDeposits.toFixed(2)}</h4>
-              <small className="text-muted">Total Deposits</small>
+              <h4 className="text-success text-white">₹{summary.totalDeposits.toFixed(2)}</h4>
+              <small className="text-white-50">Total Deposits</small>
             </div>
           </div>
         </div>
         <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body text-center">
               <div className="text-danger mb-2">
                 <i className="bi bi-arrow-up-circle fs-1"></i>
               </div>
-              <h4 className="text-danger">₹{summary.totalWithdrawals.toFixed(2)}</h4>
-              <small className="text-muted">Total Withdrawals</small>
+              <h4 className="text-danger text-white">₹{summary.totalWithdrawals.toFixed(2)}</h4>
+              <small className="text-white-50">Total Withdrawals</small>
             </div>
           </div>
         </div>
         <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body text-center">
               <div className="text-warning mb-2">
                 <i className="bi bi-gift fs-1"></i>
               </div>
-              <h4 className="text-warning">₹{summary.totalBonuses.toFixed(2)}</h4>
-              <small className="text-muted">Total Bonuses</small>
+              <h4 className="text-warning text-white">₹{summary.totalBonuses.toFixed(2)}</h4>
+              <small className="text-white-50">Total Bonuses</small>
             </div>
           </div>
         </div>
         <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body text-center">
               <div className="text-info mb-2">
                 <i className="bi bi-bag fs-1"></i>
               </div>
-              <h4 className="text-info">₹{summary.totalPurchases.toFixed(2)}</h4>
-              <small className="text-muted">Total Purchases</small>
+              <h4 className="text-info text-white">₹{summary.totalPurchases.toFixed(2)}</h4>
+              <small className="text-white-50">Total Purchases</small>
             </div>
           </div>
         </div>
@@ -220,13 +240,23 @@ export default function DashboardTransactions() {
       {/* Filters */}
       <div className="row mb-4">
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
+          <div className="card border-0" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="row g-3">
                 <div className="col-md-3">
-                  <label className="form-label">Transaction Type</label>
+                  <label className="form-label text-white">Transaction Type</label>
                   <select 
-                    className="form-select"
+                    className="form-select rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     value={filters.type}
                     onChange={(e) => setFilters({...filters, type: e.target.value})}
                   >
@@ -245,9 +275,14 @@ export default function DashboardTransactions() {
                   </select>
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Status</label>
+                  <label className="form-label text-white">Status</label>
                   <select 
-                    className="form-select"
+                    className="form-select rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
                   >
@@ -260,9 +295,14 @@ export default function DashboardTransactions() {
                   </select>
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Category</label>
+                  <label className="form-label text-white">Category</label>
                   <select 
-                    className="form-select"
+                    className="form-select rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     value={filters.category}
                     onChange={(e) => setFilters({...filters, category: e.target.value})}
                   >
@@ -277,7 +317,12 @@ export default function DashboardTransactions() {
                 </div>
                 <div className="col-md-3 d-flex align-items-end">
                   <button 
-                    className="btn btn-outline-secondary"
+                    className="btn rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     onClick={() => setFilters({ type: '', status: '', category: '' })}
                   >
                     Clear Filters
@@ -292,54 +337,68 @@ export default function DashboardTransactions() {
       {/* Transactions Table */}
       <div className="row">
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
+          <div className="card border-0" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               {transactions.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
+                  <table className="table table-hover" style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)'
+                  }}>
+                    <thead style={{
+                      background: 'rgba(30, 30, 30, 0.8)',
+                      borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                    }}>
                       <tr>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Source</th>
-                        <th>Status</th>
-                        <th>Balance After</th>
-                        <th>Date</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Description</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Source</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Balance After</th>
+                        <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Date</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody style={{ background: 'transparent' }}>
                       {transactions.map((transaction) => (
-                        <tr key={transaction._id}>
-                          <td>
+                        <tr key={transaction._id} style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <td style={{ background: 'transparent' }}>
                             <div className="d-flex align-items-center">
                               <span className="me-2">{getTypeIcon(transaction.type)}</span>
-                              <span className="text-capitalize">{transaction.type.replace('_', ' ')}</span>
+                              <span className="text-capitalize text-white">{transaction.type.replace('_', ' ')}</span>
                             </div>
                           </td>
-                          <td>
+                          <td style={{ background: 'transparent' }}>
                             <span className={`fw-bold ${getTypeColor(transaction.type)}`}>
                               {formatAmount(transaction.amount, transaction.type)}
                             </span>
                           </td>
-                          <td>
+                          <td style={{ background: 'transparent' }}>
                             <div>
-                              <div>{transaction.description}</div>
+                              <div className="text-white">{transaction.description}</div>
                               {transaction.metadata?.planName && (
-                                <small className="text-muted">Plan: {transaction.metadata.planName}</small>
+                                <small className="text-white-50">Plan: {transaction.metadata.planName}</small>
                               )}
                               {transaction.metadata?.referredUserEmail && (
-                                <small className="text-muted">From: {transaction.metadata.referredUserEmail}</small>
+                                <small className="text-white-50">From: {transaction.metadata.referredUserEmail}</small>
                               )}
                             </div>
                           </td>
-                          <td>{getSourceBadge(transaction.source)}</td>
-                          <td>{getStatusBadge(transaction.status)}</td>
-                          <td>₹{transaction.balanceAfter?.toFixed(2) || 'N/A'}</td>
-                          <td>
+                          <td style={{ background: 'transparent' }}>{getSourceBadge(transaction.source)}</td>
+                          <td style={{ background: 'transparent' }}>{getStatusBadge(transaction.status)}</td>
+                          <td className="text-white" style={{ background: 'transparent' }}>₹{transaction.balanceAfter?.toFixed(2) || 'N/A'}</td>
+                          <td style={{ background: 'transparent' }}>
                             <div>
-                              <div>{new Date(transaction.createdAt).toLocaleDateString()}</div>
-                              <small className="text-muted">
+                              <div className="text-white">{new Date(transaction.createdAt).toLocaleDateString()}</div>
+                              <small className="text-white-50">
                                 {new Date(transaction.createdAt).toLocaleTimeString()}
                               </small>
                             </div>
@@ -351,9 +410,9 @@ export default function DashboardTransactions() {
                 </div>
               ) : (
                 <div className="text-center py-5">
-                  <i className="bi bi-receipt fs-1 text-muted mb-3"></i>
-                  <h5 className="text-muted">No transactions found</h5>
-                  <p className="text-muted">Your transaction history will appear here</p>
+                  <i className="bi bi-receipt fs-1 text-white-50 mb-3"></i>
+                  <h5 className="text-white-50">No transactions found</h5>
+                  <p className="text-white-50">Your transaction history will appear here</p>
                 </div>
               )}
 
@@ -363,7 +422,12 @@ export default function DashboardTransactions() {
                   <ul className="pagination justify-content-center">
                     <li className={`page-item ${pagination.current === 1 ? 'disabled' : ''}`}>
                       <button 
-                        className="page-link"
+                        className="page-link rounded-4"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
                         onClick={() => fetchTransactions(pagination.current - 1)}
                         disabled={pagination.current === 1}
                       >
@@ -373,7 +437,12 @@ export default function DashboardTransactions() {
                     {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(page => (
                       <li key={page} className={`page-item ${pagination.current === page ? 'active' : ''}`}>
                         <button 
-                          className="page-link"
+                          className="page-link rounded-4"
+                          style={{
+                            background: pagination.current === page ? 'rgba(59, 130, 246, 0.2)' : 'rgba(60, 58, 58, 0.03)',
+                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            color: pagination.current === page ? '#3b82f6' : '#e2e8f0'
+                          }}
                           onClick={() => fetchTransactions(page)}
                         >
                           {page}
@@ -382,7 +451,12 @@ export default function DashboardTransactions() {
                     ))}
                     <li className={`page-item ${pagination.current === pagination.pages ? 'disabled' : ''}`}>
                       <button 
-                        className="page-link"
+                        className="page-link rounded-4"
+                        style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          color: '#e2e8f0'
+                        }}
                         onClick={() => fetchTransactions(pagination.current + 1)}
                         disabled={pagination.current === pagination.pages}
                       >

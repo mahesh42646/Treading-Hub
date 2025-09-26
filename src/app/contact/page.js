@@ -71,7 +71,7 @@ const ContactPage = () => {
                   <h3 className="mb-0 fw-bold">Contact Us</h3>
                 </div>
                 <div className="ms-5">
-                  <p className="mb-2"><strong>Email:</strong> support@tradinghub.com</p>
+                  <p className="mb-2"><strong>Email:</strong> support@xfundingflow.com</p>
                   <p className="mb-0"><strong>Phone:</strong> +91 98765 43210</p>
                 </div>
               </div>
@@ -94,8 +94,8 @@ const ContactPage = () => {
                     <strong>How to Report:</strong>
                     <p className="mb-2">
                       Send a detailed email to{' '}
-                      <a href="mailto:support@tradinghub.com" className="text-purple">
-                        support@tradinghub.com
+                      <a href="mailto:support@xfundingflow.com" className="text-purple">
+                        support@xfundingflow.com
                       </a>{' '}
                       with as much information as possible, or contact us via Live Chat.
                     </p>

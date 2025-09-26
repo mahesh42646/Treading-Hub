@@ -87,7 +87,10 @@ const Sidebar = () => {
         style={{ 
           minHeight: '100vh', 
           width: isCollapsed ? '70px' : '280px',
-          background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
+          background: 'linear-gradient(135deg, #002260 0%, #110A28 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: 'inset 0px 1px 20px 1px rgba(0, 0, 0, 0.22)',
+          borderRight: '1px solid rgba(124, 124, 124, 0.39)',
           zIndex: 1050,
           transition: 'all 0.3s ease',
           transform: window.innerWidth < 992 ? (isMobileOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)'
@@ -126,17 +129,22 @@ const Sidebar = () => {
           
           {/* User Profile Section */}
           {!isCollapsed ? (
-            <div className="mb-4 p-3 bg-dark border border-secondary rounded-3">
+            <div className="mb-4 p-3 rounded-4" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
               <div className="d-flex align-items-center mb-3">
                 <div className="flex-shrink-0">
                   {getUserAvatar(user, profile)}
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h6 className="mb-1 text-white">{displayInfo.name}</h6>
-                  <small className="text-muted d-block">{displayInfo.displayType === 'google' ? 'Google Account' : displayInfo.displayType === 'profile' ? 'Verified Profile' : 'Email Account'}</small>
+                  <small className="text-white-50 d-block">{displayInfo.displayType === 'google' ? 'Google Account' : displayInfo.displayType === 'profile' ? 'Verified Profile' : 'Email Account'}</small>
                 </div>
               </div>
-              <small className="text-white d-block overflow-hidden text-truncate">{displayInfo.email}</small>
+              <small className="text-white-50 d-block overflow-hidden text-truncate">{displayInfo.email}</small>
               
               {/* Profile Completion */}
               <div className="mb-2 text-white">
@@ -144,19 +152,26 @@ const Sidebar = () => {
                   <small className="text-white">Profile Completion</small>
                   <small className="text-white">{completionStatus.percentage}%</small>
                 </div>
-                <div className="progress" style={{ height: '6px' }}>
+                <div className="progress" style={{ height: '6px', background: 'rgba(60, 58, 58, 0.03)' }}>
                   <div 
-                    className="progress-bar bg-primary" 
-                    style={{ width: `${completionStatus.percentage}%` }}
+                    className="progress-bar" 
+                    style={{ 
+                      width: `${completionStatus.percentage}%`,
+                      background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)'
+                    }}
                   ></div>
                 </div>
-                <small className="text-muted">{completionStatus.status}</small>
+                <small className="text-white-50">{completionStatus.status}</small>
               </div>
 
               {/* Account Status */}
               <div className="d-flex justify-content-between align-items-center">
                 <small className="text-white">Account Status</small>
-                <span className={`badge ${profile?.status?.isActive ? 'bg-success' : 'bg-warning'}`}>
+                <span className="badge rounded-4" style={{
+                  background: profile?.status?.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(251, 191, 36, 0.2)',
+                  border: `1px solid ${profile?.status?.isActive ? 'rgba(34, 197, 94, 0.5)' : 'rgba(251, 191, 36, 0.5)'}`,
+                  color: profile?.status?.isActive ? '#22c55e' : '#fbbf24'
+                }}>
                   {profile?.status?.isActive ? 'Active' : 'Pending'}
                 </span>
               </div>
@@ -175,7 +190,7 @@ const Sidebar = () => {
                 key={index}
                 href={item.href}
                 className={`nav-link text-light mb-2 ${
-                  pathname === item.href ? 'active bg-primary' : 'hover-bg-secondary'
+                  pathname === item.href ? 'active' : ''
                 }`}
                 style={{
                   borderRadius: '10px',
@@ -185,10 +200,25 @@ const Sidebar = () => {
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  textOverflow: 'ellipsis',
+                  background: pathname === item.href ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                  borderLeft: pathname === item.href ? '3px solid #3b82f6' : '3px solid transparent',
+                  color: pathname === item.href ? '#3b82f6' : '#e2e8f0'
                 }}
                 onClick={() => setIsMobileOpen(false)}
                 title={isCollapsed ? item.title : ''}
+                onMouseEnter={(e) => {
+                  if (pathname !== item.href) {
+                    e.target.style.background = 'rgba(60, 58, 58, 0.03)';
+                    e.target.style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== item.href) {
+                    e.target.style.background = 'transparent';
+                    e.target.style.color = '#e2e8f0';
+                  }
+                }}
               >
                 <i className={`${item.icon} me-3`} style={{ width: '20px' }}></i>
                 {!isCollapsed && item.title}
@@ -198,19 +228,29 @@ const Sidebar = () => {
         </div>
         
         {/* Logout Button - Fixed at Bottom */}
-        <div className="p-4 border-top border-secondary">
+        <div className="p-4" style={{ borderTop: '1px solid rgba(124, 124, 124, 0.39)' }}>
           <button
             onClick={handleLogout}
-            className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
+            className="btn w-100 d-flex align-items-center justify-content-center"
             style={{
               borderRadius: '10px',
               transition: 'all 0.3s ease',
               padding: '12px 16px',
-              border: '2px solid #dc3545',
+              background: 'rgba(220, 53, 69, 0.1)',
+              border: '1px solid rgba(220, 53, 69, 0.3)',
               color: '#dc3545',
-              background: 'transparent'
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
             }}
             title={isCollapsed ? 'Logout' : ''}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(220, 53, 69, 0.2)';
+              e.target.style.borderColor = 'rgba(220, 53, 69, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(220, 53, 69, 0.1)';
+              e.target.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+            }}
           >
             <i className="bi bi-box-arrow-right me-3" style={{ width: '20px' }}></i>
             {!isCollapsed && 'Logout'}

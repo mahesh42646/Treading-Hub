@@ -77,7 +77,7 @@ const CookiesPage = () => {
                 <div className="alert alert-info mt-4">
                   <h5 className="alert-heading">Contact Us</h5>
                   <p className="mb-0">
-                    If you have any questions about our use of cookies, please contact us at privacy@tradinghub.com
+                    If you have any questions about our use of cookies, please contact us at privacy@xfundingflow.com
                   </p>
                 </div>
               </div>

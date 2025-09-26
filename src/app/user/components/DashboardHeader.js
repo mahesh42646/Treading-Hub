@@ -24,12 +24,14 @@ const DashboardHeader = () => {
     }
   };
 
-  const handleNotificationToggle = () => {
+  const handleNotificationToggle = (e) => {
+    e.stopPropagation();
     setShowNotifications(!showNotifications);
     if (showUserMenu) setShowUserMenu(false);
   };
 
-  const handleUserMenuToggle = () => {
+  const handleUserMenuToggle = (e) => {
+    e.stopPropagation();
     setShowUserMenu(!showUserMenu);
     if (showNotifications) setShowNotifications(false);
   };
@@ -49,20 +51,26 @@ const DashboardHeader = () => {
 
 
   return (
-    <header ref={headerRef} className="bg-white shadow-sm border-bottom position-sticky top-0" style={{ zIndex: 1030 }}>
+    <header ref={headerRef} className="position-sticky top-0" style={{ 
+      zIndex: 1030,
+      background: 'rgba(60, 58, 58, 0.03)',
+      borderBottom: '1px solid rgba(124, 124, 124, 0.39)',
+      backdropFilter: 'blur(20px)',
+      boxShadow: 'inset 0px 1px 20px 1px rgba(105, 100, 100, 0.44)'
+    }}>
       <div className="container-fluid">
         <div className="row align-items-center py-2">
           <div className="col-12">
             <div className="d-flex  align-items-center">
               {/* Left Section */}
               <div className="d-flex align-items-center  w-50">
-                <h3 className="mb-0 ">Dashboard</h3>
+                <h3 className="mb-0 text-white px-3">Dashboard</h3>
               </div>
 
               {/* Right Section */}
               <div className="d-flex align-items-center justify-content-end  w-50">
                 {/* Notifications */}
-                <div className="position-relative me-3">
+                <div className="position-relative me-3" onClick={(e) => e.stopPropagation()}>
                   <NotificationDropdown 
                     isOpen={showNotifications}
                     onToggle={handleNotificationToggle}
@@ -70,16 +78,17 @@ const DashboardHeader = () => {
                 </div>
 
                 {/* User Menu */}
-                <div className="dropdown">
+                <div className="dropdown" onClick={(e) => e.stopPropagation()}>
                   <button
-                    className="btn btn-link text-dark d-flex align-items-center gap-2"
+                    className="btn btn-link d-flex align-items-center gap-2"
+                    style={{ color: '#e2e8f0' }}
                     onClick={handleUserMenuToggle}
                   >
                     <div style={{ width: '40px', height: '40px' }}>
                       {getUserAvatar(user, profile, 40)}
                     </div>
-                    <span className="d-none d-md-block">{displayInfo.name}</span>
-                    <i className="bi bi-chevron-down d-none d-md-block"></i>
+                    <span className="d-none d-md-block text-white">{displayInfo.name}</span>
+                    <i className="bi bi-chevron-down d-none d-md-block text-white"></i>
                   </button>
 
                   <ul className={`dropdown-menu dropdown-menu-end ${showUserMenu ? 'show' : ''}`}
@@ -87,31 +96,39 @@ const DashboardHeader = () => {
                       minWidth: '200px',
                       maxWidth: 'calc(100vw - 20px)',
                       right: '0',
-                      left: 'auto'
+                      left: 'auto',
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                     }}>
                     <li>
-                      <div className="dropdown-item-text">
-                        <div className="fw-bold">{displayInfo.name}</div>
-                        <small className="text-muted">{displayInfo.email}</small>
-                        <small className="text-muted d-block">
+                      <div className="dropdown-item-text" style={{ color: '#e2e8f0' }}>
+                        <div className="fw-bold text-white">{displayInfo.name}</div>
+                        <small className="text-white-50">{displayInfo.email}</small>
+                        <small className="text-white-50 d-block">
                           {displayInfo.displayType === 'google' ? 'Google Account' :
                             displayInfo.displayType === 'profile' ? 'Verified Profile' :
                               'Email Account'}
                         </small>
                       </div>
                     </li>
-                    <li><hr className="dropdown-divider" /></li>
+                    <li><hr className="dropdown-divider" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} /></li>
                     <li>
                       <button className="dropdown-item d-flex align-items-center"
                         onClick={() => router.push('/dashboard/profile')}
-                        style={{ transition: 'all 0.3s ease' }}
+                        style={{ 
+                          transition: 'all 0.3s ease',
+                          color: '#e2e8f0',
+                          background: 'transparent'
+                        }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = '#f8f9fa';
-                          e.target.style.color = '#000';
+                          e.target.style.background = 'rgba(59, 130, 246, 0.2)';
+                          e.target.style.color = '#3b82f6';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.background = 'transparent';
-                          e.target.style.color = '#000';
+                          e.target.style.color = '#e2e8f0';
                         }}>
                         <i className="bi bi-person me-2"></i>
                         Profile
@@ -120,14 +137,18 @@ const DashboardHeader = () => {
                     <li>
                       <button className="dropdown-item d-flex align-items-center"
                         onClick={() => router.push('/dashboard/wallet')}
-                        style={{ transition: 'all 0.3s ease' }}
+                        style={{ 
+                          transition: 'all 0.3s ease',
+                          color: '#e2e8f0',
+                          background: 'transparent'
+                        }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = '#f8f9fa';
-                          e.target.style.color = '#000';
+                          e.target.style.background = 'rgba(59, 130, 246, 0.2)';
+                          e.target.style.color = '#3b82f6';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.background = 'transparent';
-                          e.target.style.color = '#000';
+                          e.target.style.color = '#e2e8f0';
                         }}>
                         <i className="bi bi-wallet2 me-2"></i>
                         Wallet
@@ -136,31 +157,39 @@ const DashboardHeader = () => {
                     <li>
                       <button className="dropdown-item d-flex align-items-center"
                         onClick={() => router.push('/dashboard/referral')}
-                        style={{ transition: 'all 0.3s ease' }}
+                        style={{ 
+                          transition: 'all 0.3s ease',
+                          color: '#e2e8f0',
+                          background: 'transparent'
+                        }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = '#f8f9fa';
-                          e.target.style.color = '#000';
+                          e.target.style.background = 'rgba(59, 130, 246, 0.2)';
+                          e.target.style.color = '#3b82f6';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.background = 'transparent';
-                          e.target.style.color = '#000';
+                          e.target.style.color = '#e2e8f0';
                         }}>
                         <i className="bi bi-share me-2"></i>
                         Referrals
                       </button>
                     </li>
-                    <li><hr className="dropdown-divider" /></li>
+                    <li><hr className="dropdown-divider" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }} /></li>
                     <li>
-                      <button className="dropdown-item text-danger d-flex align-items-center"
+                      <button className="dropdown-item d-flex align-items-center"
                         onClick={handleLogout}
-                        style={{ transition: 'all 0.3s ease' }}
+                        style={{ 
+                          transition: 'all 0.3s ease',
+                          color: '#ef4444',
+                          background: 'transparent'
+                        }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = '#f8f9fa';
-                          e.target.style.color = '#dc3545';
+                          e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                          e.target.style.color = '#ef4444';
                         }}
                         onMouseLeave={(e) => {
                           e.target.style.background = 'transparent';
-                          e.target.style.color = '#dc3545';
+                          e.target.style.color = '#ef4444';
                         }}>
                         <i className="bi bi-box-arrow-right me-2"></i>
                         Logout

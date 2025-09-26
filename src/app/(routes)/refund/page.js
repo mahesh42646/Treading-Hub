@@ -41,7 +41,7 @@ const RefundPage = () => {
 
                 <h2 className="h4 mb-4">How to Request a Refund</h2>
                 <ol className="mb-4">
-                  <li>Contact our support team at support@tradinghub.com</li>
+                  <li>Contact our support team at support@xfundingflow.com</li>
                   <li>Provide your account details and reason for refund</li>
                   <li>Include any relevant transaction information</li>
                   <li>Allow 3-5 business days for review and processing</li>

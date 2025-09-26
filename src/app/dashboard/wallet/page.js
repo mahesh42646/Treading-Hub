@@ -404,14 +404,19 @@ export default function DashboardWallet() {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 gap-md-3">
             <div className="flex-grow-1">
-              <h2 className="fw-bold mb-1 fs-4 fs-md-3">Wallet</h2>
-              <p className="text-muted mb-0 d-none d-md-block small">Manage your funds and view transaction history</p>
+              <h2 className="fw-bold mb-1 fs-4 fs-md-3 text-white">Wallet</h2>
+              <p className="text-white-50 mb-0 d-none d-md-block small">Manage your funds and view transaction history</p>
             </div>
             <div className="d-flex gap-1 gap-md-2 flex-wrap">
             
               
               <button
-                className="btn btn-outline-primary btn-sm px-3"
+                className="btn btn-sm px-3 rounded-4"
+                style={{
+                  background: 'rgba(34, 197, 94, 0.2)',
+                  border: '1px solid rgba(34, 197, 94, 0.5)',
+                  color: '#22c55e'
+                }}
                 onClick={() => setShowWithdrawModal(true)}
                 disabled={loading}
                 title="Withdraw Money"
@@ -428,17 +433,25 @@ export default function DashboardWallet() {
       {/* Wallet Overview Cards */}
       <div className="row mb-3 mb-md-4 g-2 g-md-3">
         <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body p-3 p-md-4">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-primary bg-opacity-10 rounded-circle p-2 p-md-3">
+                  <div className="rounded-circle p-2 p-md-3" style={{
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
                     <i className="bi bi-wallet2 text-primary fs-5 fs-md-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-muted mb-1 small fw-medium">Trading Profit</h6>
-                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate">₹{walletData.walletBalance.toFixed(2)}</h4>
+                  <h6 className="text-white-50 mb-1 small fw-medium">Trading Profit</h6>
+                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.walletBalance.toFixed(2)}</h4>
                   <small className={`${walletData.todayChange >= 0 ? "text-success" : "text-danger"} d-none d-sm-block`}>
                     {walletData.todayChange >= 0 ? '+' : ''}₹{walletData.todayChange.toFixed(2)} today
                   </small>
@@ -449,18 +462,26 @@ export default function DashboardWallet() {
         </div>
 
         <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body p-3 p-md-4">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-warning bg-opacity-10 rounded-circle p-2 p-md-3">
+                  <div className="rounded-circle p-2 p-md-3" style={{
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)'
+                  }}>
                     <i className="bi bi-gift text-warning fs-5 fs-md-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-muted mb-1 small fw-medium">Referral Balance</h6>
-                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate">₹{walletData.referralBalance.toFixed(2)}</h4>
-                  <small className="text-muted d-none d-sm-block">Earned from referrals</small>
+                  <h6 className="text-white-50 mb-1 small fw-medium">Referral Balance</h6>
+                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.referralBalance.toFixed(2)}</h4>
+                  <small className="text-white-50 d-none d-sm-block">Earned from referrals</small>
                 </div>
               </div>
             </div>
@@ -468,18 +489,26 @@ export default function DashboardWallet() {
         </div>
 
         <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body p-3 p-md-4">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-success bg-opacity-10 rounded-circle p-2 p-md-3">
+                  <div className="rounded-circle p-2 p-md-3" style={{
+                    background: 'rgba(34, 197, 94, 0.1)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                  }}>
                     <i className="bi bi-arrow-down-circle text-success fs-5 fs-md-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-muted mb-1 small fw-medium">Total Deposits</h6>
-                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate">₹{walletData.totalDeposits.toFixed(2)}</h4>
-                  <small className="text-muted d-none d-sm-block">All time</small>
+                  <h6 className="text-white-50 mb-1 small fw-medium">Total Deposits</h6>
+                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.totalDeposits.toFixed(2)}</h4>
+                  <small className="text-white-50 d-none d-sm-block">All time</small>
                 </div>
               </div>
             </div>
@@ -487,18 +516,26 @@ export default function DashboardWallet() {
         </div>
 
         <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body p-3 p-md-4">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-danger bg-opacity-10 rounded-circle p-2 p-md-3">
+                  <div className="rounded-circle p-2 p-md-3" style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                  }}>
                     <i className="bi bi-arrow-up-circle text-danger fs-5 fs-md-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-muted mb-1 small fw-medium">Total Withdrawals</h6>
-                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate">₹{walletData.totalWithdrawals.toFixed(2)}</h4>
-                  <small className="text-muted d-none d-sm-block">All time</small>
+                  <h6 className="text-white-50 mb-1 small fw-medium">Total Withdrawals</h6>
+                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.totalWithdrawals.toFixed(2)}</h4>
+                  <small className="text-white-50 d-none d-sm-block">All time</small>
                 </div>
               </div>
             </div>
@@ -509,12 +546,25 @@ export default function DashboardWallet() {
       {/* Tabs */}
       <div className="row mb-3 mb-md-4">
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-0 p-0">
+          <div className="card border-0" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header border-0 p-0" style={{
+              background: 'transparent',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
               <ul className="nav nav-tabs card-header-tabs flex-nowrap overflow-auto border-0">
                 <li className="nav-item flex-shrink-0">
                   <button
                     className={`nav-link ${activeTab === 'overview' ? 'active' : ''} px-3 py-2`}
+                    style={{
+                      color: activeTab === 'overview' ? '#3b82f6' : '#e2e8f0',
+                      background: activeTab === 'overview' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                      border: 'none'
+                    }}
                     onClick={() => setActiveTab('overview')}
                   >
                     <i className="bi bi-house me-1 d-none d-sm-inline"></i>
@@ -525,6 +575,11 @@ export default function DashboardWallet() {
                 <li className="nav-item flex-shrink-0">
                   <button
                     className={`nav-link ${activeTab === 'transactions' ? 'active' : ''} px-3 py-2`}
+                    style={{
+                      color: activeTab === 'transactions' ? '#3b82f6' : '#e2e8f0',
+                      background: activeTab === 'transactions' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                      border: 'none'
+                    }}
                     onClick={() => setActiveTab('transactions')}
                   >
                     <i className="bi bi-arrow-left-right me-1 d-none d-sm-inline"></i>
@@ -535,6 +590,11 @@ export default function DashboardWallet() {
                 <li className="nav-item flex-shrink-0">
                   <button
                     className={`nav-link ${activeTab === 'referrals' ? 'active' : ''} px-3 py-2`}
+                    style={{
+                      color: activeTab === 'referrals' ? '#3b82f6' : '#e2e8f0',
+                      background: activeTab === 'referrals' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                      border: 'none'
+                    }}
                     onClick={() => setActiveTab('referrals')}
                   >
                     <i className="bi bi-people me-1 d-none d-sm-inline"></i>
@@ -564,35 +624,55 @@ export default function DashboardWallet() {
                 </li>
               </ul>
             </div>
-            <div className="card-body p-3 p-md-4">
+            <div className="card-body p-3 p-md-4" style={{ color: '#e2e8f0' }}>
               {activeTab === 'overview' && (
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <h5 className="mb-3 fs-6 fs-md-5">Quick Actions</h5>
+                    <h5 className="mb-3 fs-6 fs-md-5 text-white">Quick Actions</h5>
                     <div className="d-grid gap-2 gap-md-3">
                       <button
-                        className="btn btn-primary btn-sm d-md-none"
+                        className="btn btn-sm d-md-none rounded-4"
+                        style={{
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.5)',
+                          color: '#3b82f6'
+                        }}
                         onClick={() => setShowDepositModal(true)}
                       >
                         <i className="bi bi-plus-circle me-2"></i>
                         Add Money
                       </button>
                       <button
-                        className="btn btn-primary d-none d-md-inline-flex"
+                        className="btn d-none d-md-inline-flex rounded-4"
+                        style={{
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.5)',
+                          color: '#3b82f6'
+                        }}
                         onClick={() => setShowDepositModal(true)}
                       >
                         <i className="bi bi-plus-circle me-2"></i>
                         Add Money to Wallet
                       </button>
                       <button
-                        className="btn btn-outline-success"
+                        className="btn rounded-4"
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.2)',
+                          border: '1px solid rgba(34, 197, 94, 0.5)',
+                          color: '#22c55e'
+                        }}
                         onClick={() => setShowUpiModal(true)}
                       >
                         <i className="bi bi-qr-code me-2"></i>
                         Deposit via UPI
                       </button>
                       <button
-                        className="btn btn-outline-primary btn-sm d-md-none"
+                        className="btn btn-sm d-md-none rounded-4"
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.2)',
+                          border: '1px solid rgba(34, 197, 94, 0.5)',
+                          color: '#22c55e'
+                        }}
                         onClick={() => handleWithdrawClick('wallet')}
                         disabled={walletData.walletBalance < MIN_WITHDRAWAL_AMOUNT}
                       >
@@ -600,7 +680,12 @@ export default function DashboardWallet() {
                         Withdraw Wallet
                       </button>
                       <button
-                        className="btn btn-outline-primary d-none d-md-inline-flex"
+                        className="btn d-none d-md-inline-flex rounded-4"
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.2)',
+                          border: '1px solid rgba(34, 197, 94, 0.5)',
+                          color: '#22c55e'
+                        }}
                         onClick={() => handleWithdrawClick('wallet')}
                         disabled={walletData.walletBalance < MIN_WITHDRAWAL_AMOUNT}
                       >
@@ -608,7 +693,12 @@ export default function DashboardWallet() {
                         Withdraw from Wallet
                       </button>
                       <button
-                        className="btn btn-outline-warning btn-sm d-md-none"
+                        className="btn btn-sm d-md-none rounded-4"
+                        style={{
+                          background: 'rgba(251, 191, 36, 0.2)',
+                          border: '1px solid rgba(251, 191, 36, 0.5)',
+                          color: '#fbbf24'
+                        }}
                         onClick={() => handleWithdrawClick('referral')}
                         disabled={walletData.referralBalance < MIN_WITHDRAWAL_AMOUNT || walletData.totalDeposits === 0}
                       >
@@ -616,7 +706,12 @@ export default function DashboardWallet() {
                         Withdraw Bonus
                       </button>
                       <button
-                        className="btn btn-outline-warning d-none d-md-inline-flex"
+                        className="btn d-none d-md-inline-flex rounded-4"
+                        style={{
+                          background: 'rgba(251, 191, 36, 0.2)',
+                          border: '1px solid rgba(251, 191, 36, 0.5)',
+                          color: '#fbbf24'
+                        }}
                         onClick={() => handleWithdrawClick('referral')}
                         disabled={walletData.referralBalance < MIN_WITHDRAWAL_AMOUNT || walletData.totalDeposits === 0}
                       >
@@ -626,8 +721,12 @@ export default function DashboardWallet() {
                     </div>
                   </div>
                   <div className="col-md-6">
-                    <h5 className="mb-3 fs-6 fs-md-5">Withdrawal Rules</h5>
-                    <div className="alert alert-info py-2 py-md-3">
+                    <h5 className="mb-3 fs-6 fs-md-5 text-white">Withdrawal Rules</h5>
+                    <div className="alert py-2 py-md-3 rounded-4" style={{
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      color: '#e2e8f0'
+                    }}>
                       <ul className="mb-0 small">
                         <li>Account must be 100% complete to withdraw</li>
                         <li>KYC status must be approved to withdraw</li>
@@ -651,53 +750,72 @@ export default function DashboardWallet() {
                     </div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead className="d-none d-md-table-header-group">
+                      <table className="table table-hover" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <thead className="d-none d-md-table-header-group" style={{
+                          background: 'rgba(30, 30, 30, 0.8)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
                           <tr>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Status</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Description</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Date</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ background: 'transparent' }}>
                           {walletData.transactions.map((transaction) => (
-                            <tr key={transaction._id || transaction.id}>
-                              <td className="d-md-table-cell">
+                            <tr key={transaction._id || transaction.id} style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}>
+                              <td className="d-md-table-cell" style={{ background: 'transparent' }}>
                                 <i className={`bi ${getTransactionIcon(transaction.type)} me-2`}></i>
-                                <span className="text-capitalize d-none d-md-inline">
+                                <span className="text-capitalize d-none d-md-inline text-white">
                                   {transaction.type.replace('_', ' ')}
                                 </span>
-                                <span className="text-capitalize d-md-none small">
+                                <span className="text-capitalize d-md-none small text-white">
                                   {transaction.type.replace('_', ' ')}
                                 </span>
                               </td>
-                              <td className="fw-bold">
+                              <td className="fw-bold" style={{ background: 'transparent' }}>
                                 <span className={transaction.type === 'deposit' || transaction.type === 'referral_bonus' ? 'text-success' : 'text-danger'}>
                                   {transaction.type === 'deposit' || transaction.type === 'referral_bonus' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
                                 </span>
                               </td>
-                              <td className="text-truncate d-none d-md-table-cell" style={{ maxWidth: '200px' }} title={transaction.description}>
+                              <td className="text-truncate d-none d-md-table-cell text-white" style={{ maxWidth: '200px', background: 'transparent' }} title={transaction.description}>
                                 {transaction.description}
                               </td>
-                              <td className="d-none d-md-table-cell">
-                                <small>{new Date(transaction.createdAt || transaction.date).toLocaleDateString()}</small>
+                              <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                <small className="text-white-50">{new Date(transaction.createdAt || transaction.date).toLocaleDateString()}</small>
                                 <br />
-                                <small className="text-muted">
+                                <small className="text-white-50">
                                   {new Date(transaction.createdAt || transaction.date).toLocaleTimeString()}
                                 </small>
                               </td>
-                              <td className="d-md-none">
-                                <div className="small text-muted">
+                              <td className="d-md-none" style={{ background: 'transparent' }}>
+                                <div className="small text-white-50">
                                   {new Date(transaction.createdAt || transaction.date).toLocaleDateString()}
                                 </div>
-                                <div className="text-truncate" style={{ maxWidth: '150px' }} title={transaction.description}>
+                                <div className="text-truncate text-white" style={{ maxWidth: '150px' }} title={transaction.description}>
                                   {transaction.description}
                                 </div>
                               </td>
-                              <td>
-                                <span className={getStatusBadge(transaction.status)}>
+                              <td style={{ background: 'transparent' }}>
+                                <span className={getStatusBadge(transaction.status)} style={{
+                                  background: transaction.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 
+                                            transaction.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
+                                            transaction.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
+                                  color: transaction.status === 'completed' ? '#22c55e' : 
+                                        transaction.status === 'pending' ? '#fbbf24' : 
+                                        transaction.status === 'failed' ? '#ef4444' : '#9ca3af',
+                                  border: transaction.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : 
+                                         transaction.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
+                                         transaction.status === 'failed' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
+                                }}>
                                   {transaction.status}
                                 </span>
                               </td>
@@ -712,39 +830,59 @@ export default function DashboardWallet() {
 
               {activeTab === 'referrals' && (
                 <div>
-                  <h5 className="mb-3 fs-6 fs-md-5">Referral History</h5>
+                  <h5 className="mb-3 fs-6 fs-md-5 text-white">Referral History</h5>
 
                   {/* Referral Stats */}
                   <div className="row mb-3 mb-md-4 g-2 g-md-3">
                     <div className="col-md-3 col-sm-6 col-6">
-                      <div className="card border-0 bg-light h-100">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
                         <div className="card-body text-center p-2 p-md-3">
                           <h4 className="text-warning fs-6 fs-md-4 mb-1">₹{referralData.totalReferralEarnings.toFixed(2)}</h4>
-                          <p className="text-muted mb-0 small fw-medium">Total Earnings</p>
+                          <p className="text-white-50 mb-0 small fw-medium">Total Earnings</p>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-3 col-sm-6 col-6">
-                      <div className="card border-0 bg-light h-100">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
                         <div className="card-body text-center p-2 p-md-3">
                           <h4 className="text-primary fs-6 fs-md-4 mb-1">{referralData.totalReferred}</h4>
-                          <p className="text-muted mb-0 small fw-medium">Total Referred</p>
+                          <p className="text-white-50 mb-0 small fw-medium">Total Referred</p>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-3 col-sm-6 col-6">
-                      <div className="card border-0 bg-light h-100">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
                         <div className="card-body text-center p-2 p-md-3">
                           <h4 className="text-success fs-6 fs-md-4 mb-1">{referralData.activeReferred}</h4>
-                          <p className="text-muted mb-0 small fw-medium">Active Users</p>
+                          <p className="text-white-50 mb-0 small fw-medium">Active Users</p>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-3 col-sm-6 col-6">
-                      <div className="card border-0 bg-light h-100">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
                         <div className="card-body text-center p-2 p-md-3">
                           <h4 className="text-info fs-6 fs-md-4 mb-1">20%</h4>
-                          <p className="text-muted mb-0 small fw-medium">Bonus Rate</p>
+                          <p className="text-white-50 mb-0 small fw-medium">Bonus Rate</p>
                         </div>
                       </div>
                     </div>
@@ -752,56 +890,72 @@ export default function DashboardWallet() {
 
                   {/* Referred Users Table */}
                   <div className="mb-3 mb-md-4">
-                    <h6 className="mb-3 fs-6">Referred Users</h6>
+                    <h6 className="mb-3 fs-6 text-white">Referred Users</h6>
                     {referralData.referredUsers.length === 0 ? (
                       <div className="text-center py-3 py-md-4">
-                        <i className="bi bi-people fs-1 text-muted"></i>
-                        <p className="text-muted mt-2 small">No referrals yet</p>
-                        <small className="text-muted">Share your referral code to start earning!</small>
+                        <i className="bi bi-people fs-1 text-white-50"></i>
+                        <p className="text-white-50 mt-2 small">No referrals yet</p>
+                        <small className="text-white-50">Share your referral code to start earning!</small>
                       </div>
                     ) : (
                       <div className="table-responsive">
-                        <table className="table table-hover">
-                          <thead className="d-none d-md-table-header-group">
+                        <table className="table table-hover" style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <thead className="d-none d-md-table-header-group" style={{
+                            background: 'rgba(30, 30, 30, 0.8)',
+                            borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                          }}>
                             <tr>
-                              <th>Name</th>
-                              <th>Email</th>
-                              <th>Joined</th>
-                              <th>Status</th>
-                              <th>Deposits</th>
-                              <th>Your Bonus</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Name</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Email</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Joined</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Deposits</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Your Bonus</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody style={{ background: 'transparent' }}>
                             {referralData.referredUsers.map((user) => (
-                              <tr key={user.uid}>
-                                <td className="d-md-table-cell">
+                              <tr key={user.uid} style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                              }}>
+                                <td className="d-md-table-cell" style={{ background: 'transparent' }}>
                                   <div className="d-flex align-items-center">
-                                    <div className="bg-primary bg-opacity-10 rounded-circle p-1 p-md-2 me-2">
+                                    <div className="rounded-circle p-1 p-md-2 me-2" style={{
+                                      background: 'rgba(59, 130, 246, 0.1)',
+                                      border: '1px solid rgba(59, 130, 246, 0.3)'
+                                    }}>
                                       <i className="bi bi-person text-primary small"></i>
                                     </div>
-                                    <span className="fw-medium small">{user.name || 'Unknown'}</span>
+                                    <span className="fw-medium small text-white">{user.name || 'Unknown'}</span>
                                   </div>
                                 </td>
-                                <td className="d-none d-md-table-cell">
-                                  <small className="text-muted">{user.email}</small>
+                                <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                  <small className="text-white-50">{user.email}</small>
                                 </td>
-                                <td className="d-none d-md-table-cell">
-                                  <small>{new Date(user.joinedAt).toLocaleDateString()}</small>
+                                <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                  <small className="text-white-50">{new Date(user.joinedAt).toLocaleDateString()}</small>
                                 </td>
-                                <td>
-                                  <span className={`badge ${user.hasDeposited ? 'bg-success' : 'bg-warning'} small`}>
+                                <td style={{ background: 'transparent' }}>
+                                  <span className={`badge small`} style={{
+                                    background: user.hasDeposited ? 'rgba(34, 197, 94, 0.2)' : 'rgba(251, 191, 36, 0.2)',
+                                    color: user.hasDeposited ? '#22c55e' : '#fbbf24',
+                                    border: user.hasDeposited ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(251, 191, 36, 0.5)'
+                                  }}>
                                     {user.hasDeposited ? 'Active' : 'Pending'}
                                   </span>
                                 </td>
-                                <td className="d-md-none">
-                                  <div className="small text-muted">{user.email}</div>
-                                  <div className="small">{new Date(user.joinedAt).toLocaleDateString()}</div>
+                                <td className="d-md-none" style={{ background: 'transparent' }}>
+                                  <div className="small text-white-50">{user.email}</div>
+                                  <div className="small text-white-50">{new Date(user.joinedAt).toLocaleDateString()}</div>
                                 </td>
-                                <td>
-                                  <span className="fw-medium small">₹{user.totalDeposits.toFixed(2)}</span>
+                                <td style={{ background: 'transparent' }}>
+                                  <span className="fw-medium small text-white">₹{user.totalDeposits.toFixed(2)}</span>
                                 </td>
-                                <td>
+                                <td style={{ background: 'transparent' }}>
                                   <span className="text-success fw-medium small">₹{user.referralBonus.toFixed(2)}</span>
                                 </td>
                               </tr>
@@ -822,48 +976,57 @@ export default function DashboardWallet() {
                       </div>
                     ) : (
                       <div className="table-responsive">
-                        <table className="table table-hover">
-                          <thead className="d-none d-md-table-header-group">
+                        <table className="table table-hover" style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <thead className="d-none d-md-table-header-group" style={{
+                            background: 'rgba(30, 30, 30, 0.8)',
+                            borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                          }}>
                             <tr>
-                              <th>Date</th>
-                              <th>Amount</th>
-                              <th>From User</th>
-                              <th>Description</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Date</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>From User</th>
+                              <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Description</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody style={{ background: 'transparent' }}>
                             {referralData.referralTransactions.map((transaction) => (
-                              <tr key={transaction._id}>
-                                <td className="d-none d-md-table-cell">
-                                  <small>{new Date(transaction.createdAt).toLocaleDateString()}</small>
+                              <tr key={transaction._id} style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                              }}>
+                                <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                  <small className="text-white-50">{new Date(transaction.createdAt).toLocaleDateString()}</small>
                                   <br />
-                                  <small className="text-muted">
+                                  <small className="text-white-50">
                                     {new Date(transaction.createdAt).toLocaleTimeString()}
                                   </small>
                                 </td>
-                                <td className="d-md-none">
-                                  <div className="small text-muted">
+                                <td className="d-md-none" style={{ background: 'transparent' }}>
+                                  <div className="small text-white-50">
                                     {new Date(transaction.createdAt).toLocaleDateString()}
                                   </div>
                                 </td>
-                                <td>
+                                <td style={{ background: 'transparent' }}>
                                   <span className="text-success fw-bold small">+₹{transaction.amount.toFixed(2)}</span>
                                 </td>
-                                <td className="d-none d-md-table-cell">
-                                  <span className="text-muted small">
+                                <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                  <span className="text-white-50 small">
                                     {transaction.metadata?.referredUserName || 'Unknown User'}
                                   </span>
                                 </td>
-                                <td className="d-md-none">
-                                  <div className="small text-muted">
+                                <td className="d-md-none" style={{ background: 'transparent' }}>
+                                  <div className="small text-white-50">
                                     {transaction.metadata?.referredUserName || 'Unknown User'}
                                   </div>
-                                  <div className="small text-muted text-truncate" style={{ maxWidth: '150px' }} title={transaction.description}>
+                                  <div className="small text-white-50 text-truncate" style={{ maxWidth: '150px' }} title={transaction.description}>
                                     {transaction.description}
                                   </div>
                                 </td>
-                                <td className="d-none d-md-table-cell">
-                                  <small className="text-muted">{transaction.description}</small>
+                                <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                  <small className="text-white-50">{transaction.description}</small>
                                 </td>
                               </tr>
                             ))}
@@ -885,73 +1048,99 @@ export default function DashboardWallet() {
                     </div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead className="d-none d-md-table-header-group">
+                      <table className="table table-hover" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <thead className="d-none d-md-table-header-group" style={{
+                          background: 'rgba(30, 30, 30, 0.8)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
                           <tr>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Requested</th>
-                            <th>Processed</th>
-                            <th>Details</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Type</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Requested</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Processed</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Details</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ background: 'transparent' }}>
                           {withdrawals.map((withdrawal) => (
-                            <tr key={withdrawal._id}>
-                              <td className="d-md-table-cell">
-                                <span className={`badge ${withdrawal.type === 'wallet' ? 'bg-primary' : 'bg-warning'} small`}>
+                            <tr key={withdrawal._id} style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}>
+                              <td className="d-md-table-cell" style={{ background: 'transparent' }}>
+                                <span className={`badge small`} style={{
+                                  background: withdrawal.type === 'wallet' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(251, 191, 36, 0.2)',
+                                  color: withdrawal.type === 'wallet' ? '#3b82f6' : '#fbbf24',
+                                  border: withdrawal.type === 'wallet' ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(251, 191, 36, 0.5)'
+                                }}>
                                   <i className={`bi ${withdrawal.type === 'wallet' ? 'bi-wallet2' : 'bi-gift'} me-1`}></i>
                                   {withdrawal.type === 'wallet' ? 'Wallet' : 'Referral'}
                                 </span>
                               </td>
-                              <td className="fw-bold small">₹{withdrawal.amount.toFixed(2)}</td>
-                              <td>
-                                <span className={`badge ${getWithdrawalStatusBadge(withdrawal.status)} small`}>
+                              <td className="fw-bold small text-white" style={{ background: 'transparent' }}>₹{withdrawal.amount.toFixed(2)}</td>
+                              <td style={{ background: 'transparent' }}>
+                                <span className={`badge small`} style={{
+                                  background: withdrawal.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
+                                            withdrawal.status === 'approved' ? 'rgba(59, 130, 246, 0.2)' : 
+                                            withdrawal.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 
+                                            withdrawal.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
+                                  color: withdrawal.status === 'pending' ? '#fbbf24' : 
+                                        withdrawal.status === 'approved' ? '#3b82f6' : 
+                                        withdrawal.status === 'completed' ? '#22c55e' : 
+                                        withdrawal.status === 'rejected' ? '#ef4444' : '#9ca3af',
+                                  border: withdrawal.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
+                                         withdrawal.status === 'approved' ? '1px solid rgba(59, 130, 246, 0.5)' : 
+                                         withdrawal.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : 
+                                         withdrawal.status === 'rejected' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
+                                }}>
                                   {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                                 </span>
                               </td>
-                              <td className="d-none d-md-table-cell">
-                                <small>{new Date(withdrawal.createdAt).toLocaleDateString()}</small>
+                              <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                <small className="text-white-50">{new Date(withdrawal.createdAt).toLocaleDateString()}</small>
                                 <br />
-                                <small className="text-muted">
+                                <small className="text-white-50">
                                   {new Date(withdrawal.createdAt).toLocaleTimeString()}
                                 </small>
                               </td>
-                              <td className="d-md-none">
-                                <div className="small text-muted">
+                              <td className="d-md-none" style={{ background: 'transparent' }}>
+                                <div className="small text-white-50">
                                   {new Date(withdrawal.createdAt).toLocaleDateString()}
                                 </div>
                               </td>
-                              <td className="d-none d-md-table-cell">
+                              <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
                                 {withdrawal.processedAt ? (
                                   <>
-                                    <small>{new Date(withdrawal.processedAt).toLocaleDateString()}</small>
+                                    <small className="text-white-50">{new Date(withdrawal.processedAt).toLocaleDateString()}</small>
                                     <br />
-                                    <small className="text-muted">
+                                    <small className="text-white-50">
                                       {new Date(withdrawal.processedAt).toLocaleTimeString()}
                                     </small>
                                   </>
                                 ) : (
-                                  <span className="text-muted">-</span>
+                                  <span className="text-white-50">-</span>
                                 )}
                               </td>
-                              <td className="d-md-none">
+                              <td className="d-md-none" style={{ background: 'transparent' }}>
                                 {withdrawal.processedAt ? (
-                                  <div className="small text-muted">
+                                  <div className="small text-white-50">
                                     {new Date(withdrawal.processedAt).toLocaleDateString()}
                                   </div>
                                 ) : (
-                                  <span className="text-muted small">-</span>
+                                  <span className="text-white-50 small">-</span>
                                 )}
                               </td>
-                              <td>
+                              <td style={{ background: 'transparent' }}>
                                 {withdrawal.type === 'wallet' && withdrawal.accountDetails && (
                                   <div>
-                                    <small className="text-muted d-block small">
+                                    <small className="text-white-50 d-block small">
                                       {withdrawal.accountDetails.bankName}
                                     </small>
-                                    <small className="text-muted small">
+                                    <small className="text-white-50 small">
                                       ****{withdrawal.accountDetails.accountNumber?.slice(-4)}
                                     </small>
                                   </div>
@@ -989,35 +1178,51 @@ export default function DashboardWallet() {
                     </div>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead className="d-none d-md-table-header-group">
+                      <table className="table table-hover" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
+                        <thead className="d-none d-md-table-header-group" style={{
+                          background: 'rgba(30, 30, 30, 0.8)',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
                           <tr>
-                            <th>Submitted</th>
-                            <th>Txn ID</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Processed</th>
-                            <th>Note</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Submitted</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Txn ID</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Amount</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Status</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Processed</th>
+                            <th className="text-white-50" style={{ background: 'rgba(30, 30, 30, 0.8)' }}>Note</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ background: 'transparent' }}>
                           {upiDeposits.map((d) => (
-                            <tr key={d._id}>
-                              <td className="d-none d-md-table-cell">
-                                <small>{new Date(d.submittedAt).toLocaleString()}</small>
+                            <tr key={d._id} style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                            }}>
+                              <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                <small className="text-white-50">{new Date(d.submittedAt).toLocaleString()}</small>
                               </td>
-                              <td className="d-md-none">
-                                <div className="small text-muted">{new Date(d.submittedAt).toLocaleDateString()}</div>
+                              <td className="d-md-none" style={{ background: 'transparent' }}>
+                                <div className="small text-white-50">{new Date(d.submittedAt).toLocaleDateString()}</div>
                               </td>
-                              <td><code className="small">{d.upiTransactionId}</code></td>
-                              <td>₹{Number(d.amount).toFixed(2)}</td>
-                              <td>
-                                <span className={`badge ${d.status === 'pending' ? 'bg-warning' : d.status === 'completed' ? 'bg-success' : 'bg-danger'}`}>{d.status}</span>
+                              <td style={{ background: 'transparent' }}><code className="small text-white">{d.upiTransactionId}</code></td>
+                              <td className="text-white" style={{ background: 'transparent' }}>₹{Number(d.amount).toFixed(2)}</td>
+                              <td style={{ background: 'transparent' }}>
+                                <span className={`badge`} style={{
+                                  background: d.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
+                                            d.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                                  color: d.status === 'pending' ? '#fbbf24' : 
+                                        d.status === 'completed' ? '#22c55e' : '#ef4444',
+                                  border: d.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
+                                         d.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(239, 68, 68, 0.5)'
+                                }}>{d.status}</span>
                               </td>
-                              <td className="d-none d-md-table-cell">
-                                <small>{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</small>
+                              <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
+                                <small className="text-white-50">{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</small>
                               </td>
-                              <td className="text-truncate" style={{ maxWidth: '200px' }}>{d.adminNote || '-'}</td>
+                              <td className="text-truncate text-white" style={{ maxWidth: '200px', background: 'transparent' }}>{d.adminNote || '-'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1035,28 +1240,45 @@ export default function DashboardWallet() {
       {showDepositModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title fs-6 fs-md-5">Deposit to Wallet</h5>
+            <div className="modal-content border-0" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header border-0" style={{
+                background: 'transparent',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title fs-6 fs-md-5 text-white">Deposit to Wallet</h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowDepositModal(false)}
                 ></button>
               </div>
-              <div className="modal-body p-3 p-md-4">
+              <div className="modal-body p-3 p-md-4" style={{ color: '#e2e8f0' }}>
                 <div className="mb-3">
-                  <label className="form-label small fw-medium">Amount (₹)</label>
+                  <label className="form-label small fw-medium text-white">Amount (₹)</label>
                   <input
                     type="number"
-                    className="form-control form-control-lg"
+                    className="form-control form-control-lg rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
                     placeholder={`Enter amount (min: ₹${MIN_DEPOSIT_AMOUNT})`}
                     min={MIN_DEPOSIT_AMOUNT}
                   />
                 </div>
-                <div className="alert alert-info py-2 py-md-3">
+                <div className="alert py-2 py-md-3 rounded-4" style={{
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  color: '#e2e8f0'
+                }}>
                   <small>
                     <i className="bi bi-info-circle me-2"></i>
                     <strong>Minimum deposit: ₹{MIN_DEPOSIT_AMOUNT}</strong><br />
@@ -1064,17 +1286,30 @@ export default function DashboardWallet() {
                   </small>
                 </div>
               </div>
-              <div className="modal-footer d-flex gap-2 p-3 p-md-4">
+              <div className="modal-footer d-flex gap-2 p-3 p-md-4 border-0" style={{
+                background: 'transparent',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <button
                   type="button"
-                  className="btn btn-secondary flex-fill"
+                  className="btn flex-fill rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => setShowDepositModal(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary flex-fill"
+                  className="btn flex-fill rounded-4"
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}
                   onClick={handleDeposit}
                   disabled={loading || !depositAmount || parseFloat(depositAmount) < MIN_DEPOSIT_AMOUNT}
                 >
@@ -1090,35 +1325,53 @@ export default function DashboardWallet() {
       {showUpiModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title fs-6 fs-md-5">Deposit using UPI</h5>
+            <div className="modal-content border-0" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header border-0" style={{
+                background: 'transparent',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title fs-6 fs-md-5 text-white">Deposit using UPI</h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowUpiModal(false)}
                 ></button>
               </div>
-              <div className="modal-body p-3 p-md-4">
+              <div className="modal-body p-3 p-md-4" style={{ color: '#e2e8f0' }}>
                 <div className="text-center mb-3">
                   <img src="/upi.jpg" alt="UPI QR" style={{ maxWidth: '220px', width: '100%' }} />
-                  <div className="small text-muted mt-2">Scan the QR with your UPI app and pay</div>
+                  <div className="small text-white-50 mt-2">Scan the QR with your UPI app and pay</div>
                 </div>
                 <div className="row g-2">
                   <div className="col-12">
-                    <label className="form-label small fw-medium">UPI Transaction ID</label>
+                    <label className="form-label small fw-medium text-white">UPI Transaction ID</label>
                     <input
-                      className="form-control"
+                      className="form-control rounded-4"
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                       placeholder="Enter UPI transaction/reference ID"
                       value={upiTxnId}
                       onChange={(e) => setUpiTxnId(e.target.value)}
                     />
                   </div>
                   <div className="col-12">
-                    <label className="form-label small fw-medium">Amount (₹)</label>
+                    <label className="form-label small fw-medium text-white">Amount (₹)</label>
                     <input
                       type="number"
-                      className="form-control"
+                      className="form-control rounded-4"
+                      style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        color: '#e2e8f0'
+                      }}
                       placeholder={`Enter amount (min: ₹${MIN_DEPOSIT_AMOUNT})`}
                       min={MIN_DEPOSIT_AMOUNT}
                       value={upiAmount}
@@ -1126,16 +1379,38 @@ export default function DashboardWallet() {
                     />
                   </div>
                 </div>
-                <div className="alert alert-warning mt-3">
+                <div className="alert mt-3 rounded-4" style={{
+                  background: 'rgba(251, 191, 36, 0.1)',
+                  border: '1px solid rgba(251, 191, 36, 0.3)',
+                  color: '#e2e8f0'
+                }}>
                   <small>
                     After submitting, your UPI deposit will be reviewed. Money will be added to your wallet within 24 hours once verified.
                   </small>
                 </div>
               </div>
-              <div className="modal-footer d-flex gap-2 p-3 p-md-4">
-                <button className="btn btn-secondary flex-fill" onClick={() => setShowUpiModal(false)}>Cancel</button>
+              <div className="modal-footer d-flex gap-2 p-3 p-md-4 border-0" style={{
+                background: 'transparent',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <button 
+                  className="btn flex-fill rounded-4" 
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
+                  onClick={() => setShowUpiModal(false)}
+                >
+                  Cancel
+                </button>
                 <button
-                  className="btn btn-success flex-fill"
+                  className="btn flex-fill rounded-4"
+                  style={{
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    border: '1px solid rgba(34, 197, 94, 0.5)',
+                    color: '#22c55e'
+                  }}
                   disabled={loading || !upiTxnId || !upiAmount || parseFloat(upiAmount) < MIN_DEPOSIT_AMOUNT}
                   onClick={async () => {
                     try {
@@ -1170,30 +1445,47 @@ export default function DashboardWallet() {
       {showWithdrawModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title fs-6 fs-md-5">
+            <div className="modal-content border-0" style={{
+              background: 'rgba(60, 58, 58, 0.03)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="modal-header border-0" style={{
+                background: 'transparent',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title fs-6 fs-md-5 text-white">
                   Withdraw from {withdrawType === 'wallet' ? 'Wallet' : 'Referral Balance'}
                 </h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowWithdrawModal(false)}
                 ></button>
               </div>
-              <div className="modal-body p-3 p-md-4">
+              <div className="modal-body p-3 p-md-4" style={{ color: '#e2e8f0' }}>
                 {/* Validation Alert */}
                 {(() => {
                   const validation = canWithdraw();
                   if (!validation.canWithdraw) {
                     return (
-                      <div className={`alert ${validation.type === 'profile' ? 'alert-warning' : 'alert-danger'} mb-4`}>
+                      <div className={`alert mb-4 rounded-4`} style={{
+                        background: validation.type === 'profile' ? 'rgba(251, 191, 36, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        border: validation.type === 'profile' ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                        color: '#e2e8f0'
+                      }}>
                         <i className={`bi ${validation.type === 'profile' ? 'bi-person-exclamation' : 'bi-shield-exclamation'} me-2`}></i>
-                        <strong>{validation.message}</strong>
+                        <strong className="text-white">{validation.message}</strong>
                         {validation.type === 'profile' && (
                           <div className="mt-2">
                             <button 
-                              className="btn btn-warning btn-sm"
+                              className="btn btn-sm rounded-4"
+                              style={{
+                                background: 'rgba(251, 191, 36, 0.2)',
+                                border: '1px solid rgba(251, 191, 36, 0.5)',
+                                color: '#fbbf24'
+                              }}
                               onClick={() => {
                                 setShowWithdrawModal(false);
                                 // Navigate to profile setup
@@ -1207,7 +1499,12 @@ export default function DashboardWallet() {
                         {validation.type === 'kyc' && (
                           <div className="mt-2">
                             <button 
-                              className="btn btn-danger btn-sm"
+                              className="btn btn-sm rounded-4"
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.2)',
+                                border: '1px solid rgba(239, 68, 68, 0.5)',
+                                color: '#ef4444'
+                              }}
                               onClick={() => {
                                 setShowWithdrawModal(false);
                                 // Navigate to KYC verification
@@ -1226,7 +1523,7 @@ export default function DashboardWallet() {
 
                 {/* Balance Type Selection */}
                 <div className="mb-4">
-                  <label className="form-label small fw-medium">Select Balance Type</label>
+                  <label className="form-label small fw-medium text-white">Select Balance Type</label>
                   <div className="d-flex flex-column flex-md-row gap-2 gap-md-3">
                     <div className="form-check">
                       <input
@@ -1237,8 +1534,11 @@ export default function DashboardWallet() {
                         value="wallet"
                         checked={withdrawType === 'wallet'}
                         onChange={(e) => setWithdrawType(e.target.value)}
+                        style={{
+                          accentColor: '#3b82f6'
+                        }}
                       />
-                      <label className="form-check-label small" htmlFor="walletBalance">
+                      <label className="form-check-label small text-white" htmlFor="walletBalance">
                         Trading Profit (₹{walletData.walletBalance.toFixed(2)})
                       </label>
                     </div>
@@ -1251,8 +1551,11 @@ export default function DashboardWallet() {
                         value="referral"
                         checked={withdrawType === 'referral'}
                         onChange={(e) => setWithdrawType(e.target.value)}
+                        style={{
+                          accentColor: '#3b82f6'
+                        }}
                       />
-                      <label className="form-check-label small" htmlFor="referralBalance">
+                      <label className="form-check-label small text-white" htmlFor="referralBalance">
                         Referral Balance (₹{walletData.referralBalance.toFixed(2)})
                       </label>
                     </div>
@@ -1261,17 +1564,22 @@ export default function DashboardWallet() {
 
                 {/* Amount Input */}
                 <div className="mb-4">
-                  <label className="form-label small fw-medium">Amount (₹)</label>
+                  <label className="form-label small fw-medium text-white">Amount (₹)</label>
                   <input
                     type="number"
-                    className="form-control form-control-lg"
+                    className="form-control form-control-lg rounded-4"
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
                     placeholder={`Enter amount (min: ₹${MIN_WITHDRAWAL_AMOUNT})`}
                     min={MIN_WITHDRAWAL_AMOUNT}
                     max={withdrawType === 'wallet' ? walletData.walletBalance : walletData.referralBalance}
                   />
-                  <small className="text-muted small">
+                  <small className="text-white-50 small">
                     Available: ₹{withdrawType === 'wallet' ? walletData.walletBalance.toFixed(2) : walletData.referralBalance.toFixed(2)}
                   </small>
                 </div>
@@ -1279,7 +1587,7 @@ export default function DashboardWallet() {
                 {/* Bank Details for Wallet Withdrawal */}
                 {withdrawType === 'wallet' && (
                   <div className="mb-4">
-                    <label className="form-label small fw-medium">Bank Account Details</label>
+                    <label className="form-label small fw-medium text-white">Bank Account Details</label>
 
                     {/* Saved Banks Selection */}
                     {savedBanks.length > 0 && (
@@ -1292,14 +1600,22 @@ export default function DashboardWallet() {
                             id="useSavedBank"
                             checked={!useNewBank}
                             onChange={() => setUseNewBank(false)}
+                            style={{
+                              accentColor: '#3b82f6'
+                            }}
                           />
-                          <label className="form-check-label" htmlFor="useSavedBank">
+                          <label className="form-check-label text-white" htmlFor="useSavedBank">
                             Use Saved Bank Account
                           </label>
                         </div>
                         {!useNewBank && (
                           <select
-                            className="form-select mt-2"
+                            className="form-select mt-2 rounded-4"
+                            style={{
+                              background: 'rgba(60, 58, 58, 0.03)',
+                              border: '1px solid rgba(124, 124, 124, 0.39)',
+                              color: '#e2e8f0'
+                            }}
                             value={selectedBankId}
                             onChange={(e) => setSelectedBankId(e.target.value)}
                           >
@@ -1323,61 +1639,92 @@ export default function DashboardWallet() {
                         id="useNewBank"
                         checked={useNewBank}
                         onChange={() => setUseNewBank(true)}
+                        style={{
+                          accentColor: '#3b82f6'
+                        }}
                       />
-                      <label className="form-check-label" htmlFor="useNewBank">
+                      <label className="form-check-label text-white" htmlFor="useNewBank">
                         Add New Bank Account
                       </label>
                     </div>
 
                     {/* New Bank Form */}
                     {useNewBank && (
-                      <div className="mt-3 p-3 border rounded">
+                      <div className="mt-3 p-3 rounded-4" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)'
+                      }}>
                         <div className="row">
                           <div className="col-md-6 mb-3">
-                            <label className="form-label">Bank Name *</label>
+                            <label className="form-label text-white">Bank Name *</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control rounded-4"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: '#e2e8f0'
+                              }}
                               value={bankDetails.bankName}
                               onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
                               placeholder="Enter bank name"
                             />
                           </div>
                           <div className="col-md-6 mb-3">
-                            <label className="form-label">Account Number *</label>
+                            <label className="form-label text-white">Account Number *</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control rounded-4"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: '#e2e8f0'
+                              }}
                               value={bankDetails.accountNumber}
                               onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
                               placeholder="Enter account number"
                             />
                           </div>
                           <div className="col-md-6 mb-3">
-                            <label className="form-label">IFSC Code *</label>
+                            <label className="form-label text-white">IFSC Code *</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control rounded-4"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: '#e2e8f0'
+                              }}
                               value={bankDetails.ifscCode}
                               onChange={(e) => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
                               placeholder="Enter IFSC code"
                             />
                           </div>
                           <div className="col-md-6 mb-3">
-                            <label className="form-label">Account Holder Name *</label>
+                            <label className="form-label text-white">Account Holder Name *</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control rounded-4"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: '#e2e8f0'
+                              }}
                               value={bankDetails.accountHolderName}
                               onChange={(e) => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
                               placeholder="Enter account holder name"
                             />
                           </div>
                           <div className="col-md-12 mb-3">
-                            <label className="form-label">UPI ID (Optional)</label>
+                            <label className="form-label text-white">UPI ID (Optional)</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control rounded-4"
+                              style={{
+                                background: 'rgba(60, 58, 58, 0.03)',
+                                border: '1px solid rgba(124, 124, 124, 0.39)',
+                                color: '#e2e8f0'
+                              }}
                               value={bankDetails.upiId}
                               onChange={(e) => setBankDetails({ ...bankDetails, upiId: e.target.value })}
                               placeholder="Enter UPI ID"
@@ -1393,13 +1740,16 @@ export default function DashboardWallet() {
                             id="saveBankDetails"
                             checked={saveBankDetails}
                             onChange={(e) => setSaveBankDetails(e.target.checked)}
+                            style={{
+                              accentColor: '#3b82f6'
+                            }}
                           />
-                          <label className="form-check-label" htmlFor="saveBankDetails">
+                          <label className="form-check-label text-white" htmlFor="saveBankDetails">
                             <i className="bi bi-shield-check me-1"></i>
                             Save bank details securely for future withdrawals
                           </label>
                         </div>
-                        <small className="text-muted">
+                        <small className="text-white-50">
                           <i className="bi bi-info-circle me-1"></i>
                           Your bank details are encrypted and stored securely. You can delete them anytime from your profile.
                         </small>
@@ -1410,7 +1760,11 @@ export default function DashboardWallet() {
 
                 {/* Referral Withdrawal Warning */}
                 {withdrawType === 'referral' && walletData.totalDeposits === 0 && (
-                  <div className="alert alert-warning">
+                  <div className="alert rounded-4" style={{
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                    color: '#e2e8f0'
+                  }}>
                     <small>
                       <i className="bi bi-exclamation-triangle me-2"></i>
                       You must make at least one deposit before withdrawing referral bonus
@@ -1418,17 +1772,30 @@ export default function DashboardWallet() {
                   </div>
                 )}
               </div>
-              <div className="modal-footer d-flex gap-2 p-3 p-md-4">
+              <div className="modal-footer d-flex gap-2 p-3 p-md-4 border-0" style={{
+                background: 'transparent',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <button
                   type="button"
-                  className="btn btn-secondary flex-fill"
+                  className="btn flex-fill rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => setShowWithdrawModal(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary flex-fill"
+                  className="btn flex-fill rounded-4"
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}
                   onClick={handleWithdraw}
                   disabled={loading || !withdrawAmount || parseFloat(withdrawAmount) < MIN_WITHDRAWAL_AMOUNT || !canWithdraw().canWithdraw}
                 >

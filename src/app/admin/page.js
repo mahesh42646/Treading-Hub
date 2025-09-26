@@ -73,26 +73,34 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div>
+    <div style={{ color: '#e2e8f0' }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Dashboard</h1>
+        <h1 className="h3 mb-0 text-white">Dashboard</h1>
    
       </div>
 
       {/* Stats Cards */}
       <div className="row mb-4">
         <div className="col-xl-3 col-lg-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-primary bg-opacity-10 rounded-circle p-3">
-                    <FaUsers className="text-primary" size={24} />
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)'
+                  }}>
+                    <FaUsers style={{ color: '#3b82f6' }} size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Total Users</h6>
-                  <h4 className="mb-0 fw-bold">{dashboardData.totalUsers.toLocaleString()}</h4>
+                  <h6 className="card-title text-white-50 mb-1">Total Users</h6>
+                  <h4 className="mb-0 fw-bold text-white">{dashboardData.totalUsers.toLocaleString()}</h4>
                   <small className="text-success">+{dashboardData.newUsersLast7Days} this week</small>
                 </div>
               </div>
@@ -101,17 +109,25 @@ const AdminDashboard = () => {
         </div>
 
         <div className="col-xl-3 col-lg-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-success bg-opacity-10 rounded-circle p-3">
-                    <FaDollarSign className="text-success" size={24} />
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    border: '1px solid rgba(34, 197, 94, 0.5)'
+                  }}>
+                    <FaDollarSign style={{ color: '#22c55e' }} size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Total Revenue</h6>
-                  <h4 className="mb-0 fw-bold">₹{dashboardData.totalRevenue.toLocaleString()}</h4>
+                  <h6 className="card-title text-white-50 mb-1">Total Revenue</h6>
+                  <h4 className="mb-0 fw-bold text-white">₹{dashboardData.totalRevenue.toLocaleString()}</h4>
                   <small className="text-success">+₹{dashboardData.depositsLast7Days.toLocaleString()} this week</small>
                 </div>
               </div>
@@ -120,18 +136,26 @@ const AdminDashboard = () => {
         </div>
 
         <div className="col-xl-3 col-lg-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
-                    <FaClock className="text-warning" size={24} />
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(251, 191, 36, 0.2)',
+                    border: '1px solid rgba(251, 191, 36, 0.5)'
+                  }}>
+                    <FaClock style={{ color: '#fbbf24' }} size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Pending KYC</h6>
-                  <h4 className="mb-0 fw-bold">{dashboardData.pendingKyc}</h4>
-                  <small className="text-muted">Awaiting verification</small>
+                  <h6 className="card-title text-white-50 mb-1">Pending KYC</h6>
+                  <h4 className="mb-0 fw-bold text-white">{dashboardData.pendingKyc}</h4>
+                  <small className="text-white-50">Awaiting verification</small>
                 </div>
               </div>
             </div>
@@ -139,18 +163,26 @@ const AdminDashboard = () => {
         </div>
 
         <div className="col-xl-3 col-lg-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body" style={{ color: '#e2e8f0' }}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-info bg-opacity-10 rounded-circle p-3">
-                    <FaUserCheck className="text-info" size={24} />
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)'
+                  }}>
+                    <FaUserCheck style={{ color: '#3b82f6' }} size={24} />
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="card-title text-muted mb-1">Complete Profiles</h6>
-                  <h4 className="mb-0 fw-bold">{dashboardData.totalProfiles}</h4>
-                  <small className="text-muted">{((dashboardData.totalProfiles/dashboardData.totalUsers)*100).toFixed(1)}% completion rate</small>
+                  <h6 className="card-title text-white-50 mb-1">Complete Profiles</h6>
+                  <h4 className="mb-0 fw-bold text-white">{dashboardData.totalProfiles}</h4>
+                  <small className="text-white-50">{((dashboardData.totalProfiles/dashboardData.totalUsers)*100).toFixed(1)}% completion rate</small>
                 </div>
               </div>
             </div>

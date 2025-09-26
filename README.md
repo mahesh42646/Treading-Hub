@@ -1,6 +1,6 @@
 # xfunding Flow - Funded Trading Platform
 
-A comprehensive funded trading platform built with Next.js, Firebase, and Bootstrap. This project provides a complete MVP similar to Xfunding Flow with user authentication, trading plans, wallet management, and referral systems.
+A comprehensive funded trading platform built with Next.js, Firebase, and Bootstrap. This project provides a complete MVP similar to FundedNext with user authentication, trading plans, wallet management, and referral systems.
 
 ## Features
 

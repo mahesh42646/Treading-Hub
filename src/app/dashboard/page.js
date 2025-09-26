@@ -218,17 +218,26 @@ const Dashboard = () => {
     <div className="container-fluid py-4">
       {/* Welcome Section */}
       <div className="row mb-4">
-            <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="fw-bold mb-1">Welcome back!</h2>
-                              <p className="text-muted mb-0">
-                Hello {displayInfo.name}, here&apos;s what&apos;s happening with your account.
-              </p>
-            </div>
-            <div className="text-end">
-              <div className="text-muted small">Last login</div>
-              <div className="fw-bold">{new Date().toLocaleDateString()}</div>
+        <div className="col-12">
+          <div className="card border-0 rounded-4" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body p-4">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h2 className="fw-bold mb-1 text-white">Welcome back!</h2>
+                  <p className="text-white-50 mb-0">
+                    Hello {displayInfo.name}, here&apos;s what&apos;s happening with your account.
+                  </p>
+                </div>
+                <div className="text-end">
+                  <div className="text-white-50 small">Last login</div>
+                  <div className="fw-bold text-white">{new Date().toLocaleDateString()}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -239,38 +248,58 @@ const Dashboard = () => {
         <div className="col-12">
           {/* Profile Setup Alert */}
           {!hasProfile && shouldShowAlert('profile-setup') && (
-            <div className="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
-                  <div className="d-flex align-items-start">
-                <i className="bi bi-info-circle me-3 mt-1 fs-4"></i>
-                    <div className="flex-grow-1">
-                  <h6 className="alert-heading mb-2">Complete Your Profile!</h6>
-                  <p className="mb-2">To start trading, you need to complete your profile setup. This includes your personal information and KYC verification.</p>
-                        <button 
-                    className="btn btn-primary btn-sm"
-                          onClick={() => router.push('/profile-setup')}
-                        >
-                          Complete Profile Setup
-                        </button>
-                      </div>
-                    </div>
+            <div className="alert alert-dismissible fade show rounded-4 mb-3" role="alert" style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="d-flex align-items-start">
+                <i className="bi bi-info-circle me-3 mt-1 fs-4 text-info"></i>
+                <div className="flex-grow-1">
+                  <h6 className="alert-heading mb-2 text-white">Complete Your Profile!</h6>
+                  <p className="mb-2 text-white-50">To start trading, you need to complete your profile setup. This includes your personal information and KYC verification.</p>
+                  <button 
+                    className="btn btn-sm rounded-4"
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6'
+                    }}
+                    onClick={() => router.push('/profile-setup')}
+                  >
+                    Complete Profile Setup
+                  </button>
+                </div>
+              </div>
               <button 
                 type="button" 
-                className="btn-close" 
+                className="btn-close btn-close-white" 
                 onClick={() => dismissAlert('profile-setup')}
               ></button>
-                  </div>
+            </div>
           )}
 
           {/* Email Verification Alert */}
           {user && !user.emailVerified && shouldShowAlert('email-verification') && (
-            <div className="alert alert-warning alert-dismissible fade show rounded-3 mb-3" role="alert">
+            <div className="alert alert-dismissible fade show rounded-4 mb-3" role="alert" style={{
+              background: 'rgba(251, 191, 36, 0.1)',
+              border: '1px solid rgba(251, 191, 36, 0.3)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
               <div className="d-flex align-items-start">
-                <i className="bi bi-exclamation-triangle me-3 mt-1 fs-4"></i>
+                <i className="bi bi-exclamation-triangle me-3 mt-1 fs-4 text-warning"></i>
                 <div className="flex-grow-1">
-                  <h6 className="alert-heading mb-2">Email Verification Required</h6>
-                  <p className="mb-2">Please verify your email address to access all features. Check your inbox for the verification link.</p>
+                  <h6 className="alert-heading mb-2 text-white">Email Verification Required</h6>
+                  <p className="mb-2 text-white-50">Please verify your email address to access all features. Check your inbox for the verification link.</p>
                   <button 
-                    className="btn btn-warning btn-sm me-2"
+                    className="btn btn-sm me-2 rounded-4"
+                    style={{
+                      background: 'rgba(251, 191, 36, 0.2)',
+                      border: '1px solid rgba(251, 191, 36, 0.5)',
+                      color: '#fbbf24'
+                    }}
                     onClick={handleResendEmail}
                     disabled={resendingEmail}
                   >
@@ -283,129 +312,193 @@ const Dashboard = () => {
               </div>
               <button 
                 type="button" 
-                className="btn-close" 
+                className="btn-close btn-close-white" 
                 onClick={() => dismissAlert('email-verification')}
               ></button>
-                </div>
-              )}
+            </div>
+          )}
               
           {/* KYC Status Alerts */}
           {hasProfile && !hasCompleteProfile && kycStatusInfo && shouldShowAlert('kyc-status') && (
-            <div className={`alert alert-${kycStatusInfo.badge === 'bg-warning' ? 'warning' : kycStatusInfo.badge === 'bg-info' ? 'info' : kycStatusInfo.badge === 'bg-success' ? 'success' : kycStatusInfo.badge === 'bg-danger' ? 'danger' : 'secondary'} alert-dismissible fade show rounded-3 mb-3`} role="alert">
-                  <div className="d-flex align-items-start">
-                <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`}></i>
-                    <div className="flex-grow-1">
-                  {/* <h6 className="alert-heading mb-2">KYC Status: {kycStatusInfo.text}</h6> */}
-                  <p className="mb-2">{kycStatusInfo.message}</p>
+            <div className="alert alert-dismissible fade show rounded-4 mb-3" role="alert" style={{
+              background: kycStatusInfo.badge === 'bg-warning' ? 'rgba(251, 191, 36, 0.1)' : 
+                         kycStatusInfo.badge === 'bg-info' ? 'rgba(59, 130, 246, 0.1)' :
+                         kycStatusInfo.badge === 'bg-success' ? 'rgba(34, 197, 94, 0.1)' :
+                         kycStatusInfo.badge === 'bg-danger' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(60, 58, 58, 0.03)',
+              border: kycStatusInfo.badge === 'bg-warning' ? '1px solid rgba(251, 191, 36, 0.3)' :
+                     kycStatusInfo.badge === 'bg-info' ? '1px solid rgba(59, 130, 246, 0.3)' :
+                     kycStatusInfo.badge === 'bg-success' ? '1px solid rgba(34, 197, 94, 0.3)' :
+                     kycStatusInfo.badge === 'bg-danger' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(124, 124, 124, 0.39)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            }}>
+              <div className="d-flex align-items-start">
+                <i className={`bi ${kycStatusInfo.badge === 'bg-warning' ? 'bi-exclamation-triangle' : kycStatusInfo.badge === 'bg-info' ? 'bi-clock' : kycStatusInfo.badge === 'bg-success' ? 'bi-check-circle' : kycStatusInfo.badge === 'bg-danger' ? 'bi-x-circle' : 'bi-info-circle'} me-3 mt-1 fs-4`} style={{
+                  color: kycStatusInfo.badge === 'bg-warning' ? '#fbbf24' :
+                         kycStatusInfo.badge === 'bg-info' ? '#3b82f6' :
+                         kycStatusInfo.badge === 'bg-success' ? '#22c55e' :
+                         kycStatusInfo.badge === 'bg-danger' ? '#ef4444' : '#e2e8f0'
+                }}></i>
+                <div className="flex-grow-1">
+                  <p className="mb-2 text-white-50">{kycStatusInfo.message}</p>
                   {kycStatusInfo.badge === 'bg-warning' && (
-                          <button 
-                      className="btn btn-warning btn-sm"
-                            onClick={() => router.push('/kyc-verification')}
-                          >
-                            Complete KYC Now
-                          </button>
-                        )}
+                    <button 
+                      className="btn btn-sm rounded-4"
+                      style={{
+                        background: 'rgba(251, 191, 36, 0.2)',
+                        border: '1px solid rgba(251, 191, 36, 0.5)',
+                        color: '#fbbf24'
+                      }}
+                      onClick={() => router.push('/kyc-verification')}
+                    >
+                      Complete KYC Now
+                    </button>
+                  )}
                 </div>
               </div>
-                          <button 
+              <button 
                 type="button" 
-                className="btn-close" 
+                className="btn-close btn-close-white" 
                 onClick={() => dismissAlert('kyc-status')}
               ></button>
             </div>
-                        )}
-                      </div>
-                    </div>
+          )}
+        </div>
+      </div>
 
       {/* Analytics Cards */}
       <div className="row mb-4">
         <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
+          <div className="card border-0 rounded-4 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0">
-                  <div className="bg-primary bg-opacity-10 rounded-circle p-3">
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
                     <i className="bi bi-wallet2 text-primary fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Wallet Balance</h6>
-                  <h4 className="fw-bold mb-0">₹{profile?.wallet?.walletBalance?.toFixed(2) || '0.00'}</h4>
+                  <h6 className="text-white-50 mb-1">Wallet Balance</h6>
+                  <h4 className="fw-bold mb-0 text-white">₹{profile?.wallet?.walletBalance?.toFixed(2) || '0.00'}</h4>
                   <small className="text-success">+₹0.00 today</small>
-                    </div>
-                  </div>
-                </div>
-                      </div>
-                    </div>
-
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
-                    <i className="bi bi-gift text-warning fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Referral Balance</h6>
-                  <h4 className="fw-bold mb-0">₹{profile?.wallet?.referralBalance?.toFixed(2) || '0.00'}</h4>
-                  <small className="text-muted">Earned from referrals</small>
-                </div>
-              </div>
-            </div>
-                    </div>
-                  </div>
-
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-info bg-opacity-10 rounded-circle p-3">
-                    <i className="bi bi-person-check text-info fs-4"></i>
-                  </div>
-                    </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Profile Completion</h6>
-                  <h4 className="fw-bold mb-0">{profile?.status?.completionPercentage || 0}%</h4>
-                  <small className="text-muted">{profile?.status?.completedFields?.length || 0} of 12 fields</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-warning bg-opacity-10 rounded-circle p-3">
-                    <i className="bi bi-share text-warning fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Referral Code</h6>
-                  <h4 className="fw-bold mb-0">{referralData.referralCode || 'N/A'}</h4>
-                  <small className="text-muted">{referralData.totalReferrals} referrals</small>
-                </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 rounded-4 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)'
+                  }}>
+                    <i className="bi bi-gift text-warning fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-white-50 mb-1">Referral Balance</h6>
+                  <h4 className="fw-bold mb-0 text-white">₹{profile?.wallet?.referralBalance?.toFixed(2) || '0.00'}</h4>
+                  <small className="text-white-50">Earned from referrals</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 rounded-4 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
+                    <i className="bi bi-person-check text-info fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-white-50 mb-1">Profile Completion</h6>
+                  <h4 className="fw-bold mb-0 text-white">{profile?.status?.completionPercentage || 0}%</h4>
+                  <small className="text-white-50">{profile?.status?.completedFields?.length || 0} of 12 fields</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-xl-3 col-md-6 mb-3">
+          <div className="card border-0 rounded-4 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-circle p-3" style={{
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)'
+                  }}>
+                    <i className="bi bi-share text-warning fs-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-3">
+                  <h6 className="text-white-50 mb-1">Referral Code</h6>
+                  <h4 className="fw-bold mb-0 text-white">{referralData.referralCode || 'N/A'}</h4>
+                  <small className="text-white-50">{referralData.totalReferrals} referrals</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Recent Notifications & Quick Actions */}
       <div className="row">
         <div className="col-lg-8 mb-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Recent Notifications</h5>
+          <div className="card border-0 rounded-4" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header border-0 d-flex justify-content-between align-items-center" style={{
+              background: 'transparent',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="mb-0 text-white">Recent Notifications</h5>
               <div className="d-flex align-items-center gap-2">
-                {/* <small className="text-muted">Last 10 notifications</small> */}
                 <button 
-                  className="btn btn-sm btn-outline-secondary"
+                  className="btn btn-sm rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => {
                     if (!user?.uid) return;
                     setNotificationsLoading(true);
@@ -438,19 +531,21 @@ const Dashboard = () => {
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
-                  <p className="text-muted mt-2">Loading notifications...</p>
+                  <p className="text-white-50 mt-2">Loading notifications...</p>
                 </div>
               ) : notifications.length > 0 ? (
                 <div className="notifications-list" style={{ maxHeight: '500px', overflowY: 'auto' }}>
                   {notifications.map((notification, index) => (
                     <div
                       key={notification._id}
-                      className={`notification-item d-flex align-items-start mb-3 p-3 rounded ${
-                        !notification.isRead ? 'bg-light border-start border-primary border-3' : 'border-start border-light border-3'
+                      className={`notification-item d-flex align-items-start mb-3 p-3 rounded-4 ${
+                        !notification.isRead ? 'border-start border-primary border-3' : 'border-start border-light border-3'
                       }`}
                       style={{ 
                         transition: 'all 0.2s ease',
-                        cursor: 'default'
+                        cursor: 'default',
+                        background: !notification.isRead ? 'rgba(59, 130, 246, 0.05)' : 'rgba(60, 58, 58, 0.02)',
+                        border: '1px solid rgba(124, 124, 124, 0.2)'
                       }}
                     >
                       <div className="me-3">
@@ -465,9 +560,9 @@ const Dashboard = () => {
                             )}
                           </h6>
                         </div>
-                        <p className="mb-1 text-muted small">{notification.message}</p>
+                        <p className="mb-1 text-white-50 small">{notification.message}</p>
                         <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted">{formatTimeAgo(notification.createdAt)}</small>
+                          <small className="text-white-50">{formatTimeAgo(notification.createdAt)}</small>
                           <small className={`badge ${
                             notification.priority === 'urgent' ? 'bg-danger' :
                             notification.priority === 'high' ? 'bg-warning' :
@@ -482,9 +577,9 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <i className="bi bi-bell-slash fs-1 text-muted mb-3"></i>
-                  <p className="text-muted mb-0">No notifications yet</p>
-                  <small className="text-muted">You&apos;ll see notifications here when they arrive</small>
+                  <i className="bi bi-bell-slash fs-1 text-white-50 mb-3"></i>
+                  <p className="text-white-50 mb-0">No notifications yet</p>
+                  <small className="text-white-50">You&apos;ll see notifications here when they arrive</small>
                 </div>
               )}
             </div>
@@ -492,16 +587,29 @@ const Dashboard = () => {
         </div>
 
         <div className="col-lg-4 mb-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-0">
-              <h5 className="mb-0">Quick Actions</h5>
+          <div className="card border-0 rounded-4" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-header border-0" style={{
+              background: 'transparent',
+              borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            }}>
+              <h5 className="mb-0 text-white">Quick Actions</h5>
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
                 {/* Profile Setup Actions */}
                 {!hasProfile && (
                   <button 
-                    className="btn btn-primary"
+                    className="btn rounded-4"
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: '1px solid rgba(59, 130, 246, 0.5)',
+                      color: '#3b82f6'
+                    }}
                     onClick={() => router.push('/profile-setup')}
                   >
                     <i className="bi bi-person-plus me-2"></i>
@@ -510,7 +618,12 @@ const Dashboard = () => {
                 )}
                 {hasProfile && !hasCompleteProfile && (
                   <button 
-                    className="btn btn-warning"
+                    className="btn rounded-4"
+                    style={{
+                      background: 'rgba(251, 191, 36, 0.2)',
+                      border: '1px solid rgba(251, 191, 36, 0.5)',
+                      color: '#fbbf24'
+                    }}
                     onClick={() => router.push('/kyc-verification')}
                   >
                     <i className="bi bi-shield-check me-2"></i>
@@ -520,7 +633,12 @@ const Dashboard = () => {
 
                 {/* Dashboard Pages */}
                 <button 
-                  className="btn btn-outline-primary"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/wallet')}
                 >
                   <i className="bi bi-wallet2 me-2"></i>
@@ -528,7 +646,12 @@ const Dashboard = () => {
                 </button>
                 
                 <button 
-                  className="btn btn-outline-info"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/transactions')}
                 >
                   <i className="bi bi-receipt me-2"></i>
@@ -536,7 +659,12 @@ const Dashboard = () => {
                 </button>
                 
                 <button 
-                  className="btn btn-outline-success"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/referral')}
                 >
                   <i className="bi bi-share me-2"></i>
@@ -544,7 +672,12 @@ const Dashboard = () => {
                 </button>
                 
                 <button 
-                  className="btn btn-outline-warning"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/trading-account')}
                 >
                   <i className="bi bi-graph-up me-2"></i>
@@ -552,7 +685,12 @@ const Dashboard = () => {
                 </button>
                 
                 <button 
-                  className="btn btn-outline-secondary"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/profile')}
                 >
                   <i className="bi bi-person-gear me-2"></i>
@@ -560,14 +698,24 @@ const Dashboard = () => {
                 </button>
                 
                 <button 
-                  className="btn btn-outline-dark"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/support')}
                 >
                   <i className="bi bi-headset me-2"></i>
                   Support
                 </button>
                 <button 
-                  className="btn btn-outline-primary"
+                  className="btn rounded-4"
+                  style={{
+                    background: 'rgba(60, 58, 58, 0.03)',
+                    border: '1px solid rgba(124, 124, 124, 0.39)',
+                    color: '#e2e8f0'
+                  }}
                   onClick={() => router.push('/dashboard/challenges')}
                 >
                   <i className="bi bi-trophy me-2"></i>

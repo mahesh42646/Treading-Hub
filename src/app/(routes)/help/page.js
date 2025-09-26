@@ -104,7 +104,7 @@ const HelpPage = () => {
                 <h2 className="h4 mb-4">Need Immediate Help?</h2>
                 <div className="alert alert-info">
                   <p className="mb-2">
-                    <strong>Email Support:</strong> support@tradinghub.com<br />
+                    <strong>Email Support:</strong> support@xfundingflow.com<br />
                     <strong>Phone Support:</strong> +91 98765 43210<br />
                     <strong>Response Time:</strong> Within 24 hours
                   </p>

@@ -52,7 +52,7 @@ A scalable Node.js backend API for the Xfunding Flow platform built with Express
    - Update the following variables:
      ```env
      PORT=9988
-     MONGODB_URI=mongodb://localhost:27017/tradinghub
+     MONGODB_URI=mongodb://localhost:27017/xfundingflow
      NODE_ENV=development
      JWT_SECRET=your-super-secret-jwt-key-here
      ```

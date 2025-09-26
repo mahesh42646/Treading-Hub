@@ -175,13 +175,15 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        onToggle(false);
+        if (isOpen) {
+          onToggle(event);
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onToggle]);
+  }, [isOpen, onToggle]);
 
   if (!user) {
     console.log('No user found, hiding notification dropdown');
@@ -191,9 +193,15 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
   return (
     <div className="position-relative" ref={dropdownRef}>
       <button
-        className="btn btn-link text-dark position-relative"
-        onClick={onToggle}
-        style={{ padding: '8px' }}
+        className="btn btn-link position-relative"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(e);
+        }}
+        style={{ 
+          padding: '8px',
+          color: '#e2e8f0'
+        }}
         title="Notifications"
       >
         <i className="bi bi-bell fs-5"></i>
@@ -206,7 +214,8 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
 
       {isOpen && (
         <div 
-          className="position-absolute end-0 mt-2 bg-white border rounded shadow-lg"
+          className="position-absolute end-0 mt-2 border rounded shadow-lg"
+          onClick={(e) => e.stopPropagation()}
           style={{ 
             width: '350px', 
             maxWidth: 'calc(100vw - 20px)',
@@ -214,14 +223,25 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
             zIndex: 1050,
             top: '100%',
             right: '0',
-            left: 'auto'
+            left: 'auto',
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
           }}
         >
-          <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-            <h6 className="mb-0 fw-bold">Notifications</h6>
+          <div className="d-flex justify-content-between align-items-center p-3" style={{
+            borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+          }}>
+            <h6 className="mb-0 fw-bold text-white">Notifications</h6>
             <div className="d-flex gap-2">
               <button 
-                className="btn btn-sm btn-outline-secondary"
+                className="btn btn-sm rounded-4"
+                style={{
+                  background: 'rgba(60, 58, 58, 0.03)',
+                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  color: '#e2e8f0'
+                }}
                 onClick={fetchNotifications}
                 disabled={loading}
               >
@@ -229,7 +249,12 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
               </button>
               {unreadCount > 0 && (
                 <button 
-                  className="btn btn-sm btn-outline-primary"
+                  className="btn btn-sm rounded-4"
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    color: '#3b82f6'
+                  }}
                   onClick={markAllAsRead}
                   disabled={processing}
                 >
@@ -250,25 +275,34 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
               notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`p-3 border-bottom d-flex align-items-start ${
-                    !notification.isRead ? 'bg-light' : ''
-                  }`}
+                  className="p-3 d-flex align-items-start"
+                  style={{
+                    borderBottom: '1px solid rgba(124, 124, 124, 0.39)',
+                    background: !notification.isRead ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+                  }}
                 >
                   <div className="me-3">
                     <span className="fs-5">{getNotificationIcon(notification.type)}</span>
                   </div>
                   <div className="flex-grow-1">
                     <div className="d-flex justify-content-between align-items-start mb-1">
-                      <h6 className={`mb-1 ${getNotificationColor(notification.type)}`}>
+                      <h6 className={`mb-1 text-white ${getNotificationColor(notification.type)}`}>
                         {notification.title}
                       </h6>
                       <button
-                        className="btn btn-sm btn-outline-danger p-1"
+                        className="btn btn-sm p-1 rounded-4"
+                        style={{ 
+                          width: '24px', 
+                          height: '24px', 
+                          padding: '2px',
+                          background: 'rgba(239, 68, 68, 0.2)',
+                          border: '1px solid rgba(239, 68, 68, 0.5)',
+                          color: '#ef4444'
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           markAsRead(notification._id);
                         }}
-                        style={{ width: '24px', height: '24px', padding: '2px' }}
                         title="Mark as read"
                         disabled={processing}
                       >
@@ -281,15 +315,15 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
                         )}
                       </button>
                     </div>
-                    <p className="mb-1 text-muted small">{notification.message}</p>
-                    <small className="text-muted">{formatTimeAgo(notification.createdAt)}</small>
+                    <p className="mb-1 text-white-50 small">{notification.message}</p>
+                    <small className="text-white-50">{formatTimeAgo(notification.createdAt)}</small>
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center p-4">
-                <i className="bi bi-bell-slash fs-1 text-muted mb-2"></i>
-                <p className="text-muted mb-0">No new notifications</p>
+                <i className="bi bi-bell-slash fs-1 text-white-50 mb-2"></i>
+                <p className="text-white-50 mb-0">No new notifications</p>
               </div>
             )}
           </div>

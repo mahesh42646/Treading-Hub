@@ -221,7 +221,7 @@ const AdminBlogs = () => {
               {blog.featuredImage && (
                 <div className="card-img-top" style={{ height: '200px', overflow: 'hidden' }}>
                   <img 
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${blog.featuredImage}`}
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/api${blog.featuredImage}`}
                     alt={blog.title}
                     className="w-100 h-100"
                     style={{ objectFit: 'cover' }}

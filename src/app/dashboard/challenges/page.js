@@ -406,7 +406,7 @@ export default function ChallengesPage() {
                       background: 'rgba(59, 130, 246, 0.1)',
                       border: '1px solid rgba(59, 130, 246, 0.3)',
                       color: '#e2e8f0'
-                    }}>You don't have any challenges yet.</div>
+                    }}>&#39;You don&#39;t have any challenges yet.&#39;</div>
                   ) : (
                     <div className="table-responsive">
                       <table className="table table-hover" style={{

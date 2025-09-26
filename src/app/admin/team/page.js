@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
 const AdminTeam = () => {
@@ -183,12 +184,15 @@ const AdminTeam = () => {
               <div className="card-body text-center">
                 <div className="mb-3">
                   {member.image ? (
-                    <img 
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${member.image}`}
-                      alt={member.name}
-                      className="rounded-circle"
-                      style={{ width: '80px', height: '80px', objectFit: 'cover' }}
-                    />
+                    <div className="position-relative" style={{ width: '80px', height: '80px' }}>
+                      <Image 
+                        src={`${process.env.NEXT_PUBLIC_API_URL}${member.image}`}
+                        alt={member.name}
+                        className="rounded-circle"
+                        style={{ objectFit: 'cover' }}
+                        fill
+                      />
+                    </div>
                   ) : (
                     <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style={{ width: '80px', height: '80px' }}>
                       <span className="h4 text-primary mb-0">{member.name.charAt(0).toUpperCase()}</span>

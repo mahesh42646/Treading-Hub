@@ -113,7 +113,14 @@ const TradingAccount = require('./models/TradingAccount');
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Determine destination based on the route
+    let uploadPath = 'uploads/';
+    if (req.route?.path?.includes('/team')) {
+      uploadPath = 'uploads/team/';
+    } else if (req.route?.path?.includes('/blogs')) {
+      uploadPath = 'uploads/blogs/';
+    }
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

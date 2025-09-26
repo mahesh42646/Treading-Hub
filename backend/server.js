@@ -18,7 +18,52 @@ app.use(express.urlencoded({ extended: true, limit: '1gb' }));
 app.use(cookieParser());
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Test endpoint to check if files exist
+app.get('/api/test-file/:filename', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const filePath = path.join(__dirname, 'uploads', 'team', req.params.filename);
+  
+  if (fs.existsSync(filePath)) {
+    res.json({ 
+      success: true, 
+      message: 'File exists',
+      filePath: filePath,
+      url: `/api/uploads/team/${req.params.filename}`
+    });
+  } else {
+    res.json({ 
+      success: false, 
+      message: 'File not found',
+      filePath: filePath,
+      searchedIn: path.join(__dirname, 'uploads', 'team')
+    });
+  }
+});
+
+// List all files in uploads directory
+app.get('/api/list-files', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    const uploadsDir = path.join(__dirname, 'uploads');
+    const teamDir = path.join(uploadsDir, 'team');
+    const blogsDir = path.join(uploadsDir, 'blogs');
+    
+    const files = {
+      uploads: fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [],
+      team: fs.existsSync(teamDir) ? fs.readdirSync(teamDir) : [],
+      blogs: fs.existsSync(blogsDir) ? fs.readdirSync(blogsDir) : []
+    };
+    
+    res.json({ success: true, files });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI , {

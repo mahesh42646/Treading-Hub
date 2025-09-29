@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://0fare.com', 'http://localhost:3000'],
+  origin: ['https://xfundingflow.com', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json({ limit: '1gb' }));

@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://0fare.com/api',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://xfundingflow.com/api',
   ENDPOINTS: {
     // User endpoints
     USERS: '/users',
@@ -64,7 +64,7 @@ export const buildApiUrl = (endpoint) => {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
   // For production, use the /api/api/ structure that's currently working
-  if (baseUrl === 'https://0fare.com/api') {
+  if (baseUrl === 'https://xfundingflow.com/api') {
     return `${baseUrl}/api${cleanEndpoint}`;
   }
   

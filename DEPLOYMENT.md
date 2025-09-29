@@ -6,7 +6,7 @@
 - Node.js 18+ installed
 - Nginx installed
 - PM2 installed globally (`npm install -g pm2`)
-- Domain: `0fare.com` (already configured)
+- Domain: `xfundingflow.com` (already configured)
 
 ## 📋 Deployment Steps
 
@@ -80,7 +80,7 @@ sudo systemctl reload nginx
 sudo apt install certbot python3-certbot-nginx
 
 # Get SSL certificate
-sudo certbot --nginx -d 0fare.com -d www.0fare.com
+sudo certbot --nginx -d xfundingflow.com -d www.xfundingflow.com
 
 # Auto-renewal
 sudo crontab -e
@@ -117,8 +117,8 @@ curl http://localhost:3002/api/admin/dashboard
 
 - **Frontend (Next.js)**: Port 3003
 - **Backend (Express)**: Port 3002
-- **Domain**: 0fare.com
-- **API**: 0fare.com/api
+- **Domain**: xfundingflow.com
+- **API**: xfundingflow.com/api
 
 ## 📁 File Structure
 

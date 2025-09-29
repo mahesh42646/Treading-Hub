@@ -58,7 +58,7 @@ pm2 startup
 print_status "Deployment completed successfully!"
 print_status "Frontend: http://localhost:3003"
 print_status "Backend: http://localhost:3002"
-print_status "Domain: https://0fare.com"
+print_status "Domain: https://xfundingflow.com"
 
 # Show PM2 status
 echo ""

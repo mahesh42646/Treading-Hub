@@ -20,7 +20,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '0fare.com',
+        hostname: 'xfundingflow.com',
         port: '',
         pathname: '/api/api/uploads/**',
       },

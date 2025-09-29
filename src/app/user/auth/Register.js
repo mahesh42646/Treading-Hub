@@ -329,8 +329,8 @@ const Register = () => {
               {/* Header */}
               <div className="text-center mb-4">
                 <h2 className="fw-bold text-white mb-2">
-                  <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span> 
-                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span>
+                   <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span> 
+                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Flow</span>
                 </h2>
                 <p className="text-white-50">Create your account to start trading</p>
                 {referralCode && (

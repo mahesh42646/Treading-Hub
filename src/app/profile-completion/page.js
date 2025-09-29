@@ -165,7 +165,7 @@ const ProfileCompletion = () => {
               <div className="card-body p-5">
                 <div className="text-center mb-4">
                   <h2 className="fw-bold text-white">
-                    <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span>
+                    <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span>
                     <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span>
                   </h2>
                   <p className="text-white-50">Complete your profile to 100%</p>

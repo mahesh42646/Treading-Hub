@@ -14,11 +14,9 @@ const BootstrapProvider = ({ children }) => {
           if (bootstrap && bootstrap.default) {
             window.bootstrap = bootstrap.default;
             setBootstrapLoaded(true);
-            console.log('✅ Bootstrap is loaded successfully');
           }
         } else if (window.bootstrap) {
           setBootstrapLoaded(true);
-          console.log('✅ Bootstrap is already loaded');
         }
       } catch (error) {
         console.error('❌ Failed to load Bootstrap:', error);
@@ -29,7 +27,6 @@ const BootstrapProvider = ({ children }) => {
           script.async = true;
           script.onload = () => {
             setBootstrapLoaded(true);
-            console.log('✅ Bootstrap loaded from CDN fallback');
           };
           script.onerror = () => {
             console.error('❌ Failed to load Bootstrap from CDN fallback');

@@ -93,13 +93,12 @@ const Login = () => {
             <div className="card-body p-5">
               <div className="text-center mb-4">
                 <h2 className="fw-bold text-white">
-                  <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span>
-                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span>
+                   <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span>
+                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Flow</span>
                 </h2>
                 <p className="text-white-50">Welcome back! Please login to your account.</p>
               </div>
-
-              {/* Debug info in development */}
+{/*             
               {process.env.NODE_ENV === 'development' && (
                 <div className="alert alert-warning rounded-4 mb-4" style={{
                   background: 'rgba(255, 193, 7, 0.1)',
@@ -118,7 +117,7 @@ const Login = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {error && (
                 <div className="alert alert-danger rounded-4" role="alert" style={{

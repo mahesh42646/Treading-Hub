@@ -17,7 +17,7 @@ async function verifyData() {
 
   for (const endpoint of endpoints) {
     try {
-      console.log(`📡 Checking ${endpoint.name}...`);
+      // console.log(`📡 Checking ${endpoint.name}...`);
       const response = await fetch(`${API_BASE}${endpoint.url}`);
       
       if (response.ok) {

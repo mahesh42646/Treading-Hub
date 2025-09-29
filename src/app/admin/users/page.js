@@ -97,7 +97,7 @@ const AdminUsers = () => {
       });
       
       if (response.ok) {
-        console.log('Referral counts refreshed');
+        console.log(' ');
       }
     } catch (error) {
       console.error('Error refreshing referral counts:', error);

@@ -33,7 +33,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="navbar-brand d-flex align-items-center" style={{ color: '#ffffff', textDecoration: 'none' }}>
             {/* <span className="fw-bold fs-3" style={{ color: '#ffffff' }}>
-          <span style={{ color: 'red', textDecoration: 'underline green' }}>Trading </span> <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span> 
+           <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span> <span style={{ color: 'green', textDecoration: 'underline red' }}>Hub</span> 
           </span> */}
 
             <Image className="border-0" src="/logo.png" alt="Funding Flow" width={100} height={100} style={{ width: 'auto', height: '80px' }} />

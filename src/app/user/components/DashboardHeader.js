@@ -71,7 +71,7 @@ const DashboardHeader = () => {
               <div className="d-flex align-items-center justify-content-end  w-50">
                 {/* Notifications */}
                 <div className="position-relative me-3" onClick={(e) => e.stopPropagation()}>
-                  <NotificationDropdown 
+                  <NotificationDropdown  className="bg-dark"
                     isOpen={showNotifications}
                     onToggle={handleNotificationToggle}
                   />

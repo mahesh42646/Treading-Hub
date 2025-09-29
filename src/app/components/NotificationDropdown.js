@@ -191,7 +191,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
   }
 
   return (
-    <div className="position-relative" ref={dropdownRef}>
+    <div className="position-relative bg-dark" ref={dropdownRef}>
       <button
         className="btn btn-link position-relative"
         onClick={(e) => {
@@ -224,22 +224,23 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
             top: '100%',
             right: '0',
             left: 'auto',
-            background: 'rgba(60, 58, 58, 0.03)',
-            border: '1px solid rgba(124, 124, 124, 0.39)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+            background: 'rgba(17, 17, 17, 0.10)',
+            border: '1px solid rgba(124, 124, 124, 0.30)',
+            backdropFilter: 'blur(14px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(14px) saturate(120%)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
           }}
         >
           <div className="d-flex justify-content-between align-items-center p-3" style={{
-            borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+            borderBottom: '1px solid rgba(124, 124, 124, 0.25)'
           }}>
             <h6 className="mb-0 fw-bold text-white">Notifications</h6>
             <div className="d-flex gap-2">
               <button 
                 className="btn btn-sm rounded-4"
                 style={{
-                  background: 'rgba(60, 58, 58, 0.03)',
-                  border: '1px solid rgba(124, 124, 124, 0.39)',
+                  background: 'rgba(17,17,17,0.10)',
+                  border: '1px solid rgba(124, 124, 124, 0.30)',
                   color: '#e2e8f0'
                 }}
                 onClick={fetchNotifications}

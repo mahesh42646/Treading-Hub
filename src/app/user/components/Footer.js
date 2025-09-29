@@ -43,7 +43,7 @@ export default function Footer() {
       <div className="container py-5">
         <div className="row">
           {/* Company */}
-          <div className="col-lg-2 col-md-4 mb-4">
+          <div className="col-lg-3 col-md-4 mb-4">
             <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('company')}>
               <span style={{ color: 'white' }}>Company</span>
               {isMobile && caret(openSections.company)}
@@ -92,66 +92,10 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Programs */}
-          <div className="col-lg-2 col-md-4 mb-4">
-            <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('programs')}>
-              <span style={{ color: 'white' }}>Programs</span>
-              {isMobile && caret(openSections.programs)}
-            </h6>
-            <ul className="list-unstyled" style={{ display: isMobile ? (openSections.programs ? 'block' : 'none') : 'block' }}>
-              <li className="mb-3">
-                <Link href="/evaluation" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Evaluation
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/express" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Express
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/stellar" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Stellar
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/one-step" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  One-Step
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/scaling" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Scaling Plan
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/payouts" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Payouts
-                </Link>
-              </li>
-            </ul>
-          </div>
+         
 
           {/* Resources */}
-          <div className="col-lg-2 col-md-4 mb-4">
+          <div className="col-lg-3 col-md-4 mb-4">
             <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('resources')}>
               <span style={{ color: 'white' }}>Resources</span>
               {isMobile && caret(openSections.resources)}
@@ -181,35 +125,13 @@ export default function Footer() {
                   Trading Rules
                 </Link>
               </li>
-              <li className="mb-3">
-                <Link href="/platforms" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Trading Platforms
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/affiliates" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  Affiliates
-                </Link>
-              </li>
-              <li className="mb-3">
-                <Link href="/api" className="text-secondry text-decoration-none" style={{
-                  color: 'white',
-                  transition: 'color 0.3s ease'
-                }}>
-                  API
-                </Link>
-              </li>
+            
+            
             </ul>
           </div>
 
           {/* Privacy Policy */}
-          <div className="col-lg-2 col-md-4 mb-4">
+          <div className="col-lg-3 col-md-4 mb-4">
             <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('privacy')}>
               <span style={{ color: 'white' }}>Privacy Policy</span>
               {isMobile && caret(openSections.privacy)}
@@ -259,7 +181,7 @@ export default function Footer() {
           </div>
 
           {/* Community */} 
-          <div className="col-lg-2 col-md-4 mb-4 ">
+          <div className="col-lg-3 d-none col-md-4 mb-4 ">
             <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('community')}>
               <span style={{ color: 'white' }}>Community</span>
               {isMobile && caret(openSections.community)}
@@ -317,20 +239,20 @@ export default function Footer() {
           </div>
 
           {/* Partners/Platforms */}
-          <div className="col-lg-2 col-md-4 mb-4">
+          <div className="col-lg-3 col-md-4 mb-4">
             <h6 className="fw-bold mb-3" style={sectionHeaderStyle} onClick={() => toggleSection('partners')}>
               <span style={{ color: 'white' }}>Partners/Platforms</span>
               {isMobile && caret(openSections.partners)}
             </h6>
             <ul className="list-unstyled" style={{ display: isMobile ? (openSections.partners ? 'block' : 'none') : 'block' }}>
-              <li className="mb-3">
+              {/* <li className="mb-3">
                 <a href="#" className="text-secondry text-decoration-none" style={{
                   color: 'white',
                   transition: 'color 0.3s ease'
                 }}>
                   Trustpilot
                 </a>
-              </li>
+              </li> */}
               <li className="mb-3">
                 <a href="#" className="text-secondry text-decoration-none" style={{
                   color: 'white',
@@ -347,14 +269,14 @@ export default function Footer() {
                   MetaTrader 5
                 </a>
               </li>
-              <li className="mb-3">
+              {/* <li className="mb-3">
                 <a href="#" className="text-secondry text-decoration-none" style={{
                   color: 'white',
                   transition: 'color 0.3s ease'
                 }}>
                   cTrader
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

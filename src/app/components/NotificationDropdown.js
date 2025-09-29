@@ -13,26 +13,21 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
 
   const fetchNotifications = async () => {
     if (!user?.uid) {
-      console.log('No user UID available for notifications');
       return;
     }
     
     try {
       setLoading(true);
-      console.log('Fetching notifications for user:', user.uid);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${user.uid}?limit=10`, {
         credentials: 'include'
       });
       
-      console.log('Notification response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('Notifications data received:', data);
         // Only show unread notifications in the dropdown
         const unreadNotifications = (data.notifications || []).filter(notif => !notif.isRead);
         setNotifications(unreadNotifications);
         setUnreadCount(data.unreadCount || 0);
-        console.log(`Displaying ${unreadNotifications.length} unread notifications out of ${data.notifications?.length || 0} total`);
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch notifications:', response.status, errorText);
@@ -60,7 +55,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
         // Remove notification from list locally (since we only show unread notifications)
         setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
         setUnreadCount(prev => Math.max(0, prev - 1));
-        console.log('Notification marked as read and removed from list');
+        
       } else {
         console.error('Failed to mark notification as read');
       }
@@ -87,7 +82,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
         // Clear all notifications from list
         setNotifications([]);
         setUnreadCount(0);
-        console.log('All notifications marked as read and cleared from list');
+        
       } else {
         console.error('Failed to mark all notifications as read');
       }
@@ -186,7 +181,6 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
   }, [isOpen, onToggle]);
 
   if (!user) {
-    console.log('No user found, hiding notification dropdown');
     return null;
   }
 
@@ -224,8 +218,8 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
             top: '100%',
             right: '0',
             left: 'auto',
-            background: 'rgba(17, 17, 17, 0.10)',
-            border: '1px solid rgba(124, 124, 124, 0.30)',
+            background: 'rgba(17, 17, 17, 0.83)',
+            border: '1px solid rgba(6, 44, 110, 0.73)',
             backdropFilter: 'blur(14px) saturate(120%)',
             WebkitBackdropFilter: 'blur(14px) saturate(120%)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'

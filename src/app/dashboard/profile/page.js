@@ -27,14 +27,14 @@ const ProfilePage = () => {
   const fetchReferralData = async () => {
     try {
       const data = await userApi.getReferralStats(user.uid);
-      console.log('🔍 Profile referral stats data:', data);
+      
       setReferralData({
         referralCode: data.stats?.referralCode || data.stats?.myReferralCode || '',
         totalReferrals: data.stats?.totalReferrals || 0,
         totalEarnings: data.stats?.totalEarnings || 0
       });
     } catch (error) {
-      console.error('Error fetching referral data:', error);
+      
     }
   };
 

@@ -15,9 +15,9 @@ const ProfileSetup = () => {
   const router = useRouter();
 
   // Debug logging
-  console.log('ProfileSetup component - user:', !!user, 'profile:', !!profile);
+  
   if (profile) {
-    console.log('ProfileSetup - completion percentage:', profile.status?.completionPercentage || 0);
+    
   }
 
   const [formData, setFormData] = useState({
@@ -38,13 +38,13 @@ const ProfileSetup = () => {
     const timer = setTimeout(() => {
       if (profile) {
         const completionPercentage = profile.status?.completionPercentage || 0;
-        console.log('Profile setup page - completion percentage:', completionPercentage);
+        
         if (completionPercentage >= 75) {
-          console.log('Redirecting to dashboard - profile already 75%+ complete');
+          
           router.push('/dashboard');
         }
       } else {
-        console.log('No profile found - allowing access to profile setup');
+        
       }
     }, 100);
 
@@ -88,7 +88,7 @@ const ProfileSetup = () => {
       }
       return true;
     } catch (error) {
-      console.error('Phone validation error:', error);
+      
       return true; // Allow submission if validation fails
     }
   };
@@ -152,7 +152,7 @@ const ProfileSetup = () => {
       }
 
       // Create profile for existing user
-      console.log('Creating profile for existing user...');
+      
       const response = await userApi.profileSetup({
         uid: user.uid,
         firstName: formData.firstName.trim(),
@@ -165,8 +165,7 @@ const ProfileSetup = () => {
         referralCode: referralCode || null
       });
 
-      console.log('Response status:', response.success);
-      console.log('Response data:', response);
+      
       
       if (response.success) {
         setSuccess('Profile created successfully! Redirecting to dashboard...');
@@ -176,7 +175,7 @@ const ProfileSetup = () => {
         setError(response.message || 'Failed to create profile');
       }
     } catch (error) {
-      console.error('Profile setup error:', error);
+      
       setError(`Error: ${error.message}`);
     } finally {
       setSubmitting(false);

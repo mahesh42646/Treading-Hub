@@ -86,24 +86,24 @@ export const getUserAvatar = (user, profile, size = 50) => {
   // 1. Check for KYC profile photo first
   if (profile?.kyc?.profilePhoto) {
     avatarSrc = `${uploadBaseUrl}/${profile.kyc.profilePhoto}`;
-    console.log('🎯 Selected KYC profile photo:', avatarSrc);
+    
   }
   // 2. Check for basic profile photo (old schema)
   else if (profile?.profilePhoto) {
     avatarSrc = `${uploadBaseUrl}/${profile.profilePhoto}`;
-    console.log('🎯 Selected basic profile photo:', avatarSrc);
+    
   }
   // 3. Check for Google avatar from Firebase
   else if (user?.photoURL) {
     avatarSrc = user.photoURL;
-    console.log('🎯 Selected Google photo:', avatarSrc);
+    
   }
   else {
-    console.log('🎯 No photo found, using default icon');
+    
   }
   
   if (avatarSrc) {
-    console.log('🖼️ Rendering avatar with src:', avatarSrc);
+    
     return (
       <img  
         src={avatarSrc} 
@@ -116,7 +116,7 @@ export const getUserAvatar = (user, profile, size = 50) => {
           display: 'block'
         }}
         onError={(e) => {
-          console.log('❌ Image failed to load, falling back to default icon');
+          
           // Replace the img with default icon
           const parent = e.target.parentElement;
           if (parent) {

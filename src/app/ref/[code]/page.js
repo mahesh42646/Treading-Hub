@@ -39,18 +39,18 @@ export default function ReferralPage() {
         localStorage.setItem('referralCode', code);
         localStorage.setItem('referrerName', data.referrerName || '');
         
-        console.log('✅ Referral data stored:', { code, referrerName: data.referrerName });
+        
         
         // Immediately redirect to registration page with referral code in URL
-        console.log('🔄 Redirecting to registration...');
+        
         window.location.href = `/register?ref=${code}&referrer=${encodeURIComponent(data.referrerName || '')}`;
       } else {
         const errorData = await response.json();
-        console.error('❌ Referral validation failed:', errorData);
+        
         setError(errorData.message || 'Invalid or expired referral link');
       }
     } catch (error) {
-      console.error('Error validating referral code:', error);
+      
       setError('Failed to validate referral link');
     } finally {
       setLoading(false);

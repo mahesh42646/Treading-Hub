@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     } catch (error) {
-      console.error('Error checking user profile:', error);
+      
       setProfile(null);
       return null;
     }
@@ -51,17 +51,11 @@ export const AuthProvider = ({ children }) => {
       // Check if user was already created during registration (for email users)
       const userCreatedInRegistration = localStorage.getItem('userCreatedInRegistration');
       if (!isGoogleUser && userCreatedInRegistration === 'true') {
-        console.log('ℹ️ Email user already created during registration, skipping duplicate creation');
+        
         localStorage.removeItem('userCreatedInRegistration'); // Clean up flag
         return true;
       }
       
-      console.log('🔄 Creating user in database:', {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        isGoogleUser: isGoogleUser,
-        emailVerified: firebaseUser.emailVerified
-      });
 
       const data = await userApi.createUser({
         uid: firebaseUser.uid,
@@ -72,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
       return data.success;
     } catch (error) {
-      console.error('Error creating user in database:', error);
+      
       return false;
     }
   };
@@ -174,7 +168,7 @@ export const AuthProvider = ({ children }) => {
       setProfile(null);
       router.push('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      
       throw error;
     }
   };
@@ -189,7 +183,7 @@ export const AuthProvider = ({ children }) => {
         setProfile(data.profile);
       }
     } catch (error) {
-      console.error('Error refreshing profile:', error);
+      
     }
   };
 
@@ -213,7 +207,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('Error checking email verification:', error);
+      
     }
   };
 

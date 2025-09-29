@@ -111,7 +111,7 @@ export default function Header() {
                       <span className="d-none d-md-inline">{displayInfo.name}</span>
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end w-100" style={{
-                      background: 'rgba(28, 28, 28, 0.66)',
+                      background: 'rgba(0, 30, 69, 0.91)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
                       backdropFilter: 'blur(20px)',
                       boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)',

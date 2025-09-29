@@ -340,7 +340,7 @@ export default function Home() {
           {/* Payment & Platform Logos - Dark Glossy Theme */}
           <div className="text-center mt-5">
             <div className="d-flex justify-content-center align-items-center gap-4 flex-wrap">
-              {['Visa', 'Mastercard', 'PayPal', 'Stripe', 'Skrill', 'Neteller', 'Bitcoin', 'Ethereum', 'Litecoin', 'USDT', 'Bank Transfer'].map((payment, index) => (
+              {['Rezor Pay', 'UPI', 'Bank Transfer'].map((payment, index) => (
                 <div key={index} className="rounded p-3" style={{
                   minWidth: '80px',
                   background: 'rgba(60, 58, 58, 0.03)',

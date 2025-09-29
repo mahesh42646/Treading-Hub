@@ -97,8 +97,8 @@ const DashboardHeader = () => {
                       maxWidth: 'calc(100vw - 20px)',
                       right: '0',
                       left: 'auto',
-                      background: 'rgba(60, 58, 58, 0.03)',
-                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      background: 'rgba(31, 4, 82, 0.95)',
+                      border: '1px solid rgba(3, 19, 88, 0.74)',
                       backdropFilter: 'blur(20px)',
                       boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                     }}>

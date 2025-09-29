@@ -24,7 +24,7 @@ const Login = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      console.log('✅ User signed in:', user.email);
+      
 
       // The AuthContext will handle the redirect logic automatically
       // No need to manually check profile or redirect here
@@ -49,7 +49,7 @@ const Login = () => {
     setError('');
 
     try {
-      console.log('🚀 Opening Google login popup...');
+      
       const provider = new GoogleAuthProvider();
       
       // Add additional scopes if needed
@@ -58,7 +58,7 @@ const Login = () => {
       
       // Use popup instead of redirect
       const result = await signInWithPopup(auth, provider);
-      console.log('✅ Google login successful:', result.user.email);
+      
       
       // The AuthContext will handle the redirect logic automatically
       // No need to manually check profile or redirect here

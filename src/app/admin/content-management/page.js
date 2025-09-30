@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function ContentManagement() {
   const { isAuthenticated, loading } = useAdminAuth();
   const router = useRouter();
+  const API_BASE = `${(process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '')}/api/api/content`;
   const [activeTab, setActiveTab] = useState('home');
   const [content, setContent] = useState({});
   const [loadingContent, setLoadingContent] = useState(false);
@@ -30,7 +31,7 @@ export default function ContentManagement() {
   const fetchContent = async (page) => {
     setLoadingContent(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${page}`, { credentials: 'include' });
+      const response = await fetch(`${API_BASE}/${page}`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setContent(data);
@@ -47,12 +48,12 @@ export default function ContentManagement() {
   const saveContent = async (section, data) => {
     setSaving(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}`, {
+      const response = await fetch(`${API_BASE}/${activeTab}/${section}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -74,12 +75,12 @@ export default function ContentManagement() {
   const addArrayItem = async (section, arrayField, item) => {
     setSaving(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}`, {
+      const response = await fetch(`${API_BASE}/${activeTab}/${section}/${arrayField}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(item)
       });
 
@@ -101,12 +102,12 @@ export default function ContentManagement() {
   const updateArrayItem = async (section, arrayField, itemId, data) => {
     setSaving(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
+      const response = await fetch(`${API_BASE}/${activeTab}/${section}/${arrayField}/${itemId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -130,11 +131,9 @@ export default function ContentManagement() {
     
     setSaving(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
+      const response = await fetch(`${API_BASE}/${activeTab}/${section}/${arrayField}/${itemId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -155,12 +154,12 @@ export default function ContentManagement() {
   const saveAsDefault = async () => {
     setSavingDefaults(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/save-defaults`, {
+      const response = await fetch(`${API_BASE}/save-defaults`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ content })
       });
 
@@ -182,11 +181,9 @@ export default function ContentManagement() {
     
     setResettingDefaults(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/reset-defaults`, {
+      const response = await fetch(`${API_BASE}/reset-defaults`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
+        credentials: 'include'
       });
 
       if (response.ok) {

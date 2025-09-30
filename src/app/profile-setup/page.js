@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
 import { userApi } from '../../services/api';

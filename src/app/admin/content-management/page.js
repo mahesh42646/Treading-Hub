@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AdminAuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function ContentManagement() {
-  const { user, loading } = useAuth();
+  const { isAuthenticated, loading } = useAdminAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('home');
   const [content, setContent] = useState({});
@@ -14,16 +14,16 @@ export default function ContentManagement() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !isAuthenticated) {
       router.push('/admin/login');
     }
-  }, [user, loading, router]);
+  }, [isAuthenticated, loading, router]);
 
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated) {
       fetchContent(activeTab);
     }
-  }, [activeTab, user]);
+  }, [activeTab, isAuthenticated]);
 
   const fetchContent = async (page) => {
     setLoadingContent(true);
@@ -154,7 +154,7 @@ export default function ContentManagement() {
     return <div className="d-flex justify-content-center p-5"><div className="spinner-border" role="status"></div></div>;
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return null;
   }
 

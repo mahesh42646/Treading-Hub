@@ -11,7 +11,7 @@ export default function ContentManagement() {
   // - NEXT_PUBLIC_API_URL = https://xfundingflow.com      => https://xfundingflow.com/api/api/content
   // - NEXT_PUBLIC_API_URL = https://xfundingflow.com/api  => https://xfundingflow.com/api/api/content (no double /api)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-  const API_BASE = `${baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`}/api/content`;
+  const API_BASE = `${baseUrl}/api/api/content`;
   const [activeTab, setActiveTab] = useState('home');
   const [homeSubtab, setHomeSubtab] = useState('hero'); // 'hero' | 'bottomStats' | 'topTraders' | 'testimonials'
   const [content, setContent] = useState({});
@@ -441,17 +441,37 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Image URL</label>
+                    <label className="form-label">Image</label>
                     <input
-                      type="text"
+                      type="file"
+                      accept="image/*"
                       className="form-control"
-                      value={feature.image}
-                      onChange={(e) => {
-                        const list = [...(heroData.features || content.home?.hero?.features || [])];
-                        list[index] = { ...list[index], image: e.target.value };
-                        setHeroData(prev => ({ ...prev, features: list }));
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                          const res = await fetch(`${API_BASE.replace('/content','')}/upload`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: formData
+                          });
+                          if (res.ok) {
+                            const data = await res.json();
+                            const imageUrl = data.url; // e.g., /api/uploads/filename.ext
+                            const list = [...(heroData.features || content.home?.hero?.features || [])];
+                            list[index] = { ...list[index], image: imageUrl };
+                            setHeroData(prev => ({ ...prev, features: list }));
+                          }
+                        } catch (_) {}
                       }}
                     />
+                    {feature.image && (
+                      <div className="mt-2">
+                        <img src={feature.image} alt="Preview" style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                      </div>
+                    )}
                   </div>
                   <div className="col-md-1">
                     <button type="button" className="btn btn-sm btn-danger" onClick={() => removeHeroFeatureLocal(index)}>Delete</button>

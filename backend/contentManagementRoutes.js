@@ -18,6 +18,26 @@ const storage = require('multer').diskStorage({
 });
 const upload = multer({ storage });
 
+// Upload image for content (Admin only)
+router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // File saved under backend/uploads by static server at /api/uploads
+    const fileUrl = `/api/uploads/${req.file.filename}`;
+    const relativePath = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: fileUrl, path: relativePath, filename: req.file.filename });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
+  }
+});
+
 // Get content by page
 router.get('/:page', async (req, res) => {
   try {

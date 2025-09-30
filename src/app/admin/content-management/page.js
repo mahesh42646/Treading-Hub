@@ -156,54 +156,15 @@ export default function ContentManagement() {
     }
   };
 
+  // Defaults system removed: database is the single source of truth
   const saveAsDefault = async () => {
-    setSavingDefaults(true);
-    try {
-      const response = await fetch(`${API_BASE}/save-defaults`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ content })
-      });
-
-      if (response.ok) {
-        setMessage('Current data saved as default successfully');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        setMessage('Failed to save as default');
-      }
-    } catch (error) {
-      setMessage('Error saving as default');
-    } finally {
-      setSavingDefaults(false);
-    }
+    setMessage('Defaults are disabled. Database is the only source of content.');
+    setTimeout(() => setMessage(''), 3000);
   };
 
   const resetToDefault = async () => {
-    if (!confirm('Are you sure you want to reset to default? This will overwrite all current content.')) return;
-    
-    setResettingDefaults(true);
-    try {
-      const response = await fetch(`${API_BASE}/reset-defaults`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setContent(result.content);
-        setMessage('Content reset to default successfully');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        setMessage('Failed to reset to default');
-      }
-    } catch (error) {
-      setMessage('Error resetting to default');
-    } finally {
-      setResettingDefaults(false);
-    }
+    setMessage('Defaults are disabled. Database is the only source of content.');
+    setTimeout(() => setMessage(''), 3000);
   };
 
   if (loading) {
@@ -220,22 +181,7 @@ export default function ContentManagement() {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Content Management</h2>
-            <div className="d-flex gap-2">
-              <button 
-                className="btn btn-success" 
-                onClick={saveAsDefault}
-                disabled={savingDefaults || saving}
-              >
-                {savingDefaults ? 'Saving...' : 'Save as Default'}
-              </button>
-              <button 
-                className="btn btn-warning" 
-                onClick={resetToDefault}
-                disabled={resettingDefaults || saving}
-              >
-                {resettingDefaults ? 'Resetting...' : 'Reset to Default'}
-              </button>
-            </div>
+            {/* Default save/reset removed: DB is single source of truth */}
           </div>
           
           {message && (
@@ -401,11 +347,14 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
       {homeSubtab === 'hero' && (
       <div className="col-12 mb-4">
         <div className="card">
-          <div className="card-header">
+          <div className="card-heade d-flex justify-content-between align-items-center">
             <h5>Hero Section</h5>
+            <button type="button" className="btn btn-primary" onClick={handleSaveHero} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Hero Section'}
+            </button>
           </div>
           <div className="card-body">
-            <div className="mb-3">
+            <div className="mb-3 col-lg-6 col-12">
               <label className="form-label">Tagline</label>
               <input
                 type="text"
@@ -415,7 +364,7 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3 col-lg-6 col-12">
               <label className="form-label">Rating Text</label>
               <input
                 type="text"
@@ -425,7 +374,7 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3 col-lg-6 col-12">
               <label className="form-label">Rating Count</label>
               <input
                 type="number"
@@ -435,7 +384,7 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
               />
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3 col-lg-6 col-12">
               <label className="form-label">Platform</label>
               <input
                 type="text"
@@ -445,9 +394,7 @@ function HomeContent({ content, saveContent, saving, homeSubtab }) {
               />
             </div>
 
-            <button type="button" className="btn btn-primary" onClick={handleSaveHero} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Hero Section'}
-            </button>
+           
           </div>
         </div>
       </div>

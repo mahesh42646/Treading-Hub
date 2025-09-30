@@ -28,7 +28,7 @@ export default function ContentManagement() {
   const fetchContent = async (page) => {
     setLoadingContent(true);
     try {
-      const response = await fetch(`/api/content/${page}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${page}`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setContent(data);
@@ -45,7 +45,7 @@ export default function ContentManagement() {
   const saveContent = async (section, data) => {
     setSaving(true);
     try {
-      const response = await fetch(`/api/content/${activeTab}/${section}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export default function ContentManagement() {
   const addArrayItem = async (section, arrayField, item) => {
     setSaving(true);
     try {
-      const response = await fetch(`/api/content/${activeTab}/${section}/${arrayField}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export default function ContentManagement() {
   const updateArrayItem = async (section, arrayField, itemId, data) => {
     setSaving(true);
     try {
-      const response = await fetch(`/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ export default function ContentManagement() {
     
     setSaving(true);
     try {
-      const response = await fetch(`/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${activeTab}/${section}/${arrayField}/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`

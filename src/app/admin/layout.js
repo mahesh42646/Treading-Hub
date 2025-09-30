@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { AdminAuthProvider } from '../contexts/AdminAuthContext';
 import {
   FaTachometerAlt,
   FaUsers,
@@ -104,7 +105,11 @@ const AdminLayout = ({ children }) => {
 
   // For login page, just render children without layout
   if (pathname === '/admin/login') {
-    return <>{children}</>;
+    return (
+      <AdminAuthProvider>
+        {children}
+      </AdminAuthProvider>
+    );
   }
 
   if (loading) {
@@ -130,6 +135,7 @@ const AdminLayout = ({ children }) => {
   }
 
   return (
+    <AdminAuthProvider>
     <div className="d-flex" style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #110A28 0%, #002260 100%)',
@@ -250,6 +256,7 @@ const AdminLayout = ({ children }) => {
         </main>
       </div>
     </div>
+    </AdminAuthProvider>
   );
 };
 

@@ -13,6 +13,7 @@ export default function ContentManagement() {
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
   const API_BASE = `${baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`}/api/content`;
   const [activeTab, setActiveTab] = useState('home');
+  const [homeSubtab, setHomeSubtab] = useState('hero'); // 'hero' | 'bottomStats' | 'topTraders' | 'testimonials'
   const [content, setContent] = useState({});
   const [loadingContent, setLoadingContent] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -271,6 +272,24 @@ export default function ContentManagement() {
             </li>
           </ul>
 
+          {/* Home Subtabs */}
+          {activeTab === 'home' && (
+            <ul className="nav nav-pills mb-4">
+              <li className="nav-item">
+                <button type="button" className={`nav-link ${homeSubtab === 'hero' ? 'active' : ''}`} onClick={() => setHomeSubtab('hero')}>Hero</button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className={`nav-link ${homeSubtab === 'bottomStats' ? 'active' : ''}`} onClick={() => setHomeSubtab('bottomStats')}>Bottom Stats</button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className={`nav-link ${homeSubtab === 'topTraders' ? 'active' : ''}`} onClick={() => setHomeSubtab('topTraders')}>Top Traders</button>
+              </li>
+              <li className="nav-item">
+                <button type="button" className={`nav-link ${homeSubtab === 'testimonials' ? 'active' : ''}`} onClick={() => setHomeSubtab('testimonials')}>Testimonials</button>
+              </li>
+            </ul>
+          )}
+
           {/* Content Forms */}
           {loadingContent ? (
             <div className="d-flex justify-content-center p-5">
@@ -278,7 +297,7 @@ export default function ContentManagement() {
             </div>
           ) : (
             <div className="tab-content">
-              {activeTab === 'home' && <HomeContent content={content} saveContent={saveContent} addArrayItem={addArrayItem} updateArrayItem={updateArrayItem} deleteArrayItem={deleteArrayItem} saving={saving} />}
+              {activeTab === 'home' && <HomeContent content={content} saveContent={saveContent} saving={saving} homeSubtab={homeSubtab} />}
               {activeTab === 'about' && <AboutContent content={content} saveContent={saveContent} addArrayItem={addArrayItem} updateArrayItem={updateArrayItem} deleteArrayItem={deleteArrayItem} saving={saving} />}
               {activeTab === 'contact' && <ContactContent content={content} saveContent={saveContent} saving={saving} />}
             </div>
@@ -290,7 +309,7 @@ export default function ContentManagement() {
 }
 
 // Home Content Component
-function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, deleteArrayItem, saving }) {
+function HomeContent({ content, saveContent, saving, homeSubtab }) {
   const [heroData, setHeroData] = useState({
     tagline: '',
     rating: { text: '', count: 0, platform: '' }
@@ -341,38 +360,45 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
     saveContent('home.testimonials', testimonials);
   };
 
-  const addHeroFeature = () => {
-    const newFeature = {
-      title: '',
-      subtitle: '',
-      image: '',
-      order: (content.home?.hero?.features?.length || 0)
-    };
-    addArrayItem('home.hero', 'features', newFeature);
+  const addHeroFeatureLocal = () => {
+    const next = [...(content.home?.hero?.features || []), {
+      title: '', subtitle: '', image: '', order: (content.home?.hero?.features?.length || 0)
+    }];
+    setHeroData(prev => ({ ...prev, features: next }));
   };
 
-  const addTrader = () => {
-    const newTrader = {
-      name: '',
-      payout: '',
-      order: (content.home?.topTraders?.traders?.length || 0)
-    };
-    addArrayItem('home.topTraders', 'traders', newTrader);
+  const removeHeroFeatureLocal = (index) => {
+    const next = [...(heroData.features || [])];
+    next.splice(index, 1);
+    setHeroData(prev => ({ ...prev, features: next }));
   };
 
-  const addTestimonial = () => {
-    const newTestimonial = {
-      rating: 5,
-      text: '',
-      verified: true,
-      order: (content.home?.testimonials?.testimonials?.length || 0)
-    };
-    addArrayItem('home.testimonials', 'testimonials', newTestimonial);
+  const addTraderLocal = () => {
+    const next = [...(topTraders.traders || []), { name: '', payout: '', order: (topTraders.traders?.length || 0) }];
+    setTopTraders(prev => ({ ...prev, traders: next }));
+  };
+
+  const removeTraderLocal = (index) => {
+    const next = [...(topTraders.traders || [])];
+    next.splice(index, 1);
+    setTopTraders(prev => ({ ...prev, traders: next }));
+  };
+
+  const addTestimonialLocal = () => {
+    const next = [...(testimonials.testimonials || []), { rating: 5, text: '', verified: true, order: (testimonials.testimonials?.length || 0) }];
+    setTestimonials(prev => ({ ...prev, testimonials: next }));
+  };
+
+  const removeTestimonialLocal = (index) => {
+    const next = [...(testimonials.testimonials || [])];
+    next.splice(index, 1);
+    setTestimonials(prev => ({ ...prev, testimonials: next }));
   };
 
   return (
     <div className="row">
       {/* Hero Section */}
+      {homeSubtab === 'hero' && (
       <div className="col-12 mb-4">
         <div className="card">
           <div className="card-header">
@@ -419,24 +445,26 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
               />
             </div>
 
-            <button className="btn btn-primary" onClick={handleSaveHero} disabled={saving}>
+            <button type="button" className="btn btn-primary" onClick={handleSaveHero} disabled={saving}>
               {saving ? 'Saving...' : 'Save Hero Section'}
             </button>
           </div>
         </div>
       </div>
+      )}
 
       {/* Hero Features */}
+      {homeSubtab === 'hero' && (
       <div className="col-12 mb-4">
         <div className="card">
           <div className="card-header d-flex justify-content-between align-items-center">
             <h5>Hero Features</h5>
-            <button className="btn btn-sm btn-success" onClick={addHeroFeature}>
+            <button type="button" className="btn btn-sm btn-success" onClick={addHeroFeatureLocal}>
               Add Feature
             </button>
           </div>
           <div className="card-body">
-            {content.home?.hero?.features?.map((feature, index) => (
+            {(heroData.features || content.home?.hero?.features || []).map((feature, index) => (
               <div key={feature._id || index} className="border p-3 mb-3 rounded">
                 <div className="row">
                   <div className="col-md-4">
@@ -446,9 +474,9 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={feature.title}
                       onChange={(e) => {
-                        const newFeatures = [...(content.home?.hero?.features || [])];
-                        newFeatures[index] = { ...newFeatures[index], title: e.target.value };
-                        updateArrayItem('home.hero', 'features', feature._id, newFeatures[index]);
+                        const list = [...(heroData.features || content.home?.hero?.features || [])];
+                        list[index] = { ...list[index], title: e.target.value };
+                        setHeroData(prev => ({ ...prev, features: list }));
                       }}
                     />
                   </div>
@@ -459,9 +487,9 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={feature.subtitle}
                       onChange={(e) => {
-                        const newFeatures = [...(content.home?.hero?.features || [])];
-                        newFeatures[index] = { ...newFeatures[index], subtitle: e.target.value };
-                        updateArrayItem('home.hero', 'features', feature._id, newFeatures[index]);
+                        const list = [...(heroData.features || content.home?.hero?.features || [])];
+                        list[index] = { ...list[index], subtitle: e.target.value };
+                        setHeroData(prev => ({ ...prev, features: list }));
                       }}
                     />
                   </div>
@@ -472,19 +500,14 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={feature.image}
                       onChange={(e) => {
-                        const newFeatures = [...(content.home?.hero?.features || [])];
-                        newFeatures[index] = { ...newFeatures[index], image: e.target.value };
-                        updateArrayItem('home.hero', 'features', feature._id, newFeatures[index]);
+                        const list = [...(heroData.features || content.home?.hero?.features || [])];
+                        list[index] = { ...list[index], image: e.target.value };
+                        setHeroData(prev => ({ ...prev, features: list }));
                       }}
                     />
                   </div>
                   <div className="col-md-1">
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteArrayItem('home.hero', 'features', feature._id)}
-                    >
-                      Delete
-                    </button>
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removeHeroFeatureLocal(index)}>Delete</button>
                   </div>
                 </div>
                 {feature.image && (
@@ -494,11 +517,16 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                 )}
               </div>
             ))}
+            <button type="button" className="btn btn-primary" onClick={() => saveContent('home.hero', { ...heroData, features: (heroData.features || content.home?.hero?.features || []) })} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Features'}
+            </button>
           </div>
         </div>
       </div>
+      )}
 
       {/* Bottom Statistics */}
+      {homeSubtab === 'bottomStats' && (
       <div className="col-12 mb-4">
         <div className="card">
           <div className="card-header">
@@ -555,19 +583,21 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                 />
               </div>
             </div>
-            <button className="btn btn-primary mt-3" onClick={handleSaveBottomStats} disabled={saving}>
+            <button type="button" className="btn btn-primary mt-3" onClick={handleSaveBottomStats} disabled={saving}>
               {saving ? 'Saving...' : 'Save Bottom Stats'}
             </button>
           </div>
         </div>
       </div>
+      )}
 
       {/* Top Traders */}
+      {homeSubtab === 'topTraders' && (
       <div className="col-12 mb-4">
         <div className="card">
           <div className="card-header d-flex justify-content-between align-items-center">
             <h5>Top Traders Section</h5>
-            <button className="btn btn-sm btn-success" onClick={addTrader}>
+            <button type="button" className="btn btn-sm btn-success" onClick={addTraderLocal}>
               Add Trader
             </button>
           </div>
@@ -612,7 +642,7 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
               </div>
             </div>
 
-            {content.home?.topTraders?.traders?.map((trader, index) => (
+            {(topTraders.traders || content.home?.topTraders?.traders || []).map((trader, index) => (
               <div key={trader._id || index} className="border p-3 mb-3 rounded">
                 <div className="row">
                   <div className="col-md-5">
@@ -622,9 +652,9 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={trader.name}
                       onChange={(e) => {
-                        const newTraders = [...(content.home?.topTraders?.traders || [])];
-                        newTraders[index] = { ...newTraders[index], name: e.target.value };
-                        updateArrayItem('home.topTraders', 'traders', trader._id, newTraders[index]);
+                        const next = [...(topTraders.traders || content.home?.topTraders?.traders || [])];
+                        next[index] = { ...next[index], name: e.target.value };
+                        setTopTraders(prev => ({ ...prev, traders: next }));
                       }}
                     />
                   </div>
@@ -635,37 +665,34 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={trader.payout}
                       onChange={(e) => {
-                        const newTraders = [...(content.home?.topTraders?.traders || [])];
-                        newTraders[index] = { ...newTraders[index], payout: e.target.value };
-                        updateArrayItem('home.topTraders', 'traders', trader._id, newTraders[index]);
+                        const next = [...(topTraders.traders || content.home?.topTraders?.traders || [])];
+                        next[index] = { ...next[index], payout: e.target.value };
+                        setTopTraders(prev => ({ ...prev, traders: next }));
                       }}
                     />
                   </div>
                   <div className="col-md-2">
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteArrayItem('home.topTraders', 'traders', trader._id)}
-                    >
-                      Delete
-                    </button>
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removeTraderLocal(index)}>Delete</button>
                   </div>
                 </div>
               </div>
             ))}
 
-            <button className="btn btn-primary" onClick={handleSaveTopTraders} disabled={saving}>
+            <button type="button" className="btn btn-primary" onClick={handleSaveTopTraders} disabled={saving}>
               {saving ? 'Saving...' : 'Save Top Traders'}
             </button>
           </div>
         </div>
       </div>
+      )}
 
       {/* Testimonials */}
+      {homeSubtab === 'testimonials' && (
       <div className="col-12 mb-4">
         <div className="card">
           <div className="card-header d-flex justify-content-between align-items-center">
             <h5>Testimonials Section</h5>
-            <button className="btn btn-sm btn-success" onClick={addTestimonial}>
+            <button type="button" className="btn btn-sm btn-success" onClick={addTestimonialLocal}>
               Add Testimonial
             </button>
           </div>
@@ -690,7 +717,7 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
               />
             </div>
 
-            {content.home?.testimonials?.testimonials?.map((testimonial, index) => (
+            {(testimonials.testimonials || content.home?.testimonials?.testimonials || []).map((testimonial, index) => (
               <div key={testimonial._id || index} className="border p-3 mb-3 rounded">
                 <div className="row">
                   <div className="col-md-1">
@@ -699,9 +726,9 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       className="form-control"
                       value={testimonial.rating}
                       onChange={(e) => {
-                        const newTestimonials = [...(content.home?.testimonials?.testimonials || [])];
-                        newTestimonials[index] = { ...newTestimonials[index], rating: parseInt(e.target.value) };
-                        updateArrayItem('home.testimonials', 'testimonials', testimonial._id, newTestimonials[index]);
+                        const list = [...(testimonials.testimonials || content.home?.testimonials?.testimonials || [])];
+                        list[index] = { ...list[index], rating: parseInt(e.target.value) };
+                        setTestimonials(prev => ({ ...prev, testimonials: list }));
                       }}
                     >
                       <option value={1}>1</option>
@@ -718,30 +745,26 @@ function HomeContent({ content, saveContent, addArrayItem, updateArrayItem, dele
                       rows="2"
                       value={testimonial.text}
                       onChange={(e) => {
-                        const newTestimonials = [...(content.home?.testimonials?.testimonials || [])];
-                        newTestimonials[index] = { ...newTestimonials[index], text: e.target.value };
-                        updateArrayItem('home.testimonials', 'testimonials', testimonial._id, newTestimonials[index]);
+                        const list = [...(testimonials.testimonials || content.home?.testimonials?.testimonials || [])];
+                        list[index] = { ...list[index], text: e.target.value };
+                        setTestimonials(prev => ({ ...prev, testimonials: list }));
                       }}
                     />
                   </div>
                   <div className="col-md-2">
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteArrayItem('home.testimonials', 'testimonials', testimonial._id)}
-                    >
-                      Delete
-                    </button>
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removeTestimonialLocal(index)}>Delete</button>
                   </div>
                 </div>
               </div>
             ))}
 
-            <button className="btn btn-primary" onClick={handleSaveTestimonials} disabled={saving}>
+            <button type="button" className="btn btn-primary" onClick={handleSaveTestimonials} disabled={saving}>
               {saving ? 'Saving...' : 'Save Testimonials'}
             </button>
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

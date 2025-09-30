@@ -7,7 +7,11 @@ import { useRouter } from 'next/navigation';
 export default function ContentManagement() {
   const { isAuthenticated, loading } = useAdminAuth();
   const router = useRouter();
-  const API_BASE = `${(process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '')}/api/api/content`;
+  // Build base like:
+  // - NEXT_PUBLIC_API_URL = https://xfundingflow.com      => https://xfundingflow.com/api/api/content
+  // - NEXT_PUBLIC_API_URL = https://xfundingflow.com/api  => https://xfundingflow.com/api/api/content (no double /api)
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+  const API_BASE = `${baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`}/api/content`;
   const [activeTab, setActiveTab] = useState('home');
   const [content, setContent] = useState({});
   const [loadingContent, setLoadingContent] = useState(false);
@@ -210,7 +214,7 @@ export default function ContentManagement() {
   }
 
   return (
-    <div className="container-fluid p-4">
+    <div className="container-fluid p-4" onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}>
       <div className="row">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">

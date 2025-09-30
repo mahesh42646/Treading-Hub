@@ -97,7 +97,7 @@ const Sidebar = () => {
         }}
       >
         {/* Top Section */}
-        <div className="flex-grow-1 p-3">
+        <div className="flex-grow-1 p-3 overflow-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
           {/* Header with Toggle */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             {!isCollapsed && (

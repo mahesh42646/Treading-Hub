@@ -161,7 +161,7 @@ export default function ChallengesPage() {
                   {configs.map(cfg => (
                     <button
                       key={cfg._id}
-                      className={`list-group-item list-group-item-action border-0 ${selected?._id === cfg._id ? 'active' : ''}`}
+                      className={`list-group-item list-group-item-action border-0 px-3 ${selected?._id === cfg._id ? 'active' : ''}`}
                       style={{
                         background: selected?._id === cfg._id ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
                         color: selected?._id === cfg._id ? '#3b82f6' : '#e2e8f0',
@@ -192,7 +192,7 @@ export default function ChallengesPage() {
 
           <div className="col-lg-8">
             {showBuy || myChallenges.length === 0 ? selected && (
-              <div className="card border-0" style={{
+              <div className="card border-0 p-2" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
                 border: '1px solid rgba(124, 124, 124, 0.39)',
                 backdropFilter: 'blur(20px)',

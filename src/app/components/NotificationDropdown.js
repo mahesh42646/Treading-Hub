@@ -144,7 +144,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
       case 'transaction_withdrawal':
         return 'text-info';
       default:
-        return 'text-muted';
+        return 'text-white';
     }
   };
 
@@ -218,8 +218,8 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
             top: '100%',
             right: '0',
             left: 'auto',
-            background: 'rgba(17, 17, 17, 0.83)',
-            border: '1px solid rgba(6, 44, 110, 0.73)',
+            background: 'rgb(0, 21, 60)',
+            border: '1px solid rgba(2, 24, 64, 0.73)',
             backdropFilter: 'blur(14px) saturate(120%)',
             WebkitBackdropFilter: 'blur(14px) saturate(120%)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
@@ -233,7 +233,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
               <button 
                 className="btn btn-sm rounded-4"
                 style={{
-                  background: 'rgba(17,17,17,0.10)',
+                  background: 'rgba(17, 17, 17, 0.69)',
                   border: '1px solid rgba(124, 124, 124, 0.30)',
                   color: '#e2e8f0'
                 }}
@@ -285,12 +285,12 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
                         {notification.title}
                       </h6>
                       <button
-                        className="btn btn-sm p-1 rounded-4"
+                        className="btn btn-sm  rounded-4"
                         style={{ 
                           width: '24px', 
                           height: '24px', 
-                          padding: '2px',
-                          background: 'rgba(239, 68, 68, 0.2)',
+                          padding: '1px',
+                          background: 'rgba(71, 4, 4, 0.49)',
                           border: '1px solid rgba(239, 68, 68, 0.5)',
                           color: '#ef4444'
                         }}

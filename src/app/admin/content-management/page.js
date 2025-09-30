@@ -12,6 +12,8 @@ export default function ContentManagement() {
   const [loadingContent, setLoadingContent] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [resettingDefaults, setResettingDefaults] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -150,6 +152,58 @@ export default function ContentManagement() {
     }
   };
 
+  const saveAsDefault = async () => {
+    setSavingDefaults(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/save-defaults`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ content })
+      });
+
+      if (response.ok) {
+        setMessage('Current data saved as default successfully');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Failed to save as default');
+      }
+    } catch (error) {
+      setMessage('Error saving as default');
+    } finally {
+      setSavingDefaults(false);
+    }
+  };
+
+  const resetToDefault = async () => {
+    if (!confirm('Are you sure you want to reset to default? This will overwrite all current content.')) return;
+    
+    setResettingDefaults(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/reset-defaults`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setContent(result.content);
+        setMessage('Content reset to default successfully');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Failed to reset to default');
+      }
+    } catch (error) {
+      setMessage('Error resetting to default');
+    } finally {
+      setResettingDefaults(false);
+    }
+  };
+
   if (loading) {
     return <div className="d-flex justify-content-center p-5"><div className="spinner-border" role="status"></div></div>;
   }
@@ -164,12 +218,29 @@ export default function ContentManagement() {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Content Management</h2>
-            {message && (
-              <div className={`alert ${message.includes('success') ? 'alert-success' : 'alert-danger'}`}>
-                {message}
-              </div>
-            )}
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-success" 
+                onClick={saveAsDefault}
+                disabled={savingDefaults || saving}
+              >
+                {savingDefaults ? 'Saving...' : 'Save as Default'}
+              </button>
+              <button 
+                className="btn btn-warning" 
+                onClick={resetToDefault}
+                disabled={resettingDefaults || saving}
+              >
+                {resettingDefaults ? 'Resetting...' : 'Reset to Default'}
+              </button>
+            </div>
           </div>
+          
+          {message && (
+            <div className={`alert ${message.includes('success') ? 'alert-success' : 'alert-danger'}`}>
+              {message}
+            </div>
+          )}
 
           {/* Tabs */}
           <ul className="nav nav-tabs mb-4">

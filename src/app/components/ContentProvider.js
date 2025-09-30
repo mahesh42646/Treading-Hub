@@ -20,14 +20,37 @@ export const ContentProvider = ({ children }) => {
   const fetchContent = async (page) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/content/${page}`);
-      if (response.ok) {
-        const data = await response.json();
-        setContent(prev => ({ ...prev, [page]: data }));
-        setError(null);
-      } else {
-        setError(`Failed to fetch ${page} content`);
+      
+      // Try to fetch from backend first
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${page}`);
+        if (response.ok) {
+          const data = await response.json();
+          setContent(prev => ({ ...prev, [page]: data }));
+          setError(null);
+          return;
+        }
+      } catch (backendErr) {
+        console.warn(`Backend fetch failed for ${page}, trying default file:`, backendErr);
       }
+
+      // Fallback to default JSON file
+      try {
+        const response = await fetch('/default-content.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data[page]) {
+            setContent(prev => ({ ...prev, [page]: data[page] }));
+            setError(null);
+            return;
+          }
+        }
+      } catch (fileErr) {
+        console.warn(`Default file fetch failed for ${page}:`, fileErr);
+      }
+
+      // If both fail, set error
+      setError(`Failed to fetch ${page} content from both backend and default file`);
     } catch (err) {
       setError(`Error fetching ${page} content: ${err.message}`);
     } finally {

@@ -170,6 +170,7 @@ const userRoutes = require('./routes');
 const adminRoutes = require('./adminRoutes');
 const walletRoutes = require('./walletRoutes');
 const subscriptionRoutes = require('./subscriptionRoutes');
+const contentManagementRoutes = require('./contentManagementRoutes');
 
 // User routes
 app.use('/api/users', userRoutes);
@@ -182,6 +183,9 @@ app.use('/api', subscriptionRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Content management routes
+app.use('/api/content', contentManagementRoutes);
 
 // Notification routes (mounted directly)
 app.get('/api/notifications/:uid', async (req, res) => {

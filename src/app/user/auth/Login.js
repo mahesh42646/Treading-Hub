@@ -24,7 +24,7 @@ const Login = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
 
       // The AuthContext will handle the redirect logic automatically
       // No need to manually check profile or redirect here
@@ -49,20 +49,20 @@ const Login = () => {
     setError('');
 
     try {
-      
+
       const provider = new GoogleAuthProvider();
-      
+
       // Add additional scopes if needed
       provider.addScope('email');
       provider.addScope('profile');
-      
+
       // Use popup instead of redirect
       const result = await signInWithPopup(auth, provider);
-      
-      
+
+
       // The AuthContext will handle the redirect logic automatically
       // No need to manually check profile or redirect here
-      
+
     } catch (error) {
       console.error('❌ Google login error:', error);
       if (error.code === 'auth/popup-closed-by-user') {
@@ -92,13 +92,16 @@ const Login = () => {
           }}>
             <div className="card-body p-5">
               <div className="text-center mb-4">
-                <h2 className="fw-bold text-white">
-                   <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span>
-                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Flow</span>
-                </h2>
+              
+                <Link href="/" className="navbar-brand d-flex align-items-center justify-content-center mb-3" style={{ color: '#ffffff', textDecoration: 'none' }}>
+
+
+                  <Image className="border-0" src="/logo.png" alt="Funding Flow" width={100} height={100} style={{ width: 'auto', height: '80px' }} />
+                </Link>
+
                 <p className="text-white-50">Welcome back! Please login to your account.</p>
               </div>
-{/*             
+              {/*             
               {process.env.NODE_ENV === 'development' && (
                 <div className="alert alert-warning rounded-4 mb-4" style={{
                   background: 'rgba(255, 193, 7, 0.1)',
@@ -216,7 +219,7 @@ const Login = () => {
                 <div className="text-center">
                   <p className="text-white-50">Or continue with</p>
                   <div className="d-grid gap-2">
-                    <button 
+                    <button
                       className="btn rounded-4"
                       onClick={handleGoogleLogin}
                       disabled={googleLoading}

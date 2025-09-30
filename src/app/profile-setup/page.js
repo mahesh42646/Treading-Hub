@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import RouteGuard from '../components/RouteGuard';
 import { userApi } from '../../services/api';
+import Image from 'next/image';
 
 const ProfileSetup = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -198,10 +199,11 @@ const ProfileSetup = () => {
             }}>
               <div className="card-body p-5">
                 <div className="text-center mb-4">
-                  <h2 className="fw-bold text-white">
-                     <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span>
-                    <span style={{ color: 'green', textDecoration: 'underline red' }}>Flow</span>
-                  </h2>
+                <Link href="/" className="navbar-brand d-flex align-items-center justify-content-center mb-3" style={{ color: '#ffffff', textDecoration: 'none' }}>
+
+
+<Image className="border-0" src="/logo.png" alt="Funding Flow" width={100} height={100} style={{ width: 'auto', height: '80px' }} />
+</Link>
                   <p className="text-white-50">Complete your profile setup</p>
                 </div>
 

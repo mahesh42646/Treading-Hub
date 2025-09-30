@@ -18,7 +18,8 @@ import {
   FaBars,
   FaTimes,
   FaMoneyBillWave,
-  FaTrophy
+  FaTrophy,
+  FaEdit
 } from 'react-icons/fa';
 
 const AdminLayout = ({ children }) => {
@@ -84,6 +85,7 @@ const AdminLayout = ({ children }) => {
 
   const menuItems = [
     { name: 'Dashboard', icon: FaTachometerAlt, path: '/admin' },
+    { name: 'Content Management', icon: FaEdit, path: '/admin/content-management' },
     { name: 'Users', icon: FaUsers, path: '/admin/users' },
     { name: 'Tickets', icon: FaClipboardList, path: '/admin/tickets' },
     { name: 'Challenges', icon: FaTrophy, path: '/admin/challenges' },

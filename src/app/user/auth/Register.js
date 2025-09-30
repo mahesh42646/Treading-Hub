@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { userApi } from '../../../services/api';
 import { buildApiUrl } from '../../../utils/config';
+import Image from 'next/image';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -328,10 +329,13 @@ const Register = () => {
             <div className="card-body p-5">
               {/* Header */}
               <div className="text-center mb-4">
-                <h2 className="fw-bold text-white mb-2">
-                   <span style={{ color: 'red', textDecoration: 'underline green' }}>Xfunding </span> 
-                  <span style={{ color: 'green', textDecoration: 'underline red' }}>Flow</span>
-                </h2>
+              
+
+                <Link href="/" className="navbar-brand d-flex align-items-center justify-content-center mb-3" style={{ color: '#ffffff', textDecoration: 'none' }}>
+
+
+<Image className="border-0" src="/logo.png" alt="Funding Flow" width={100} height={100} style={{ width: 'auto', height: '80px' }} />
+</Link>
                 <p className="text-white-50">Create your account to start trading</p>
                 {referralCode && (
                   <div className="alert alert-success rounded-4 mb-4" style={{

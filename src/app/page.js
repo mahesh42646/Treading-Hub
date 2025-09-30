@@ -1,11 +1,91 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Header from './user/components/Header';
 import Footer from './user/components/Footer';
 import Image from 'next/image';
 import ChooseChallengeSection from './components/ChooseChallengeSection';
+import { useContent } from './components/ContentProvider';
 
 export default function Home() {
+  const { getContent, loading, error } = useContent();
+  const homeContent = getContent('home');
+  
+  // Fallback data if content is not loaded
+  const defaultHero = {
+    tagline: "Empowering Promising Traders Worldwide",
+    features: [
+      { title: "Up to 80%", subtitle: "Performance Reward", image: "/images/80-percent.png" },
+      { title: "Up to $300k", subtitle: "Simulated Accounts", image: "/images/simulated-accounts.gif" },
+      { title: "24 Hours", subtitle: "Guaranteed Reward", image: "/images/win.gif" },
+      { title: "No time limit", subtitle: "in Challenge Phase", image: "/images/No-time-limit.gif" }
+    ],
+    rating: { text: "Excellent", count: 47, platform: "Trustpilot" }
+  };
+
+  const defaultBottomStats = {
+    accounts: { value: "156+", label: "Xfunding Flow Accounts" },
+    traders: { value: "520+", label: "Rewarded Traders" },
+    totalRewarded: { value: "$185.2k+", label: "Total Rewarded" }
+  };
+
+  const defaultTopTraders = {
+    title: "Rewarding our best traders",
+    stats: {
+      fundedTraders: { value: "156.7K+", label: "Funded Traders" },
+      activeTraders: { value: "52.1K+", label: "Active Traders" },
+      totalPayouts: { value: "$103.8M+", label: "Total Payouts" }
+    },
+    traders: [
+      { name: 'Trader Name', payout: '4,000.00 USD' },
+      { name: 'Trader Name', payout: '3,500.00 USD' },
+      { name: 'Trader Name', payout: '3,200.00 USD' },
+      { name: 'Trader Name', payout: '2,800.00 USD' },
+      { name: 'Trader Name', payout: '2,500.00 USD' }
+    ]
+  };
+
+  const defaultTestimonials = {
+    title: "Our Traders Love Us",
+    subtitle: "Our traders are our biggest asset, and we are proud to have a community that trusts and loves us.",
+    rating: { text: "Excellent 4.9/5", platform: "Trustpilot" },
+    testimonials: [
+      { rating: 5, text: "Amazing platform! The best funded trading program I've ever used.", verified: true },
+      { rating: 5, text: "Excellent support team and transparent rules. Highly recommended!", verified: true },
+      { rating: 5, text: "Great experience with quick payouts and fair evaluation process.", verified: true },
+      { rating: 5, text: "Best trading conditions and professional service. Love it!", verified: true },
+      { rating: 5, text: "Outstanding platform with the best profit sharing in the industry.", verified: true },
+      { rating: 5, text: "Fantastic community and excellent trading tools. 5 stars!", verified: true },
+      { rating: 5, text: "Reliable platform with fast execution and tight spreads.", verified: true },
+      { rating: 5, text: "Professional team and great educational resources. Highly satisfied!", verified: true },
+      { rating: 5, text: "Best funded trading program with excellent customer service.", verified: true },
+      { rating: 5, text: "Amazing profit sharing and transparent evaluation process.", verified: true },
+      { rating: 5, text: "Great platform with the best trading conditions available.", verified: true },
+      { rating: 5, text: "Excellent experience with quick funding and fair rules.", verified: true }
+    ]
+  };
+
+  // Use content from API or fallback to defaults
+  const hero = homeContent?.hero || defaultHero;
+  const bottomStats = homeContent?.bottomStats || defaultBottomStats;
+  const topTraders = homeContent?.topTraders || defaultTopTraders;
+  const testimonials = homeContent?.testimonials || defaultTestimonials;
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <Header />
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="page-content">
       <Header />
@@ -33,64 +113,27 @@ export default function Home() {
             <div className="col-lg-8 text-white">
             <h1 className="fw-bold mb-4 text-white hero-heading 
                 display-5 display-md-3 display-sm-5">
-  Empowering Promising <br />
-  <span className="text-white">Traders Worldwide</span>
+  {hero.tagline.split(' ').slice(0, 2).join(' ')} <br />
+  <span className="text-white">{hero.tagline.split(' ').slice(2).join(' ')}</span>
 </h1>
 
 
               {/* Key Features - Exact Xfunding Flow Layout */}
               <div className="row mb-1 hero-features py-lg-3">
-                <div className="col-6 mb-4">
-                  <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
-                      style={{ width: '50px', height: '50px' }}>
-                      <Image src="/images/90-percent.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
-                    </div>
-                    <div>
-                      <div className="h4 fw-bold text-white mb-0">Up to 80%</div>
-                      <div className="text-white small">Performance Reward</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-6 mb-4">
-                  <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
-                      style={{ width: '50px', height: '50px' }}>
-                      <Image src="/images/simulated-accounts.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
-                    </div>
-                    <div>
-                      <div className="h4 fw-bold text-white mb-0">Up to $300k</div>
-                      <div className="text-white small">Simulated Accounts</div>
+                {hero.features?.map((feature, index) => (
+                  <div key={index} className="col-6 mb-4">
+                    <div className="d-flex align-items-center mb-2">
+                      <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
+                        style={{ width: '50px', height: '50px' }}>
+                        <Image src={feature.image} alt={feature.subtitle} width={150} height={150} style={{ height: '50px', width: '50px' }} />
+                      </div>
+                      <div>
+                        <div className="h4 fw-bold text-white mb-0">{feature.title}</div>
+                        <div className="text-white small">{feature.subtitle}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="col-6 mb-4">
-                  <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
-                      style={{ width: '50px', height: '50px' }}>
-                      <Image src="/images/win.gif" alt="Simulated Accounts" width={250} height={250} style={{ height: '60px', width: '60px' }} />
-                    </div>
-                    <div>
-                      <div className="h4 fw-bold text-white mb-0">24 Hours</div>
-                      <div className="text-white small">Guaranteed Reward</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-6 mb-4">
-                  <div className="d-flex align-items-center mb-2">
-                    <div className=" bg-opacity-20 d-flex align-items-center justify-content-center me-3 hero-feature-icon"
-                      style={{ width: '50px', height: '50px' }}>
-                      <Image src="/images/No-time-limit.gif" alt="Simulated Accounts" width={150} height={150} style={{ height: '50px', width: '50px' }} />
-                    </div>
-                    <div>
-                      <div className="h4 fw-bold text-white mb-0">No time limit</div>
-                      <div className="text-white small">in Challenge Phase</div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Call-to-Action  Buttons */}
@@ -118,15 +161,15 @@ export default function Home() {
 
               {/* Trustpilot Rating */}
               <div className="d-flex align-items-center gap-2 mb-0 hero-trust">
-                <span className="fw-bold text-white">Excellent</span>
+                <span className="fw-bold text-white">{hero.rating?.text}</span>
                 <div className="d-flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <i key={star} className="bi bi-star-fill text-success"></i>
                   ))}
                 </div>
-                <span className="text-white">47 reviews on</span>
+                <span className="text-white">{hero.rating?.count} reviews on</span>
                 <i className="bi bi-star-fill text-warning"></i>
-                <span className="fw-bold text-white">Trustpilot</span>
+                <span className="fw-bold text-white">{hero.rating?.platform}</span>
               </div>
             </div>
 
@@ -145,16 +188,16 @@ export default function Home() {
                   <div className="col-lg-12">
                     <div className="row text-center justify-content-center ">
                       <div className="col-4 col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">156+</div>
-                        <div className="text-white small">Xfunding Flow Accounts</div>
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">{bottomStats.accounts?.value}</div>
+                        <div className="text-white small">{bottomStats.accounts?.label}</div>
                       </div>
                       <div className="col-4 col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">520+</div>
-                        <div className="text-white small">Rewarded Traders</div>
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">{bottomStats.traders?.value}</div>
+                        <div className="text-white small">{bottomStats.traders?.label}</div>
                       </div>
                       <div className="col-4 col-md-4 ">
-                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">$185.2k+</div>
-                        <div className="text-white small">Total Rewarded</div>
+                        <div className="h2 fw-bold text-white mb-1 hero-stat-number">{bottomStats.totalRewarded?.value}</div>
+                        <div className="text-white small">{bottomStats.totalRewarded?.label}</div>
                       </div>
                     </div>
                   </div>
@@ -172,7 +215,7 @@ export default function Home() {
       {(() => {
         const keyHighlights = [
           {
-            image: "/images/90-percent.gif",
+            image: "/images/80-percent.png",
             alt: "Performance",
             title: "90% Performance Reward in Challenge Phase",
             description: "Achieve higher profit targets during your evaluation phase ."
@@ -275,7 +318,7 @@ export default function Home() {
                 }}>
                   <div className="card-body p-4 text-center">
                     <div className="mb-3">
-                      <Image src="/images/90-percent.gif" alt="Standards" width={80} height={80} />
+                      <Image src="/images/80-percent.png" alt="Standards" width={80} height={80} />
                     </div>
                     <h5 className="card-title mb-3 text-white">Globally Based Standards</h5>
                     <p className="card-text text-white-50">
@@ -340,7 +383,7 @@ export default function Home() {
           {/* Payment & Platform Logos - Dark Glossy Theme */}
           <div className="text-center mt-5">
             <div className="d-flex justify-content-center align-items-center gap-4 flex-wrap">
-              {['Rezor Pay', 'UPI', 'Bank Transfer'].map((payment, index) => (
+              {['Rezor Pay', 'UPI', 'Bank Transfer','USDT'].map((payment, index) => (
                 <div key={index} className="rounded p-3" style={{
                   minWidth: '80px',
                   background: 'rgba(60, 58, 58, 0.03)',
@@ -367,27 +410,27 @@ export default function Home() {
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6 col-12">
-              <h2 className="display-5 fw-bold mb-4 text-white">Rewarding our best traders</h2>
+              <h2 className="display-5 fw-bold mb-4 text-white">{topTraders.title}</h2>
 
               {/* Statistics - Dark Glossy Theme */}
               <div className="row mb-4">
                 <div className="col-4">
-                  <div className="h3 fw-bold mb-1 text-white">156.7K+</div>
-                  <div className="text-white-50 small">Funded Traders</div>
+                  <div className="h3 fw-bold mb-1 text-white">{topTraders.stats?.fundedTraders?.value}</div>
+                  <div className="text-white-50 small">{topTraders.stats?.fundedTraders?.label}</div>
                 </div>
                 <div className="col-4">
-                  <div className="h3 fw-bold mb-1 text-white">52.1K+</div>
-                  <div className="text-white-50 small">Active Traders</div>
+                  <div className="h3 fw-bold mb-1 text-white">{topTraders.stats?.activeTraders?.value}</div>
+                  <div className="text-white-50 small">{topTraders.stats?.activeTraders?.label}</div>
                 </div>
                 <div className="col-4">
-                  <div className="h3 fw-bold mb-1 text-white">$103.8M+</div>
-                  <div className="text-white-50 small">Total Payouts</div>
+                  <div className="h3 fw-bold mb-1 text-white">{topTraders.stats?.totalPayouts?.value}</div>
+                  <div className="text-white-50 small">{topTraders.stats?.totalPayouts?.label}</div>
                 </div>
               </div>
             </div>
 
             <div className="col-lg-6 col-12">
-              <div className="card border-0 rounded-4" style={{
+              <div className="p-3 w-100 border-0 rounded-4" style={{
                 background: 'rgba(60, 58, 58, 0.03)',
                 border: '3px solid rgba(67, 34, 124, 0.74)',
                 backdropFilter: 'blur(20px)',
@@ -396,14 +439,8 @@ export default function Home() {
               }}>
                 <div className="card-body">
                   <h5 className="card-title mb-3 text-white">Top Traders</h5>
-                  {[
-                    { name: 'Trader Name', payout: '4,000.00 USD' },
-                    { name: 'Trader Name', payout: '3,500.00 USD' },
-                    { name: 'Trader Name', payout: '3,200.00 USD' },
-                    { name: 'Trader Name', payout: '2,800.00 USD' },
-                    { name: 'Trader Name', payout: '2,500.00 USD' }
-                  ].map((trader, index) => (
-                    <div key={index} className="d-flex justify-content-between align-items-center mb-3">
+                  {topTraders.traders?.map((trader, index) => (
+                    <div key={index} className="d-flex justify-content-around align-items-center mb-3">
                       <div className="d-flex align-items-center gap-3">
                         <div className="rounded-circle d-flex align-items-center justify-content-center"
                           style={{
@@ -421,7 +458,7 @@ export default function Home() {
                           <div className="text-white-50 small">{trader.payout}</div>
                         </div>
                       </div>
-                      <button className="btn btn-sm rounded-4" style={{
+                      <button className="btn  rounded-4 " style={{
                         background: 'rgba(60, 58, 58, 0.03)',
                         border: '1px solid rgba(124, 124, 124, 0.39)',
                         backdropFilter: 'blur(20px)',
@@ -533,39 +570,26 @@ export default function Home() {
       }}>
         <div className="container">
           <div className="text-center mb-5">
-            <h2 className="display-5 fw-bold mb-3 text-white">Our Traders Love Us</h2>
+            <h2 className="display-5 fw-bold mb-3 text-white">{testimonials.title}</h2>
             <p className="lead text-white-50">
-              Our traders are our biggest asset, and we are proud to have a community that trusts and loves us.
+              {testimonials.subtitle}
             </p>
 
             {/* Trustpilot Rating - Dark Glossy Theme */}
             <div className="d-flex align-items-center justify-content-center gap-3 mb-4">
-              <div className="h4 fw-bold text-white mb-0">Excellent 4.9/5</div>
+              <div className="h4 fw-bold text-white mb-0">{testimonials.rating?.text}</div>
               <div className="d-flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <i key={star} className="bi bi-star-fill text-warning"></i>
                 ))}
               </div>
-              <div className="text-white-50">Trustpilot</div>
+              <div className="text-white-50">{testimonials.rating?.platform}</div>
             </div>
           </div>
 
           {/* Testimonials Grid - Dark Glossy Theme */}
           <div className="row g-4">
-            {[
-              { rating: 5, text: "Amazing platform! The best funded trading program I've ever used.", verified: true },
-              { rating: 5, text: "Excellent support team and transparent rules. Highly recommended!", verified: true },
-              { rating: 5, text: "Great experience with quick payouts and fair evaluation process.", verified: true },
-              { rating: 5, text: "Best trading conditions and professional service. Love it!", verified: true },
-              { rating: 5, text: "Outstanding platform with the best profit sharing in the industry.", verified: true },
-              { rating: 5, text: "Fantastic community and excellent trading tools. 5 stars!", verified: true },
-              { rating: 5, text: "Reliable platform with fast execution and tight spreads.", verified: true },
-              { rating: 5, text: "Professional team and great educational resources. Highly satisfied!", verified: true },
-              { rating: 5, text: "Best funded trading program with excellent customer service.", verified: true },
-              { rating: 5, text: "Amazing profit sharing and transparent evaluation process.", verified: true },
-              { rating: 5, text: "Great platform with the best trading conditions available.", verified: true },
-              { rating: 5, text: "Excellent experience with quick funding and fair rules.", verified: true }
-            ].map((testimonial, index) => (
+            {testimonials.testimonials?.map((testimonial, index) => (
               <div key={index} className="col-lg-4 col-md-6">
                 <div className=" rounded-4 h-100" style={{
                   background: 'rgba(60, 58, 58, 0.03)',
@@ -685,7 +709,7 @@ export default function Home() {
                   boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
                 }}>
                   <div className="d-flex align-items-center justify-content-center h-100">
-                    <Image src="/images/90-percent.gif" alt="Building" width={120} height={120} />
+                    <Image src="/images/80-percent.png" alt="Building" width={120} height={120} />
                   </div>
                 </div>
               </div>

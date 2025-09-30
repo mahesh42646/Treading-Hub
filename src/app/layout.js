@@ -4,6 +4,7 @@ import "./styles/user.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ContentProvider } from "./components/ContentProvider";
 import MouseAnimation from "./components/MouseAnimation";
 import BootstrapProvider from "./components/BootstrapProvider";
 
@@ -51,7 +52,9 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <BootstrapProvider>
           <AuthProvider>
-            {children}
+            <ContentProvider>
+              {children}
+            </ContentProvider>
           </AuthProvider>
           <MouseAnimation />
 

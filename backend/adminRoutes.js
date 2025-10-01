@@ -153,6 +153,104 @@ router.post('/login', (req, res) => {
   }
 });
 
+// ===== TRADING DATA MANAGEMENT (ADMIN) =====
+
+// Update user trading data
+router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const tradingData = req.body;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Update trading data
+    user.tradingData = {
+      ...user.tradingData,
+      ...tradingData,
+      updatedAt: new Date(),
+      lastUpdatedBy: req.admin?.email || 'admin'
+    };
+
+    await user.save();
+
+    res.json({ success: true, message: 'Trading data updated successfully', tradingData: user.tradingData });
+  } catch (error) {
+    console.error('Update trading data error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update trading data', error: error.message });
+  }
+});
+
+// Get user trading data
+router.get('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const user = await User.findOne({ uid }).select('uid email tradingData');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, tradingData: user.tradingData || {} });
+  } catch (error) {
+    console.error('Get trading data error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get trading data', error: error.message });
+  }
+});
+
+// Add trade to user's trading history
+router.post('/users/:uid/trading-data/trades', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const trade = req.body;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Initialize tradingData if it doesn't exist
+    if (!user.tradingData) {
+      user.tradingData = {};
+    }
+    if (!user.tradingData.recentTrades) {
+      user.tradingData.recentTrades = [];
+    }
+
+    // Add trade to recent trades (keep only last 100 trades)
+    user.tradingData.recentTrades.unshift(trade);
+    if (user.tradingData.recentTrades.length > 100) {
+      user.tradingData.recentTrades = user.tradingData.recentTrades.slice(0, 100);
+    }
+
+    user.tradingData.updatedAt = new Date();
+    user.tradingData.lastUpdatedBy = req.admin?.email || 'admin';
+
+    await user.save();
+
+    res.json({ success: true, message: 'Trade added successfully', trade });
+  } catch (error) {
+    console.error('Add trade error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add trade', error: error.message });
+  }
+});
+
+// Get all users with trading data
+router.get('/trading-data/users', verifyAdminAuth, async (req, res) => {
+  try {
+    const users = await User.find({ 
+      'tradingData.isActive': true 
+    }).select('uid email tradingData.accountInfo tradingData.allTimeStats');
+
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Get trading users error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get trading users', error: error.message });
+  }
+});
+
 // ===== SUPPORT TICKET MANAGEMENT (ADMIN) =====
 
 // List all support tickets

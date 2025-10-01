@@ -88,6 +88,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Dashboard', icon: FaTachometerAlt, path: '/admin' },
     { name: 'Content Management', icon: FaEdit, path: '/admin/content-management' },
     { name: 'Users', icon: FaUsers, path: '/admin/users' },
+    { name: 'Trading Data', icon: FaTrophy, path: '/admin/users/trading-data' },
     { name: 'Tickets', icon: FaClipboardList, path: '/admin/tickets' },
     { name: 'Challenges', icon: FaTrophy, path: '/admin/challenges' },
     { name: 'Trading Accounts', icon: FaCreditCard, path: '/admin/trading-accounts' },

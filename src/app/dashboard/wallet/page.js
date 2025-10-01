@@ -49,6 +49,94 @@ export default function DashboardWallet() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [withdrawalPage, setWithdrawalPage] = useState(1);
   const [upiDeposits, setUpiDeposits] = useState([]);
+  const [tradingData, setTradingData] = useState({
+    accountInfo: {
+      accountType: 'demo',
+      brokerName: '',
+      accountNumber: '',
+      accountBalance: 0,
+      currency: 'USD',
+      leverage: '1:100',
+      platform: 'MetaTrader 5',
+      accountStatus: 'active'
+    },
+    allTimeStats: {
+      totalTrades: 0,
+      winningTrades: 0,
+      losingTrades: 0,
+      totalProfit: 0,
+      totalLoss: 0,
+      netProfit: 0,
+      winRate: 0,
+      profitFactor: 0,
+      averageWin: 0,
+      averageLoss: 0,
+      largestWin: 0,
+      largestLoss: 0,
+      maxDrawdown: 0,
+      maxDrawdownPercent: 0
+    },
+    last7Days: {
+      totalTrades: 0,
+      winningTrades: 0,
+      losingTrades: 0,
+      totalProfit: 0,
+      totalLoss: 0,
+      netProfit: 0,
+      winRate: 0,
+      profitFactor: 0,
+      averageWin: 0,
+      averageLoss: 0,
+      largestWin: 0,
+      largestLoss: 0,
+      maxDrawdown: 0,
+      maxDrawdownPercent: 0
+    },
+    last30Days: {
+      totalTrades: 0,
+      winningTrades: 0,
+      losingTrades: 0,
+      totalProfit: 0,
+      totalLoss: 0,
+      netProfit: 0,
+      winRate: 0,
+      profitFactor: 0,
+      averageWin: 0,
+      averageLoss: 0,
+      largestWin: 0,
+      largestLoss: 0,
+      maxDrawdown: 0,
+      maxDrawdownPercent: 0
+    },
+    recentTrades: [],
+    performanceMetrics: {
+      sharpeRatio: 0,
+      sortinoRatio: 0,
+      calmarRatio: 0,
+      recoveryFactor: 0,
+      expectancy: 0,
+      riskRewardRatio: 0,
+      averageTradeDuration: '0h 0m',
+      tradesPerDay: 0,
+      consistency: 0
+    },
+    riskManagement: {
+      maxRiskPerTrade: 0,
+      maxDailyLoss: 0,
+      maxDailyProfit: 0,
+      maxConsecutiveLosses: 0,
+      maxConsecutiveWins: 0,
+      currentConsecutiveLosses: 0,
+      currentConsecutiveWins: 0
+    },
+    goals: {
+      monthlyTarget: 0,
+      weeklyTarget: 0,
+      dailyTarget: 0,
+      maxDrawdownLimit: 0,
+      profitTarget: 0
+    }
+  });
 
   const MIN_DEPOSIT_AMOUNT = 500;
   const MIN_WITHDRAWAL_AMOUNT = 500;
@@ -112,6 +200,7 @@ export default function DashboardWallet() {
 
   useEffect(() => {
     fetchWalletData();
+    fetchTradingData();
     fetchSavedBanks();
     fetchWithdrawals();
     fetchReferralData();
@@ -194,6 +283,27 @@ export default function DashboardWallet() {
       console.error('Error fetching wallet data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTradingData = async () => {
+    try {
+      if (user?.uid) {
+        const response = await fetch(buildApiUrl(`/trading-data/${user.uid}`));
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setTradingData(result.tradingData || tradingData);
+            // Update wallet data with trading profit
+            setWalletData(prev => ({
+              ...prev,
+              totalPnl: result.tradingData?.allTimeStats?.netProfit || 0
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching trading data:', error);
     }
   };
 
@@ -408,8 +518,8 @@ export default function DashboardWallet() {
               <p className="text-white-50 mb-0 d-none d-md-block small">Manage your funds and view transaction history</p>
             </div>
             <div className="d-flex gap-1 gap-md-2 flex-wrap">
-            
-              
+
+
               <button
                 className="btn btn-sm px-3 rounded-4"
                 style={{
@@ -424,7 +534,7 @@ export default function DashboardWallet() {
                 <i className="bi bi-arrow-up-circle me-1 fw-bold my-auto "></i>
                 Withdraw
               </button>
-             
+
             </div>
           </div>
         </div>
@@ -432,7 +542,7 @@ export default function DashboardWallet() {
 
       {/* Wallet Overview Cards */}
       <div className="row mb-3 mb-md-4 g-2 g-md-3">
-        <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+        <div className=" col-lg-4 col-md-6 col-sm-6 col-12">
           <div className="card border-0 h-100" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -450,7 +560,7 @@ export default function DashboardWallet() {
                   </div>
                 </div>
                 <div className="flex-grow-1 ms-2 ms-md-3">
-                  <h6 className="text-white-50 mb-1 small fw-medium">Trading Profit</h6>
+                  <h6 className="text-white-50 mb-1 small fw-medium">Wallet Balance</h6>
                   <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.walletBalance.toFixed(2)}</h4>
                   <small className={`${walletData.todayChange >= 0 ? "text-success" : "text-danger"} d-none d-sm-block`}>
                     {walletData.todayChange >= 0 ? '+' : ''}₹{walletData.todayChange.toFixed(2)} today
@@ -461,7 +571,7 @@ export default function DashboardWallet() {
           </div>
         </div>
 
-        <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+        <div className=" col-lg-4 col-md-6 col-sm-6 col-12">
           <div className="card border-0 h-100" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -488,7 +598,7 @@ export default function DashboardWallet() {
           </div>
         </div>
 
-        <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+        <div className=" col-lg-4 col-md-6 col-sm-6 col-12">
           <div className="card border-0 h-100" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -515,7 +625,7 @@ export default function DashboardWallet() {
           </div>
         </div>
 
-        <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+        <div className=" col-lg-4 col-md-6 col-sm-6 col-12">
           <div className="card border-0 h-100" style={{
             background: 'rgba(60, 58, 58, 0.03)',
             border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -535,6 +645,34 @@ export default function DashboardWallet() {
                 <div className="flex-grow-1 ms-2 ms-md-3">
                   <h6 className="text-white-50 mb-1 small fw-medium">Total Withdrawals</h6>
                   <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.totalWithdrawals.toFixed(2)}</h4>
+                  <small className="text-white-50 d-none d-sm-block">All time</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* treading profit card */}
+        <div className=" col-lg-4 col-md-6 col-sm-6 col-12">
+          <div className="card border-0 h-100" style={{
+            background: 'rgba(60, 58, 58, 0.03)',
+            border: '1px solid rgba(124, 124, 124, 0.39)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+          }}>
+            <div className="card-body p-3 p-md-4">
+              <div className="d-flex align-items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-circle p-2 p-md-3" style={{
+                    background: 'rgba(85, 118, 94, 0.13)',
+                    border: '1px solid rgba(0, 151, 88, 0.3)'
+                  }}>
+                    <i className="bi bi-graph-up text-success fs-5 fs-md-4"></i>
+                  </div>
+                </div>
+                <div className="flex-grow-1 ms-2 ms-md-3">
+                  <h6 className="text-white-50 mb-1 small fw-medium">Treading Profit</h6>
+                  <h4 className="fw-bold mb-0 fs-5 fs-md-4 text-truncate text-white">₹{walletData.totalPnl.toFixed(2)}</h4>
                   <small className="text-white-50 d-none d-sm-block">All time</small>
                 </div>
               </div>
@@ -604,6 +742,21 @@ export default function DashboardWallet() {
                 </li>
                 <li className="nav-item flex-shrink-0">
                   <button
+                    className={`nav-link ${activeTab === 'trading' ? 'active' : ''} px-3 py-2`}
+                    style={{
+                      color: activeTab === 'trading' ? '#3b82f6' : '#e2e8f0',
+                      background: activeTab === 'trading' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                      border: 'none'
+                    }}
+                    onClick={() => setActiveTab('trading')}
+                  >
+                    <i className="bi bi-graph-up me-1 d-none d-sm-inline"></i>
+                    <span className="d-sm-none small">Trading</span>
+                    <span className="d-none d-sm-inline small">Trading Analytics</span>
+                  </button>
+                </li>
+                <li className="nav-item flex-shrink-0">
+                  <button
                     className={`nav-link ${activeTab === 'withdrawals' ? 'active' : ''} px-3 py-2`}
                     onClick={() => setActiveTab('withdrawals')}
                   >
@@ -631,7 +784,7 @@ export default function DashboardWallet() {
                     <h5 className="mb-3 fs-6 fs-md-5 text-white">Quick Actions</h5>
                     <div className="d-grid gap-2 gap-md-3">
                       <button
-                        className="btn btn-sm d-md-none rounded-4"
+                        className="btn btn-sm d-none rounded-4"
                         style={{
                           background: 'rgba(59, 130, 246, 0.2)',
                           border: '1px solid rgba(59, 130, 246, 0.5)',
@@ -643,7 +796,7 @@ export default function DashboardWallet() {
                         Add Money
                       </button>
                       <button
-                        className="btn d-none d-md-inline-flex rounded-4"
+                        className="btn d-none  rounded-4"
                         style={{
                           background: 'rgba(59, 130, 246, 0.2)',
                           border: '1px solid rgba(59, 130, 246, 0.5)',
@@ -655,7 +808,7 @@ export default function DashboardWallet() {
                         Add Money to Wallet
                       </button>
                       <button
-                        className="btn rounded-4"
+                        className="btn text-md-start rounded-4"
                         style={{
                           background: 'rgba(34, 197, 94, 0.2)',
                           border: '1px solid rgba(34, 197, 94, 0.5)',
@@ -806,15 +959,15 @@ export default function DashboardWallet() {
                               </td>
                               <td style={{ background: 'transparent' }}>
                                 <span className={getStatusBadge(transaction.status)} style={{
-                                  background: transaction.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 
-                                            transaction.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
-                                            transaction.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
-                                  color: transaction.status === 'completed' ? '#22c55e' : 
-                                        transaction.status === 'pending' ? '#fbbf24' : 
-                                        transaction.status === 'failed' ? '#ef4444' : '#9ca3af',
-                                  border: transaction.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : 
-                                         transaction.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
-                                         transaction.status === 'failed' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
+                                  background: transaction.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' :
+                                    transaction.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' :
+                                      transaction.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
+                                  color: transaction.status === 'completed' ? '#22c55e' :
+                                    transaction.status === 'pending' ? '#fbbf24' :
+                                      transaction.status === 'failed' ? '#ef4444' : '#9ca3af',
+                                  border: transaction.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' :
+                                    transaction.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' :
+                                      transaction.status === 'failed' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
                                 }}>
                                   {transaction.status}
                                 </span>
@@ -1038,6 +1191,284 @@ export default function DashboardWallet() {
                 </div>
               )}
 
+              {activeTab === 'trading' && (
+                <div>
+                  <h5 className="mb-3 fs-6 fs-md-5 text-white">Trading Analytics</h5>
+
+                  {/* Account Information */}
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <div className="card border-0" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <h6 className="text-white mb-0">Account Information</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row">
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Account Type</div>
+                              <div className="text-white fw-medium">{tradingData.accountInfo.accountType.toUpperCase()}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Broker</div>
+                              <div className="text-white fw-medium">{tradingData.accountInfo.brokerName || 'N/A'}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Account Balance</div>
+                              <div className="text-white fw-medium">${tradingData.accountInfo.accountBalance.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Leverage</div>
+                              <div className="text-white fw-medium">{tradingData.accountInfo.leverage}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Trading Statistics */}
+                  <div className="row mb-4">
+                    <div className="col-md-4 mb-3">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <h6 className="text-white mb-0">All Time Stats</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row text-center">
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Total Trades</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.totalTrades}</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Win Rate</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.winRate.toFixed(1)}%</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Net Profit</div>
+                              <div className={`fw-bold fs-5 ${tradingData.allTimeStats.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.allTimeStats.netProfit.toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Profit Factor</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.profitFactor.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 mb-3">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <h6 className="text-white mb-0">Last 7 Days</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row text-center">
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Trades</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.totalTrades}</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Win Rate</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.winRate.toFixed(1)}%</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Net Profit</div>
+                              <div className={`fw-bold fs-5 ${tradingData.last7Days.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.last7Days.netProfit.toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Profit Factor</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.profitFactor.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 mb-3">
+                      <div className="card border-0 h-100" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <h6 className="text-white mb-0">Last 30 Days</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row text-center">
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Trades</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.totalTrades}</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Win Rate</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.winRate.toFixed(1)}%</div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Net Profit</div>
+                              <div className={`fw-bold fs-5 ${tradingData.last30Days.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.last30Days.netProfit.toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="col-6 mb-3">
+                              <div className="text-white-50 small">Profit Factor</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.profitFactor.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Metrics */}
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <div className="card border-0" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <h6 className="text-white mb-0">Performance Metrics</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row">
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Sharpe Ratio</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.sharpeRatio.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Sortino Ratio</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.sortinoRatio.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Calmar Ratio</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.calmarRatio.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Recovery Factor</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.recoveryFactor.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Expectancy</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.expectancy.toFixed(2)}</div>
+                            </div>
+                            <div className="col-md-2 col-4 mb-3 text-center">
+                              <div className="text-white-50 small">Risk/Reward</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics.riskRewardRatio.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Trades */}
+                  {tradingData.recentTrades && tradingData.recentTrades.length > 0 && (
+                    <div className="row">
+                      <div className="col-12">
+                        <div className="card border-0" style={{
+                          background: 'rgba(60, 58, 58, 0.03)',
+                          border: '1px solid rgba(124, 124, 124, 0.39)',
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                        }}>
+                          <div className="card-header" style={{
+                            background: 'transparent',
+                            borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                          }}>
+                            <h6 className="text-white mb-0">Recent Trades</h6>
+                          </div>
+                          <div className="card-body">
+                            <div className="table-responsive">
+                              <table className="table table-hover" style={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                color: 'white'
+                              }}>
+                                <thead style={{
+                                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                  color: 'white'
+                                }}>
+                                  <tr>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Symbol</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Type</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Volume</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Open Price</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Close Price</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Profit</th>
+                                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Duration</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {tradingData.recentTrades.slice(0, 10).map((trade, index) => (
+                                    <tr key={index} style={{
+                                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                      color: 'white',
+                                      borderColor: 'rgba(124, 124, 124, 0.39)'
+                                    }}>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.symbol}</td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                                        <span className={`badge ${trade.type === 'buy' ? 'bg-success' : 'bg-danger'}`}>
+                                          {trade.type.toUpperCase()}
+                                        </span>
+                                      </td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.volume}</td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${trade.openPrice.toFixed(5)}</td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${trade.closePrice.toFixed(5)}</td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                                        <span className={trade.netProfit >= 0 ? 'text-success' : 'text-danger'}>
+                                          ${trade.netProfit.toFixed(2)}
+                                        </span>
+                                      </td>
+                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.duration}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {activeTab === 'withdrawals' && (
                 <div>
                   <h5 className="mb-3 fs-6 fs-md-5">Withdrawal History</h5>
@@ -1084,18 +1515,18 @@ export default function DashboardWallet() {
                               <td className="fw-bold small text-white" style={{ background: 'transparent' }}>₹{withdrawal.amount.toFixed(2)}</td>
                               <td style={{ background: 'transparent' }}>
                                 <span className={`badge small`} style={{
-                                  background: withdrawal.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
-                                            withdrawal.status === 'approved' ? 'rgba(59, 130, 246, 0.2)' : 
-                                            withdrawal.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 
-                                            withdrawal.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
-                                  color: withdrawal.status === 'pending' ? '#fbbf24' : 
-                                        withdrawal.status === 'approved' ? '#3b82f6' : 
-                                        withdrawal.status === 'completed' ? '#22c55e' : 
+                                  background: withdrawal.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' :
+                                    withdrawal.status === 'approved' ? 'rgba(59, 130, 246, 0.2)' :
+                                      withdrawal.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' :
+                                        withdrawal.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(124, 124, 124, 0.2)',
+                                  color: withdrawal.status === 'pending' ? '#fbbf24' :
+                                    withdrawal.status === 'approved' ? '#3b82f6' :
+                                      withdrawal.status === 'completed' ? '#22c55e' :
                                         withdrawal.status === 'rejected' ? '#ef4444' : '#9ca3af',
-                                  border: withdrawal.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
-                                         withdrawal.status === 'approved' ? '1px solid rgba(59, 130, 246, 0.5)' : 
-                                         withdrawal.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : 
-                                         withdrawal.status === 'rejected' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
+                                  border: withdrawal.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' :
+                                    withdrawal.status === 'approved' ? '1px solid rgba(59, 130, 246, 0.5)' :
+                                      withdrawal.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' :
+                                        withdrawal.status === 'rejected' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(124, 124, 124, 0.5)'
                                 }}>
                                   {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                                 </span>
@@ -1211,12 +1642,12 @@ export default function DashboardWallet() {
                               <td className="text-white" style={{ background: 'transparent' }}>₹{Number(d.amount).toFixed(2)}</td>
                               <td style={{ background: 'transparent' }}>
                                 <span className={`badge`} style={{
-                                  background: d.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' : 
-                                            d.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                                  color: d.status === 'pending' ? '#fbbf24' : 
-                                        d.status === 'completed' ? '#22c55e' : '#ef4444',
-                                  border: d.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' : 
-                                         d.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(239, 68, 68, 0.5)'
+                                  background: d.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' :
+                                    d.status === 'completed' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                                  color: d.status === 'pending' ? '#fbbf24' :
+                                    d.status === 'completed' ? '#22c55e' : '#ef4444',
+                                  border: d.status === 'pending' ? '1px solid rgba(251, 191, 36, 0.5)' :
+                                    d.status === 'completed' ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(239, 68, 68, 0.5)'
                                 }}>{d.status}</span>
                               </td>
                               <td className="d-none d-md-table-cell" style={{ background: 'transparent' }}>
@@ -1393,8 +1824,8 @@ export default function DashboardWallet() {
                 background: 'transparent',
                 borderTop: '1px solid rgba(124, 124, 124, 0.39)'
               }}>
-                <button 
-                  className="btn flex-fill rounded-4" 
+                <button
+                  className="btn flex-fill rounded-4"
                   style={{
                     background: 'rgba(60, 58, 58, 0.03)',
                     border: '1px solid rgba(124, 124, 124, 0.39)',
@@ -1479,7 +1910,7 @@ export default function DashboardWallet() {
                         <strong className="text-white">{validation.message}</strong>
                         {validation.type === 'profile' && (
                           <div className="mt-2">
-                            <button 
+                            <button
                               className="btn btn-sm rounded-4"
                               style={{
                                 background: 'rgba(251, 191, 36, 0.2)',
@@ -1498,7 +1929,7 @@ export default function DashboardWallet() {
                         )}
                         {validation.type === 'kyc' && (
                           <div className="mt-2">
-                            <button 
+                            <button
                               className="btn btn-sm rounded-4"
                               style={{
                                 background: 'rgba(239, 68, 68, 0.2)',

@@ -11,7 +11,7 @@ export default function ContentManagement() {
   // - NEXT_PUBLIC_API_URL = https://xfundingflow.com      => https://xfundingflow.com/api/api/content
   // - NEXT_PUBLIC_API_URL = https://xfundingflow.com/api  => https://xfundingflow.com/api/api/content (no double /api)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-  const API_BASE = `${baseUrl}/api/api/content`;
+  const API_BASE = `${baseUrl}/api/content`;
   const [activeTab, setActiveTab] = useState('home');
   const [homeSubtab, setHomeSubtab] = useState('hero'); // 'hero' | 'bottomStats' | 'topTraders' | 'testimonials'
   const [content, setContent] = useState({});

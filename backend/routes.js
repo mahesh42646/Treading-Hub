@@ -2006,6 +2006,25 @@ router.delete('/admin/plans/:id', async (req, res) => {
   }
 });
 
+// ===== TRADING DATA ROUTES =====
+
+// Get user trading data
+router.get('/trading-data/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const user = await User.findOne({ uid }).select('tradingData');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, tradingData: user.tradingData || {} });
+  } catch (error) {
+    console.error('Get trading data error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get trading data', error: error.message });
+  }
+});
+
 // ===== SUPPORT TICKET ROUTES =====
 
 // Create support ticket

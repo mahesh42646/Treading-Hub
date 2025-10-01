@@ -343,23 +343,418 @@ const userSchema = new mongoose.Schema({
       }
     }],
 
-    // Trading Stats (for future development)
-    tradingStats: {
-      totalTrades: {
-        type: Number,
-        default: 0
+    // Trading Data (comprehensive trading analytics)
+    tradingData: {
+      // Account Information
+      accountInfo: {
+        accountType: {
+          type: String,
+          enum: ['demo', 'live', 'funded'],
+          default: 'demo'
+        },
+        brokerName: {
+          type: String,
+          default: ''
+        },
+        accountNumber: {
+          type: String,
+          default: ''
+        },
+        accountBalance: {
+          type: Number,
+          default: 0
+        },
+        currency: {
+          type: String,
+          default: 'USD'
+        },
+        leverage: {
+          type: String,
+          default: '1:100'
+        },
+        platform: {
+          type: String,
+          default: 'MetaTrader 5'
+        },
+        accountStatus: {
+          type: String,
+          enum: ['active', 'suspended', 'closed'],
+          default: 'active'
+        },
+        lastUpdated: {
+          type: Date,
+          default: Date.now
+        }
       },
-      winningTrades: {
-        type: Number,
-        default: 0
+      
+      // All Time Statistics
+      allTimeStats: {
+        totalTrades: {
+          type: Number,
+          default: 0
+        },
+        winningTrades: {
+          type: Number,
+          default: 0
+        },
+        losingTrades: {
+          type: Number,
+          default: 0
+        },
+        totalProfit: {
+          type: Number,
+          default: 0
+        },
+        totalLoss: {
+          type: Number,
+          default: 0
+        },
+        netProfit: {
+          type: Number,
+          default: 0
+        },
+        winRate: {
+          type: Number,
+          default: 0
+        },
+        profitFactor: {
+          type: Number,
+          default: 0
+        },
+        averageWin: {
+          type: Number,
+          default: 0
+        },
+        averageLoss: {
+          type: Number,
+          default: 0
+        },
+        largestWin: {
+          type: Number,
+          default: 0
+        },
+        largestLoss: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdown: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdownPercent: {
+          type: Number,
+          default: 0
+        }
       },
-      totalProfit: {
-        type: Number,
-        default: 0
+      
+      // Last 7 Days Statistics
+      last7Days: {
+        totalTrades: {
+          type: Number,
+          default: 0
+        },
+        winningTrades: {
+          type: Number,
+          default: 0
+        },
+        losingTrades: {
+          type: Number,
+          default: 0
+        },
+        totalProfit: {
+          type: Number,
+          default: 0
+        },
+        totalLoss: {
+          type: Number,
+          default: 0
+        },
+        netProfit: {
+          type: Number,
+          default: 0
+        },
+        winRate: {
+          type: Number,
+          default: 0
+        },
+        profitFactor: {
+          type: Number,
+          default: 0
+        },
+        averageWin: {
+          type: Number,
+          default: 0
+        },
+        averageLoss: {
+          type: Number,
+          default: 0
+        },
+        largestWin: {
+          type: Number,
+          default: 0
+        },
+        largestLoss: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdown: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdownPercent: {
+          type: Number,
+          default: 0
+        }
       },
-      winRate: {
-        type: Number,
-        default: 0
+      
+      // Last 30 Days Statistics
+      last30Days: {
+        totalTrades: {
+          type: Number,
+          default: 0
+        },
+        winningTrades: {
+          type: Number,
+          default: 0
+        },
+        losingTrades: {
+          type: Number,
+          default: 0
+        },
+        totalProfit: {
+          type: Number,
+          default: 0
+        },
+        totalLoss: {
+          type: Number,
+          default: 0
+        },
+        netProfit: {
+          type: Number,
+          default: 0
+        },
+        winRate: {
+          type: Number,
+          default: 0
+        },
+        profitFactor: {
+          type: Number,
+          default: 0
+        },
+        averageWin: {
+          type: Number,
+          default: 0
+        },
+        averageLoss: {
+          type: Number,
+          default: 0
+        },
+        largestWin: {
+          type: Number,
+          default: 0
+        },
+        largestLoss: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdown: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdownPercent: {
+          type: Number,
+          default: 0
+        }
+      },
+      
+      // Trading History (recent trades)
+      recentTrades: [{
+        _id: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: () => new mongoose.Types.ObjectId()
+        },
+        tradeId: {
+          type: String,
+          required: true
+        },
+        symbol: {
+          type: String,
+          required: true
+        },
+        type: {
+          type: String,
+          enum: ['buy', 'sell'],
+          required: true
+        },
+        volume: {
+          type: Number,
+          required: true
+        },
+        openPrice: {
+          type: Number,
+          required: true
+        },
+        closePrice: {
+          type: Number,
+          required: true
+        },
+        profit: {
+          type: Number,
+          required: true
+        },
+        swap: {
+          type: Number,
+          default: 0
+        },
+        commission: {
+          type: Number,
+          default: 0
+        },
+        netProfit: {
+          type: Number,
+          required: true
+        },
+        openTime: {
+          type: Date,
+          required: true
+        },
+        closeTime: {
+          type: Date,
+          required: true
+        },
+        duration: {
+          type: String,
+          default: ''
+        },
+        status: {
+          type: String,
+          enum: ['open', 'closed'],
+          default: 'closed'
+        }
+      }],
+      
+      // Performance Metrics
+      performanceMetrics: {
+        sharpeRatio: {
+          type: Number,
+          default: 0
+        },
+        sortinoRatio: {
+          type: Number,
+          default: 0
+        },
+        calmarRatio: {
+          type: Number,
+          default: 0
+        },
+        recoveryFactor: {
+          type: Number,
+          default: 0
+        },
+        expectancy: {
+          type: Number,
+          default: 0
+        },
+        riskRewardRatio: {
+          type: Number,
+          default: 0
+        },
+        averageTradeDuration: {
+          type: String,
+          default: '0h 0m'
+        },
+        tradesPerDay: {
+          type: Number,
+          default: 0
+        },
+        consistency: {
+          type: Number,
+          default: 0
+        }
+      },
+      
+      // Risk Management
+      riskManagement: {
+        maxRiskPerTrade: {
+          type: Number,
+          default: 0
+        },
+        maxDailyLoss: {
+          type: Number,
+          default: 0
+        },
+        maxDailyProfit: {
+          type: Number,
+          default: 0
+        },
+        maxConsecutiveLosses: {
+          type: Number,
+          default: 0
+        },
+        maxConsecutiveWins: {
+          type: Number,
+          default: 0
+        },
+        currentConsecutiveLosses: {
+          type: Number,
+          default: 0
+        },
+        currentConsecutiveWins: {
+          type: Number,
+          default: 0
+        }
+      },
+      
+      // Trading Goals and Targets
+      goals: {
+        monthlyTarget: {
+          type: Number,
+          default: 0
+        },
+        weeklyTarget: {
+          type: Number,
+          default: 0
+        },
+        dailyTarget: {
+          type: Number,
+          default: 0
+        },
+        maxDrawdownLimit: {
+          type: Number,
+          default: 0
+        },
+        profitTarget: {
+          type: Number,
+          default: 0
+        }
+      },
+      
+      // Admin Notes and Comments
+      adminNotes: {
+        type: String,
+        default: ''
+      },
+      
+      // Last Updated by Admin
+      lastUpdatedBy: {
+        type: String,
+        default: ''
+      },
+      
+      // Data Status
+      isActive: {
+        type: Boolean,
+        default: true
+      },
+      
+      // Timestamps
+      createdAt: {
+        type: Date,
+        default: Date.now
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now
       }
     },
 

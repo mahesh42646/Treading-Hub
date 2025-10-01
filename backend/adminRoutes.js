@@ -159,19 +159,44 @@ router.post('/login', (req, res) => {
 router.get('/support/tickets', verifyAdminAuth, async (req, res) => {
   try {
     const { status = '', category = '', search = '' } = req.query;
-    const query = {};
-    if (status) query.status = status;
-    if (category) query.category = category;
-    if (search) {
-      query.$or = [
-        { subject: { $regex: search, $options: 'i' } },
-        { message: { $regex: search, $options: 'i' } },
-        { userEmail: { $regex: search, $options: 'i' } },
-        { ticketId: { $regex: search, $options: 'i' } }
-      ];
+    
+    // Get all users with support tickets
+    const users = await User.find({ 
+      supportTickets: { $exists: true, $not: { $size: 0 } } 
+    }).select('uid email supportTickets');
+
+    // Flatten all tickets with user info
+    let allTickets = [];
+    users.forEach(user => {
+      user.supportTickets.forEach(ticket => {
+        allTickets.push({
+          ...ticket.toObject(),
+          userEmail: user.email,
+          userId: user.uid
+        });
+      });
+    });
+
+    // Apply filters
+    if (status) {
+      allTickets = allTickets.filter(ticket => ticket.status === status);
     }
-    const tickets = await SupportTicket.find(query).sort({ lastActivity: -1, createdAt: -1 });
-    res.json({ success: true, tickets });
+    if (category) {
+      allTickets = allTickets.filter(ticket => ticket.category === category);
+    }
+    if (search) {
+      allTickets = allTickets.filter(ticket => 
+        ticket.subject.toLowerCase().includes(search.toLowerCase()) ||
+        ticket.message.toLowerCase().includes(search.toLowerCase()) ||
+        ticket.userEmail.toLowerCase().includes(search.toLowerCase()) ||
+        ticket.ticketId.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Sort by creation date (newest first)
+    allTickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, tickets: allTickets });
   } catch (error) {
     console.error('Admin list tickets error:', error);
     res.status(500).json({ success: false, message: 'Failed to list tickets', error: error.message });
@@ -182,23 +207,25 @@ router.get('/support/tickets', verifyAdminAuth, async (req, res) => {
 router.get('/support/ticket/:ticketId', verifyAdminAuth, async (req, res) => {
   try {
     const { ticketId } = req.params;
-    const ticket = await SupportTicket.findOne({ ticketId });
-    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+    
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
 
-    // Map uid -> user profile info
-    let userInfo = null;
-    try {
-      const user = await User.findOne({ uid: ticket.userId });
-      if (user) {
-        userInfo = {
-          uid: user.uid,
-          email: user.email,
-          phone: user.profile?.personalInfo?.phone || null,
-          personalInfo: user.profile?.personalInfo || null,
-          kyc: user.profile?.kyc || null
-        };
-      }
-    } catch (_) {}
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+
+    const userInfo = {
+      uid: user.uid,
+      email: user.email,
+      phone: user.profile?.personalInfo?.phone || null,
+      personalInfo: user.profile?.personalInfo || null,
+      kyc: user.profile?.kyc || null
+    };
 
     res.json({ success: true, ticket, user: userInfo });
   } catch (error) {
@@ -214,30 +241,36 @@ router.post('/support/ticket/:ticketId/response', verifyAdminAuth, async (req, r
     const { message } = req.body;
     if (!message) return res.status(400).json({ success: false, message: 'Message is required' });
 
-    const ticket = await SupportTicket.findOne({ ticketId });
-    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
 
     ticket.responses.push({ from: 'admin', message, timestamp: new Date() });
     ticket.status = ticket.status === 'open' ? 'in_progress' : ticket.status;
-    await ticket.save();
+    ticket.lastActivity = new Date();
+    await user.save();
 
     // Optional: notify user about admin reply
     try {
-      const user = await User.findOne({ uid: ticket.userId });
-      if (user) {
-        await NotificationService.createNotification(
-          user._id,
-          'system',
-          'Support replied to your ticket',
-          `Ticket ${ticket.ticketId}: ${message.substring(0, 140)}...`,
-          {
-            priority: 'medium',
-            relatedType: 'support_ticket',
-            relatedId: ticket._id,
-            metadata: { ticketId: ticket.ticketId }
-          }
-        );
-      }
+      await NotificationService.createNotification(
+        user._id,
+        'system',
+        'Support replied to your ticket',
+        `Ticket ${ticket.ticketId}: ${message.substring(0, 140)}...`,
+        {
+          priority: 'medium',
+          relatedType: 'support_ticket',
+          relatedId: ticket._id,
+          metadata: { ticketId: ticket.ticketId }
+        }
+      );
     } catch (e) {
       console.warn('Notification on ticket response failed:', e?.message);
     }
@@ -259,8 +292,16 @@ router.put('/support/ticket/:ticketId/status', verifyAdminAuth, async (req, res)
     const valid = ['open', 'in_progress', 'resolved', 'closed'];
     if (!valid.includes(status)) return res.status(400).json({ success: false, message: 'Invalid status' });
 
-    const ticket = await SupportTicket.findOne({ ticketId });
-    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
 
     ticket.status = status;
     if (status === 'resolved') {
@@ -270,26 +311,24 @@ router.put('/support/ticket/:ticketId/status', verifyAdminAuth, async (req, res)
     if (status === 'closed') {
       ticket.closedAt = new Date();
     }
-    await ticket.save();
+    ticket.lastActivity = new Date();
+    await user.save();
 
     // Notify user if resolved
     if (status === 'resolved') {
       try {
-        const user = await User.findOne({ uid: ticket.userId });
-        if (user) {
-          await NotificationService.createNotification(
-            user._id,
-            'system',
-            'Your support ticket was resolved',
-            `Ticket ${ticket.ticketId} has been marked as resolved.`,
-            {
-              priority: 'medium',
-              relatedType: 'support_ticket',
-              relatedId: ticket._id,
-              metadata: { ticketId: ticket.ticketId, status: 'resolved' }
-            }
-          );
-        }
+        await NotificationService.createNotification(
+          user._id,
+          'system',
+          'Your support ticket was resolved',
+          `Ticket ${ticket.ticketId} has been marked as resolved.`,
+          {
+            priority: 'medium',
+            relatedType: 'support_ticket',
+            relatedId: ticket._id,
+            metadata: { ticketId: ticket.ticketId, status: 'resolved' }
+          }
+        );
       } catch (e) {
         console.warn('Notification on ticket resolve failed:', e?.message);
       }

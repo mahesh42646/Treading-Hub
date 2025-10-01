@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { buildApiUrl } from '../../../utils/config';
+import { baseUrl } from '../../../utils/config';
 
 const SupportPage = () => {
   const { user, profile } = useAuth();
@@ -52,7 +52,7 @@ const SupportPage = () => {
         formDataToSend.append(`attachments`, file);
       });
 
-      const response = await fetch(buildApiUrl('/users/support/ticket'), {
+      const response = await fetch(baseUrl('/users/support/ticket'), {
         method: 'POST',
         body: formDataToSend
       });
@@ -83,7 +83,7 @@ const SupportPage = () => {
   // Fetch user's tickets
   const fetchTickets = async () => {
     try {
-      const response = await fetch(buildApiUrl(`/users/support/tickets/${user.uid}`));
+      const response = await fetch(baseUrl(`/users/support/tickets/${user.uid}`));
       if (response.ok) {
         const result = await response.json();
         setTickets(result.tickets || []);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { buildApiUrl } from '../../../utils/config';
+import { baseUrl } from '../../../utils/config';
 
 const AdminTicketsPage = () => {
   const [tickets, setTickets] = useState([]);
@@ -21,7 +21,7 @@ const AdminTicketsPage = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await fetch(buildApiUrl('/admin/support/tickets'), {
+      const response = await fetch(baseUrl('/admin/support/tickets'), {
         credentials: 'include'
       });
 
@@ -41,7 +41,7 @@ const AdminTicketsPage = () => {
   const updateTicketStatus = async (ticketId, status, assignedTo = null) => {
     try {
       setUpdatingStatus(true);
-      const response = await fetch(buildApiUrl(`/admin/support/ticket/${ticketId}/status`), {
+      const response = await fetch(baseUrl(`/admin/support/ticket/${ticketId}/status`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ const AdminTicketsPage = () => {
 
   const addResponse = async (ticketId, message) => {
     try {
-      const response = await fetch(buildApiUrl(`/support/ticket/${ticketId}/response`), {
+      const response = await fetch(baseUrl(`/support/ticket/${ticketId}/response`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -70,7 +70,7 @@ export const buildApiUrl = (endpoint) => {
   
   // If base URL already ends with /api, don't add it again
   if (baseUrl.endsWith('/api')) {
-    return `${baseUrl}${cleanEndpoint}`;
+    return `${baseUrl}/api${cleanEndpoint}`;
   }
   
   // If base URL doesn't end with /api, add it
@@ -90,3 +90,6 @@ export const getApiEndpoint = (endpointKey, ...params) => {
   }
   return endpoint;
 };
+
+// Alias for buildApiUrl for backward compatibility
+export const baseUrl = buildApiUrl;

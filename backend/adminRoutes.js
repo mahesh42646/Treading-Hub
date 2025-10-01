@@ -11,7 +11,6 @@ const Plan = require('./models/Plan');
 const Challenge = require('./models/Challenge');
 const Transaction = require('./models/Transaction');
 const NotificationService = require('./utils/notificationService');
-const SupportTicket = require('./models/SupportTicket');
 // Admin: create or update a challenge config
 router.post('/challenges', verifyAdminAuth, async (req, res) => {
   try {

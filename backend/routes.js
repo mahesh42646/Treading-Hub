@@ -9,9 +9,11 @@ const Plan = require('./models/Plan');
 const Challenge = require('./models/Challenge');
 const Transaction = require('./models/Transaction');
 const NotificationService = require('./utils/notificationService');
-const SupportTicket = require('./models/SupportTicket');
 
 const router = express.Router();
+
+// Serve uploaded files
+router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Initialize Razorpay (only if environment variables are available)
 let razorpay = null;
@@ -2007,9 +2009,9 @@ router.delete('/admin/plans/:id', async (req, res) => {
 // ===== SUPPORT TICKET ROUTES =====
 
 // Create support ticket
-router.post('/support/ticket', async (req, res) => {
+router.post('/support/ticket', upload.array('attachments', 5), async (req, res) => {
   try {
-    const { subject, message, category, userId, userEmail } = req.body;
+    const { subject, message, category, userId, userEmail, attachments } = req.body;
 
     // Validate required fields
     if (!subject || !message || !userId || !userEmail) {
@@ -2019,27 +2021,78 @@ router.post('/support/ticket', async (req, res) => {
       });
     }
 
-    // Create support ticket with Firebase UID
-    const ticket = new SupportTicket({
-      userId: userId, // Use Firebase UID directly
-      userEmail,
+    // Find user by Firebase UID, create if doesn't exist
+    let user = await User.findOne({ uid: userId });
+    if (!user) {
+      // Create a basic user for testing
+      user = new User({
+        uid: userId,
+        email: userEmail,
+        status: 'active',
+        role: 'user',
+        supportTickets: [],
+        profile: {
+          wallet: {
+            walletBalance: 0,
+            referralBalance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            currency: 'INR'
+          }
+        }
+      });
+      await user.save();
+    }
+
+    // Generate ticket ID
+    const ticketCount = user.supportTickets ? user.supportTickets.length : 0;
+    const ticketId = `TKT${String(ticketCount + 1).padStart(6, '0')}`;
+
+    // Process uploaded files
+    const processedAttachments = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        processedAttachments.push({
+          filename: file.filename,
+          originalName: file.originalname,
+          mimeType: file.mimetype,
+          size: file.size,
+          url: `/uploads/${file.filename}`
+        });
+      });
+    }
+
+    // Create support ticket in user schema
+    const ticket = {
+      ticketId,
       subject,
       message,
       category: category || 'general',
+      status: 'open',
+      priority: 'medium',
+      attachments: processedAttachments,
       responses: [{
         from: 'user',
         message: message,
         timestamp: new Date()
-      }]
-    });
+      }],
+      createdAt: new Date(),
+      lastActivity: new Date()
+    };
 
-    await ticket.save();
+    // Initialize supportTickets array if it doesn't exist
+    if (!user.supportTickets) {
+      user.supportTickets = [];
+    }
+
+    user.supportTickets.push(ticket);
+    await user.save();
 
     res.status(201).json({
       success: true,
       message: 'Support ticket created successfully',
       ticket: {
-        id: ticket._id,
+        id: user.supportTickets[user.supportTickets.length - 1]._id,
         ticketId: ticket.ticketId,
         subject: ticket.subject,
         category: ticket.category,
@@ -2062,10 +2115,27 @@ router.get('/support/tickets/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Get user's tickets using Firebase UID
-    const tickets = await SupportTicket.find({ userId: userId })
-      .sort({ createdAt: -1 })
-      .select('ticketId subject category status createdAt lastActivity');
+    // Find user by Firebase UID
+    const user = await User.findOne({ uid: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get user's tickets from user schema
+    const tickets = user.supportTickets ? user.supportTickets
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(ticket => ({
+        _id: ticket._id,
+        ticketId: ticket.ticketId,
+        subject: ticket.subject,
+        category: ticket.category,
+        status: ticket.status,
+        createdAt: ticket.createdAt,
+        lastActivity: ticket.lastActivity
+      })) : [];
 
     res.json({
       success: true,
@@ -2086,9 +2156,16 @@ router.get('/support/ticket/:ticketId', async (req, res) => {
   try {
     const { ticketId } = req.params;
 
-    const ticket = await SupportTicket.findOne({ ticketId })
-      .populate('userId', 'uid email');
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
 
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
     if (!ticket) {
       return res.status(404).json({
         success: false,
@@ -2098,7 +2175,11 @@ router.get('/support/ticket/:ticketId', async (req, res) => {
 
     res.json({
       success: true,
-      ticket: ticket
+      ticket: {
+        ...ticket.toObject(),
+        userEmail: user.email,
+        userId: user.uid
+      }
     });
   } catch (error) {
     console.error('Error fetching ticket:', error);
@@ -2123,7 +2204,16 @@ router.post('/support/ticket/:ticketId/response', async (req, res) => {
       });
     }
 
-    const ticket = await SupportTicket.findOne({ ticketId });
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
     if (!ticket) {
       return res.status(404).json({
         success: false,
@@ -2143,7 +2233,8 @@ router.post('/support/ticket/:ticketId/response', async (req, res) => {
       ticket.status = 'in_progress';
     }
 
-    await ticket.save();
+    ticket.lastActivity = new Date();
+    await user.save();
 
     res.json({
       success: true,
@@ -2173,7 +2264,16 @@ router.put('/support/ticket/:ticketId/status', async (req, res) => {
       });
     }
 
-    const ticket = await SupportTicket.findOne({ ticketId });
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
     if (!ticket) {
       return res.status(404).json({
         success: false,
@@ -2190,7 +2290,107 @@ router.put('/support/ticket/:ticketId/status', async (req, res) => {
       ticket.closedAt = new Date();
     }
 
-    await ticket.save();
+    ticket.lastActivity = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Ticket status updated successfully',
+      ticket: ticket
+    });
+  } catch (error) {
+    console.error('Error updating ticket status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update ticket status',
+      error: error.message
+    });
+  }
+});
+
+// ===== ADMIN SUPPORT TICKET ROUTES =====
+
+// Get all support tickets (Admin only)
+router.get('/admin/support/tickets', async (req, res) => {
+  try {
+    // Get all users with support tickets
+    const users = await User.find({ 
+      supportTickets: { $exists: true, $not: { $size: 0 } } 
+    }).select('uid email supportTickets');
+
+    // Flatten all tickets with user info
+    const allTickets = [];
+    users.forEach(user => {
+      user.supportTickets.forEach(ticket => {
+        allTickets.push({
+          ...ticket.toObject(),
+          userEmail: user.email,
+          userId: user.uid
+        });
+      });
+    });
+
+    // Sort by creation date (newest first)
+    allTickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({
+      success: true,
+      tickets: allTickets
+    });
+  } catch (error) {
+    console.error('Error fetching all support tickets:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch support tickets',
+      error: error.message
+    });
+  }
+});
+
+// Update ticket status (Admin only)
+router.put('/admin/support/ticket/:ticketId/status', async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { status, assignedTo } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    // Find user with the specific ticket
+    const user = await User.findOne({ 'supportTickets.ticketId': ticketId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    const ticket = user.supportTickets.find(t => t.ticketId === ticketId);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    ticket.status = status;
+    if (assignedTo) {
+      ticket.assignedTo = assignedTo;
+    }
+    
+    if (status === 'resolved') {
+      ticket.isResolved = true;
+      ticket.resolvedAt = new Date();
+    } else if (status === 'closed') {
+      ticket.closedAt = new Date();
+    }
+
+    ticket.lastActivity = new Date();
+    await user.save();
 
     res.json({
       success: true,

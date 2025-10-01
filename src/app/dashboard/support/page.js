@@ -14,6 +14,7 @@ const SupportPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [tickets, setTickets] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,24 +24,37 @@ const SupportPage = () => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
 
     try {
+      // Prepare form data for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('message', formData.message);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('userId', user.uid);
+      formDataToSend.append('userEmail', user.email);
+
+      // Add files to form data
+      selectedFiles.forEach((file, index) => {
+        formDataToSend.append(`attachments`, file);
+      });
+
       const response = await fetch(buildApiUrl('/users/support/ticket'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          subject: formData.subject,
-          message: formData.message,
-          category: formData.category,
-          userId: user.uid,
-          userEmail: user.email
-        })
+        body: formDataToSend
       });
 
       if (response.ok) {
@@ -51,6 +65,7 @@ const SupportPage = () => {
           message: '',
           category: 'general'
         });
+        setSelectedFiles([]);
         // Refresh tickets list
         fetchTickets();
       } else {
@@ -316,6 +331,44 @@ const SupportPage = () => {
                       color: '#e2e8f0'
                     }}
                   ></textarea>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label text-white">Attachments (Optional)</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    multiple
+                    accept="image/*,video/*,.pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    style={{
+                      background: 'rgba(60, 58, 58, 0.03)',
+                      border: '1px solid rgba(124, 124, 124, 0.39)',
+                      color: '#e2e8f0'
+                    }}
+                  />
+                  <small className="text-white-50">You can attach images, videos, or documents to help explain your issue.</small>
+                  
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2">
+                      <h6 className="text-white">Selected Files:</h6>
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="d-flex justify-content-between align-items-center mb-1 p-2 rounded" style={{
+                          background: 'rgba(60, 58, 58, 0.1)',
+                          border: '1px solid rgba(124, 124, 124, 0.2)'
+                        }}>
+                          <span className="text-white-50 small">{file.name}</span>
+                          <button
+                            type="button"
+                            className="btn btn-sm text-danger"
+                            onClick={() => removeFile(index)}
+                          >
+                            <i className="bi bi-x"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-3">

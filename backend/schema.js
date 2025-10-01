@@ -361,8 +361,92 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
       }
+    },
+
+  },
+
+  // Support Tickets (moved to root level)
+  supportTickets: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    ticketId: {
+      type: String,
+      required: true
+    },
+    subject: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    message: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      enum: ['general', 'technical', 'billing', 'account', 'trading', 'kyc'],
+      default: 'general'
+    },
+    status: {
+      type: String,
+      enum: ['open', 'in_progress', 'resolved', 'closed'],
+      default: 'open'
+    },
+    priority: {
+      type: String,
+      enum: ['low', 'medium', 'high', 'urgent'],
+      default: 'medium'
+    },
+    assignedTo: {
+      type: String,
+      default: null
+    },
+    responses: [{
+      from: {
+        type: String,
+        enum: ['user', 'admin'],
+        required: true
+      },
+      message: {
+        type: String,
+        required: true
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    attachments: [{
+      filename: String,
+      originalName: String,
+      mimeType: String,
+      size: Number,
+      url: String
+    }],
+    tags: [{
+      type: String
+    }],
+    isResolved: {
+      type: Boolean,
+      default: false
+    },
+    resolvedAt: {
+      type: Date
+    },
+    closedAt: {
+      type: Date
+    },
+    lastActivity: {
+      type: Date,
+      default: Date.now
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
     }
-  }
+  }]
 }, {
   timestamps: true
 });

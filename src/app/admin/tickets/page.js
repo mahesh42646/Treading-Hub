@@ -159,16 +159,16 @@ const AdminTicketsPage = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{
-              background: 'rgba(60, 58, 58, 0.03)',
+              background: 'rgba(0, 0, 0, 0.6)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
-              color: '#e2e8f0'
+              color: 'white'
             }}
           >
-            <option value="all">All Status</option>
-            <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
+            <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Status</option>
+            <option value="open" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Open</option>
+            <option value="in_progress" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>In Progress</option>
+            <option value="resolved" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Resolved</option>
+            <option value="closed" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Closed</option>
           </select>
         </div>
         <div className="col-md-3">
@@ -177,18 +177,18 @@ const AdminTicketsPage = () => {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             style={{
-              background: 'rgba(60, 58, 58, 0.03)',
+              background: 'rgba(0, 0, 0, 0.6)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
-              color: '#e2e8f0'
+              color: 'white'
             }}
           >
-            <option value="all">All Categories</option>
-            <option value="general">General</option>
-            <option value="technical">Technical</option>
-            <option value="billing">Billing</option>
-            <option value="account">Account</option>
-            <option value="trading">Trading</option>
-            <option value="kyc">KYC</option>
+            <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Categories</option>
+            <option value="general" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>General</option>
+            <option value="technical" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Technical</option>
+            <option value="billing" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Billing</option>
+            <option value="account" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Account</option>
+            <option value="trading" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Trading</option>
+            <option value="kyc" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>KYC</option>
           </select>
         </div>
         <div className="col-md-6">
@@ -199,9 +199,9 @@ const AdminTicketsPage = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              background: 'rgba(60, 58, 58, 0.03)',
+              background: 'rgba(0, 0, 0, 0.6)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
-              color: '#e2e8f0'
+              color: 'white'
             }}
           />
         </div>
@@ -217,36 +217,46 @@ const AdminTicketsPage = () => {
         <div className="card-body">
           {filteredTickets.length > 0 ? (
             <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
+              <table className="table table-hover" style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                color: 'white'
+              }}>
+                <thead style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                  color: 'white'
+                }}>
                   <tr>
-                    <th className="text-white-50">Ticket ID</th>
-                    <th className="text-white-50">User</th>
-                    <th className="text-white-50">Subject</th>
-                    <th className="text-white-50">Category</th>
-                    <th className="text-white-50">Status</th>
-                    <th className="text-white-50">Created</th>
-                    <th className="text-white-50">Actions</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Category</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Created</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTickets.map((ticket) => (
-                    <tr key={ticket._id}>
-                      <td>
+                    <tr key={ticket._id} style={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      color: 'white',
+                      borderColor: 'rgba(124, 124, 124, 0.39)'
+                    }}>
+                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <span className="badge" style={{
                           background: 'rgba(59, 130, 246, 0.2)',
                           color: '#3b82f6'
                         }}>#{ticket.ticketId}</span>
                       </td>
-                      <td className="text-white">{ticket.userEmail}</td>
-                      <td className="text-white">{ticket.subject}</td>
-                      <td className="text-white-50">
+                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.userEmail}</td>
+                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.subject}</td>
+                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <i className={`bi ${getCategoryIcon(ticket.category)} me-1`} style={{ color: '#3b82f6' }}></i>
                         {ticket.category}
                       </td>
-                      <td>{getStatusBadge(ticket.status)}</td>
-                      <td className="text-white-50">{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                      <td>
+                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{getStatusBadge(ticket.status)}</td>
+                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <div className="d-flex gap-1">
                           <button
                             className="btn btn-sm"
@@ -294,20 +304,26 @@ const AdminTicketsPage = () => {
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
           <div className="modal-dialog modal-lg">
             <div className="modal-content" style={{
-              background: 'rgba(60, 58, 58, 0.95)',
+              background: 'rgba(0, 0, 0, 0.95)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
               backdropFilter: 'blur(20px)',
               color: 'white'
             }}>
-              <div className="modal-header">
-                <h5 className="modal-title">Ticket #{selectedTicket.ticketId}</h5>
+              <div className="modal-header" style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
+                <h5 className="modal-title text-white">Ticket #{selectedTicket.ticketId}</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
                   onClick={() => setShowModal(false)}
                 ></button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body" style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                color: 'white'
+              }}>
                 <div className="row mb-3">
                   <div className="col-md-6">
                     <strong>User:</strong> {selectedTicket.userEmail}
@@ -385,7 +401,7 @@ const AdminTicketsPage = () => {
 
                 {/* Add Response */}
                 <div className="mb-3">
-                  <label className="form-label">Add Response:</label>
+                  <label className="form-label text-white">Add Response:</label>
                   <textarea
                     className="form-control"
                     rows="3"
@@ -393,23 +409,26 @@ const AdminTicketsPage = () => {
                     onChange={(e) => setNewResponse(e.target.value)}
                     placeholder="Type your response here..."
                     style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
+                      background: 'rgba(0, 0, 0, 0.6)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
-                      color: '#e2e8f0'
+                      color: 'white'
                     }}
                   ></textarea>
                 </div>
               </div>
-              <div className="modal-footer">
+              <div className="modal-footer" style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+              }}>
                 <div className="d-flex gap-2">
                   <select
                     className="form-select"
                     value={selectedTicket.status}
                     onChange={(e) => updateTicketStatus(selectedTicket.ticketId, e.target.value)}
                     style={{
-                      background: 'rgba(60, 58, 58, 0.03)',
+                      background: 'rgba(0, 0, 0, 0.6)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
-                      color: '#e2e8f0'
+                      color: 'white'
                     }}
                   >
                     <option value="open">Open</option>

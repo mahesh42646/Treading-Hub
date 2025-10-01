@@ -443,34 +443,44 @@ const SupportPage = () => {
             <div className="card-body">
               {tickets.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
+                  <table className="table table-hover" style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    color: 'white'
+                  }}>
+                    <thead style={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                      color: 'white'
+                    }}>
                       <tr>
-                        <th className="text-white-50">Ticket ID</th>
-                        <th className="text-white-50">Subject</th>
-                        <th className="text-white-50">Category</th>
-                        <th className="text-white-50">Status</th>
-                        <th className="text-white-50">Created</th>
-                        <th className="text-white-50">Action</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Category</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Created</th>
+                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {tickets.map((ticket) => (
-                        <tr key={ticket._id}>
-                          <td>
+                        <tr key={ticket._id} style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                          color: 'white',
+                          borderColor: 'rgba(124, 124, 124, 0.39)'
+                        }}>
+                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                             <span className="badge" style={{
                               background: 'rgba(59, 130, 246, 0.2)',
                               color: '#3b82f6'
                             }}>#{ticket.ticketId}</span>
                           </td>
-                          <td className="text-white">{ticket.subject}</td>
-                          <td className="text-white-50">
+                          <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.subject}</td>
+                          <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                             <i className={`bi ${getCategoryIcon(ticket.category)} me-1`} style={{ color: '#3b82f6' }}></i>
                             {ticket.category}
                           </td>
-                          <td>{getStatusBadge(ticket.status)}</td>
-                          <td className="text-white-50">{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                          <td>
+                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{getStatusBadge(ticket.status)}</td>
+                          <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                             <button className="btn btn-sm" style={{
                               background: 'rgba(59, 130, 246, 0.2)',
                               border: '1px solid rgba(59, 130, 246, 0.5)',

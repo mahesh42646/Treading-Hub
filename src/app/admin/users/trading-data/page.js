@@ -9,6 +9,8 @@ const AdminTradingDataPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all'); // all, active, inactive
+  const [searchTerm, setSearchTerm] = useState('');
   const [tradingData, setTradingData] = useState({
     accountInfo: {
       accountType: 'demo',
@@ -177,6 +179,42 @@ const AdminTradingDataPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to reset this user\'s trading data? This action cannot be undone.')) {
+      try {
+        setSaving(true);
+        const response = await fetch(baseUrl(`/admin/users/${selectedUser.uid}/trading-data`), {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          alert('Trading data reset successfully!');
+          setShowModal(false);
+          fetchUsers();
+        } else {
+          alert('Failed to reset trading data');
+        }
+      } catch (error) {
+        console.error('Error resetting trading data:', error);
+        alert('Error resetting trading data');
+      } finally {
+        setSaving(false);
+      }
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesStatus = filterStatus === 'all' || 
+      (filterStatus === 'active' && user.hasTradingData) ||
+      (filterStatus === 'inactive' && !user.hasTradingData);
+    
+    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.uid.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
@@ -192,7 +230,43 @@ const AdminTradingDataPage = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-white">Trading Data Management</h2>
         <div className="d-flex gap-2">
-          <span className="badge bg-primary">{users.length} Users with Trading Data</span>
+          <span className="badge bg-primary">{users.length} Total Users</span>
+          <span className="badge bg-success">{users.filter(u => u.hasTradingData).length} With Data</span>
+          <span className="badge bg-secondary">{users.filter(u => !u.hasTradingData).length} Without Data</span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <select
+            className="form-select"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            style={{
+              background: 'rgba(0, 0, 0, 0.6)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              color: 'white'
+            }}
+          >
+            <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Users</option>
+            <option value="active" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>With Trading Data</option>
+            <option value="inactive" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Without Trading Data</option>
+          </select>
+        </div>
+        <div className="col-md-8">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search users by email or UID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              background: 'rgba(0, 0, 0, 0.6)',
+              border: '1px solid rgba(124, 124, 124, 0.39)',
+              color: 'white'
+            }}
+          />
         </div>
       </div>
 
@@ -204,7 +278,7 @@ const AdminTradingDataPage = () => {
         boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
       }}>
         <div className="card-body">
-          {users.length > 0 ? (
+          {filteredUsers.length > 0 ? (
             <div className="table-responsive">
               <table className="table table-hover" style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -216,6 +290,7 @@ const AdminTradingDataPage = () => {
                 }}>
                   <tr>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
+                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Account Type</th>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Broker</th>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Net Profit</th>
@@ -225,7 +300,7 @@ const AdminTradingDataPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.uid} style={{
                       backgroundColor: 'rgba(0, 0, 0, 0.6)',
                       color: 'white',
@@ -236,6 +311,11 @@ const AdminTradingDataPage = () => {
                           <div className="text-white">{user.email}</div>
                           <small className="text-white-50">{user.uid}</small>
                         </div>
+                      </td>
+                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                        <span className={`badge ${user.hasTradingData ? 'bg-success' : 'bg-secondary'}`}>
+                          {user.hasTradingData ? 'Active' : 'No Data'}
+                        </span>
                       </td>
                       <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
                         {user.tradingData?.accountInfo?.accountType || 'N/A'}
@@ -253,17 +333,37 @@ const AdminTradingDataPage = () => {
                         {user.tradingData?.allTimeStats?.totalTrades || 0}
                       </td>
                       <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
-                        <button
-                          className="btn btn-sm"
-                          style={{
-                            background: 'rgba(59, 130, 246, 0.2)',
-                            border: '1px solid rgba(59, 130, 246, 0.5)',
-                            color: '#3b82f6'
-                          }}
-                          onClick={() => openModal(user)}
-                        >
-                          Manage Data
-                        </button>
+                        <div className="d-flex gap-1">
+                          <button
+                            className="btn btn-sm"
+                            style={{
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              color: '#3b82f6'
+                            }}
+                            onClick={() => openModal(user)}
+                          >
+                            {user.hasTradingData ? 'Edit' : 'Add Data'}
+                          </button>
+                          {user.hasTradingData && (
+                            <button
+                              className="btn btn-sm"
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.2)',
+                                border: '1px solid rgba(239, 68, 68, 0.5)',
+                                color: '#ef4444'
+                              }}
+                              onClick={() => {
+                                if (window.confirm('Reset trading data for this user?')) {
+                                  setSelectedUser(user);
+                                  handleDelete();
+                                }
+                              }}
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -273,7 +373,7 @@ const AdminTradingDataPage = () => {
           ) : (
             <div className="text-center py-4">
               <i className="bi bi-graph-up text-white-50" style={{ fontSize: '3rem' }}></i>
-              <p className="text-white-50 mt-3">No users with trading data found</p>
+              <p className="text-white-50 mt-3">No users found matching your criteria</p>
             </div>
           )}
         </div>
@@ -567,6 +667,20 @@ const AdminTradingDataPage = () => {
                   >
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
+                  {selectedUser?.hasTradingData && (
+                    <button
+                      className="btn"
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.5)',
+                        color: '#ef4444'
+                      }}
+                      onClick={handleDelete}
+                      disabled={saving}
+                    >
+                      {saving ? 'Resetting...' : 'Reset Data'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn-secondary"

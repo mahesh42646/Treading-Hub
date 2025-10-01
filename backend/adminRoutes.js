@@ -155,6 +155,95 @@ router.post('/login', (req, res) => {
 
 // ===== TRADING DATA MANAGEMENT (ADMIN) =====
 
+// Helper function to update time-based data
+const updateTimeBasedData = (tradingData) => {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  // Update last7Days based on recent trades
+  if (tradingData.recentTrades && tradingData.recentTrades.length > 0) {
+    const recent7DayTrades = tradingData.recentTrades.filter(trade => 
+      new Date(trade.closeTime) >= sevenDaysAgo
+    );
+    
+    const recent30DayTrades = tradingData.recentTrades.filter(trade => 
+      new Date(trade.closeTime) >= thirtyDaysAgo
+    );
+
+    // Calculate 7-day stats
+    const sevenDayStats = calculateTradingStats(recent7DayTrades);
+    tradingData.last7Days = {
+      ...tradingData.last7Days,
+      ...sevenDayStats,
+      totalTrades: recent7DayTrades.length
+    };
+
+    // Calculate 30-day stats
+    const thirtyDayStats = calculateTradingStats(recent30DayTrades);
+    tradingData.last30Days = {
+      ...tradingData.last30Days,
+      ...thirtyDayStats,
+      totalTrades: recent30DayTrades.length
+    };
+  }
+
+  return tradingData;
+};
+
+// Helper function to calculate trading statistics
+const calculateTradingStats = (trades) => {
+  if (!trades || trades.length === 0) {
+    return {
+      winningTrades: 0,
+      losingTrades: 0,
+      totalProfit: 0,
+      totalLoss: 0,
+      netProfit: 0,
+      winRate: 0,
+      profitFactor: 0,
+      averageWin: 0,
+      averageLoss: 0,
+      largestWin: 0,
+      largestLoss: 0,
+      maxDrawdown: 0,
+      maxDrawdownPercent: 0
+    };
+  }
+
+  const winningTrades = trades.filter(trade => trade.netProfit > 0);
+  const losingTrades = trades.filter(trade => trade.netProfit < 0);
+  
+  const totalProfit = winningTrades.reduce((sum, trade) => sum + trade.netProfit, 0);
+  const totalLoss = Math.abs(losingTrades.reduce((sum, trade) => sum + trade.netProfit, 0));
+  const netProfit = totalProfit - totalLoss;
+  
+  const winRate = trades.length > 0 ? (winningTrades.length / trades.length) * 100 : 0;
+  const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : totalProfit > 0 ? 999 : 0;
+  
+  const averageWin = winningTrades.length > 0 ? totalProfit / winningTrades.length : 0;
+  const averageLoss = losingTrades.length > 0 ? totalLoss / losingTrades.length : 0;
+  
+  const largestWin = winningTrades.length > 0 ? Math.max(...winningTrades.map(t => t.netProfit)) : 0;
+  const largestLoss = losingTrades.length > 0 ? Math.min(...losingTrades.map(t => t.netProfit)) : 0;
+
+  return {
+    winningTrades: winningTrades.length,
+    losingTrades: losingTrades.length,
+    totalProfit,
+    totalLoss,
+    netProfit,
+    winRate,
+    profitFactor,
+    averageWin,
+    averageLoss,
+    largestWin,
+    largestLoss,
+    maxDrawdown: 0, // This would need more complex calculation
+    maxDrawdownPercent: 0
+  };
+};
+
 // Update user trading data
 router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
   try {
@@ -166,14 +255,21 @@ router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Update trading data
-    user.tradingData = {
+    // Initialize tradingData if it doesn't exist
+    if (!user.tradingData) {
+      user.tradingData = {};
+    }
+
+    // Update trading data with time-based calculations
+    const updatedTradingData = updateTimeBasedData({
       ...user.tradingData,
       ...tradingData,
       updatedAt: new Date(),
-      lastUpdatedBy: req.admin?.email || 'admin'
-    };
+      lastUpdatedBy: req.admin?.email || 'admin',
+      isActive: true
+    });
 
+    user.tradingData = updatedTradingData;
     await user.save();
 
     res.json({ success: true, message: 'Trading data updated successfully', tradingData: user.tradingData });
@@ -237,17 +333,146 @@ router.post('/users/:uid/trading-data/trades', verifyAdminAuth, async (req, res)
   }
 });
 
-// Get all users with trading data
+// Get all users for trading data management
 router.get('/trading-data/users', verifyAdminAuth, async (req, res) => {
   try {
-    const users = await User.find({ 
-      'tradingData.isActive': true 
-    }).select('uid email tradingData.accountInfo tradingData.allTimeStats');
+    const users = await User.find({}).select('uid email tradingData');
 
-    res.json({ success: true, users });
+    // Update time-based data for users with trading data
+    for (let user of users) {
+      if (user.tradingData && user.tradingData.isActive) {
+        const updatedTradingData = updateTimeBasedData(user.tradingData);
+        if (JSON.stringify(updatedTradingData) !== JSON.stringify(user.tradingData)) {
+          user.tradingData = updatedTradingData;
+          await user.save();
+        }
+      }
+    }
+
+    // Add trading data status to each user
+    const usersWithStatus = users.map(user => ({
+      ...user.toObject(),
+      hasTradingData: !!(user.tradingData && user.tradingData.isActive),
+      tradingDataStatus: user.tradingData?.isActive ? 'active' : 'inactive'
+    }));
+
+    res.json({ success: true, users: usersWithStatus });
   } catch (error) {
     console.error('Get trading users error:', error);
     res.status(500).json({ success: false, message: 'Failed to get trading users', error: error.message });
+  }
+});
+
+// Delete user trading data
+router.delete('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Reset trading data to default
+    user.tradingData = {
+      accountInfo: {
+        accountType: 'demo',
+        brokerName: '',
+        accountNumber: '',
+        accountBalance: 0,
+        currency: 'USD',
+        leverage: '1:100',
+        platform: 'MetaTrader 5',
+        accountStatus: 'active'
+      },
+      allTimeStats: {
+        totalTrades: 0,
+        winningTrades: 0,
+        losingTrades: 0,
+        totalProfit: 0,
+        totalLoss: 0,
+        netProfit: 0,
+        winRate: 0,
+        profitFactor: 0,
+        averageWin: 0,
+        averageLoss: 0,
+        largestWin: 0,
+        largestLoss: 0,
+        maxDrawdown: 0,
+        maxDrawdownPercent: 0
+      },
+      last7Days: {
+        totalTrades: 0,
+        winningTrades: 0,
+        losingTrades: 0,
+        totalProfit: 0,
+        totalLoss: 0,
+        netProfit: 0,
+        winRate: 0,
+        profitFactor: 0,
+        averageWin: 0,
+        averageLoss: 0,
+        largestWin: 0,
+        largestLoss: 0,
+        maxDrawdown: 0,
+        maxDrawdownPercent: 0
+      },
+      last30Days: {
+        totalTrades: 0,
+        winningTrades: 0,
+        losingTrades: 0,
+        totalProfit: 0,
+        totalLoss: 0,
+        netProfit: 0,
+        winRate: 0,
+        profitFactor: 0,
+        averageWin: 0,
+        averageLoss: 0,
+        largestWin: 0,
+        largestLoss: 0,
+        maxDrawdown: 0,
+        maxDrawdownPercent: 0
+      },
+      recentTrades: [],
+      performanceMetrics: {
+        sharpeRatio: 0,
+        sortinoRatio: 0,
+        calmarRatio: 0,
+        recoveryFactor: 0,
+        expectancy: 0,
+        riskRewardRatio: 0,
+        averageTradeDuration: '0h 0m',
+        tradesPerDay: 0,
+        consistency: 0
+      },
+      riskManagement: {
+        maxRiskPerTrade: 0,
+        maxDailyLoss: 0,
+        maxDailyProfit: 0,
+        maxConsecutiveLosses: 0,
+        maxConsecutiveWins: 0,
+        currentConsecutiveLosses: 0,
+        currentConsecutiveWins: 0
+      },
+      goals: {
+        monthlyTarget: 0,
+        weeklyTarget: 0,
+        dailyTarget: 0,
+        maxDrawdownLimit: 0,
+        profitTarget: 0
+      },
+      adminNotes: '',
+      isActive: false,
+      updatedAt: new Date(),
+      lastUpdatedBy: req.admin?.email || 'admin'
+    };
+
+    await user.save();
+
+    res.json({ success: true, message: 'Trading data reset successfully' });
+  } catch (error) {
+    console.error('Delete trading data error:', error);
+    res.status(500).json({ success: false, message: 'Failed to reset trading data', error: error.message });
   }
 });
 

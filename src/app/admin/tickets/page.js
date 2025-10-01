@@ -159,16 +159,16 @@ const AdminTicketsPage = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{
-              background: 'rgba(0, 0, 0, 0.6)',
+              background: 'rgba(3, 5, 68, 0.9)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
               color: 'white'
             }}
           >
-            <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Status</option>
-            <option value="open" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Open</option>
-            <option value="in_progress" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>In Progress</option>
-            <option value="resolved" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Resolved</option>
-            <option value="closed" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Closed</option>
+            <option value="all" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>All Status</option>
+            <option value="open" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Open</option>
+            <option value="in_progress" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>In Progress</option>
+            <option value="resolved" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Resolved</option>
+            <option value="closed" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Closed</option>
           </select>
         </div>
         <div className="col-md-3">
@@ -177,18 +177,18 @@ const AdminTicketsPage = () => {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             style={{
-              background: 'rgba(0, 0, 0, 0.6)',
+              background: 'rgba(3, 5, 68, 0.9)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
               color: 'white'
             }}
           >
-            <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Categories</option>
-            <option value="general" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>General</option>
-            <option value="technical" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Technical</option>
-            <option value="billing" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Billing</option>
-            <option value="account" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Account</option>
-            <option value="trading" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Trading</option>
-            <option value="kyc" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>KYC</option>
+            <option value="all" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>All Categories</option>
+            <option value="general" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>General</option>
+            <option value="technical" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Technical</option>
+            <option value="billing" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Billing</option>
+            <option value="account" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Account</option>
+            <option value="trading" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>Trading</option>
+            <option value="kyc" style={{ background: 'rgba(3, 5, 68, 0.9)', color: 'white' }}>KYC</option>
           </select>
         </div>
         <div className="col-md-6">
@@ -199,7 +199,7 @@ const AdminTicketsPage = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              background: 'rgba(0, 0, 0, 0.6)',
+              background: 'rgba(3, 5, 68, 0.9)',
               border: '1px solid rgba(124, 124, 124, 0.39)',
               color: 'white'
             }}
@@ -218,14 +218,14 @@ const AdminTicketsPage = () => {
           {filteredTickets.length > 0 ? (
             <div className="table-responsive">
               <table className="table table-hover" style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                backgroundColor: 'rgba(3, 5, 68, 0.9)',
                 color: 'white'
               }}>
                 <thead style={{
                   backgroundColor: 'rgba(0, 0, 0, 0.9)',
                   color: 'white'
                 }}>
-                  <tr>
+                  <tr className='text-white bg-dark'>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
                     <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
@@ -238,7 +238,7 @@ const AdminTicketsPage = () => {
                 <tbody>
                   {filteredTickets.map((ticket) => (
                     <tr key={ticket._id} style={{
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      backgroundColor: 'rgba(3, 5, 68, 0.9)',
                       color: 'white',
                       borderColor: 'rgba(124, 124, 124, 0.39)'
                     }}>
@@ -321,7 +321,7 @@ const AdminTicketsPage = () => {
                 ></button>
               </div>
               <div className="modal-body" style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                backgroundColor: 'rgba(3, 5, 68, 0.9)',
                 color: 'white'
               }}>
                 <div className="row mb-3">
@@ -409,7 +409,7 @@ const AdminTicketsPage = () => {
                     onChange={(e) => setNewResponse(e.target.value)}
                     placeholder="Type your response here..."
                     style={{
-                      background: 'rgba(0, 0, 0, 0.6)',
+                      background: 'rgba(3, 5, 68, 0.9)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
                       color: 'white'
                     }}
@@ -426,7 +426,7 @@ const AdminTicketsPage = () => {
                     value={selectedTicket.status}
                     onChange={(e) => updateTicketStatus(selectedTicket.ticketId, e.target.value)}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.6)',
+                      background: 'rgba(3, 5, 68, 0.9)',
                       border: '1px solid rgba(124, 124, 124, 0.39)',
                       color: 'white'
                     }}

@@ -141,7 +141,7 @@ const SupportPage = () => {
               <i className="bi bi-question-circle"></i> FAQ
             </a>
             <a href="/contact" className="btn rounded-4" style={{
-              background: 'rgba(59, 130, 246, 0.2)',
+              background: 'rgba(11, 12, 45, 0.9)',
               border: '1px solid rgba(59, 130, 246, 0.5)',
               color: '#3b82f6'
             }}>
@@ -238,7 +238,7 @@ const SupportPage = () => {
                 <p className="mb-2 text-white-50">Our support team is available 24/7</p>
                 <div className="d-flex gap-2">
                   <a href="mailto:support@xfundingflow.com" className="btn btn-sm" style={{
-                    background: 'rgba(59, 130, 246, 0.2)',
+                    background: 'rgba(11, 12, 45, 0.9)',
                     border: '1px solid rgba(59, 130, 246, 0.5)',
                     color: '#3b82f6'
                   }}>
@@ -405,7 +405,7 @@ const SupportPage = () => {
 
                 <div className="text-end">
                   <button type="submit" className="btn" disabled={loading} style={{
-                    background: 'rgba(59, 130, 246, 0.2)',
+                    background: 'rgba(11, 12, 45, 0.9)',
                     border: '1px solid rgba(59, 130, 246, 0.5)',
                     color: '#3b82f6'
                   }}>
@@ -442,47 +442,47 @@ const SupportPage = () => {
             </div>
             <div className="card-body">
               {tickets.length > 0 ? (
-                <div className="table-responsive">
+                <div className="table-responsive bg-dark">
                   <table className="table table-hover" style={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backgroundColor: 'rgba(11, 12, 45, 0.9)',
                     color: 'white'
                   }}>
                     <thead style={{
-                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                      color: 'white'
+                      backgroundColor: 'rgba(11, 12, 45, 0.9)',
+                      color: 'gray'
                     }}>
-                      <tr>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Category</th>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Created</th>
-                        <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Action</th>
+                      <tr className='text-white bg-dark'>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Ticket ID</th>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Subject</th>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Category</th>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Status</th>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Created</th>
+                        <th className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {tickets.map((ticket) => (
                         <tr key={ticket._id} style={{
-                          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                          backgroundColor: 'rgba(11, 12, 45, 0.9)',
                           color: 'white',
-                          borderColor: 'rgba(124, 124, 124, 0.39)'
+                          backgroundColor: 'rgba(11, 12, 45, 0.9)'
                         }}>
-                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                          <td style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>
                             <span className="badge" style={{
-                              background: 'rgba(59, 130, 246, 0.2)',
+                              background: 'rgba(11, 12, 45, 0.9)',
                               color: '#3b82f6'
                             }}>#{ticket.ticketId}</span>
                           </td>
-                          <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.subject}</td>
-                          <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                          <td className="text-white" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>{ticket.subject}</td>
+                          <td className="text-white-50" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>
                             <i className={`bi ${getCategoryIcon(ticket.category)} me-1`} style={{ color: '#3b82f6' }}></i>
                             {ticket.category}
                           </td>
-                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{getStatusBadge(ticket.status)}</td>
-                          <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                          <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                          <td style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>{getStatusBadge(ticket.status)}</td>
+                          <td className="text-white-50" style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                          <td style={{ backgroundColor: 'rgba(11, 12, 45, 0.9)' }}>
                             <button className="btn btn-sm" style={{
-                              background: 'rgba(59, 130, 246, 0.2)',
+                              background: 'rgba(3, 5, 68, 0.9)',
                               border: '1px solid rgba(59, 130, 246, 0.5)',
                               color: '#3b82f6'
                             }}>

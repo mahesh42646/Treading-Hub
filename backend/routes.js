@@ -2013,10 +2013,15 @@ router.get('/trading-data/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
+    console.log('Fetching trading data for user:', uid);
+
     const user = await User.findOne({ uid }).select('tradingData');
     if (!user) {
+      console.log('User not found:', uid);
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    console.log('User trading data:', JSON.stringify(user.tradingData, null, 2));
 
     res.json({ success: true, tradingData: user.tradingData || {} });
   } catch (error) {

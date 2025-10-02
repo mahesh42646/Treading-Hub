@@ -289,9 +289,11 @@ export default function DashboardWallet() {
   const fetchTradingData = async () => {
     try {
       if (user?.uid) {
+        console.log('Fetching trading data for user:', user.uid);
         const response = await fetch(buildApiUrl(`/trading-data/${user.uid}`));
         if (response.ok) {
           const result = await response.json();
+          console.log('Trading data response:', result);
           if (result.success && result.tradingData) {
             // Ensure all nested objects exist with default values
             const safeTradingData = {

@@ -250,14 +250,21 @@ router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
     const { uid } = req.params;
     const tradingData = req.body;
 
+    console.log('Updating trading data for user:', uid);
+    console.log('Received trading data:', JSON.stringify(tradingData, null, 2));
+
     const user = await User.findOne({ uid });
     if (!user) {
+      console.log('User not found:', uid);
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    console.log('User found:', user.email);
 
     // Initialize tradingData if it doesn't exist
     if (!user.tradingData) {
       user.tradingData = {};
+      console.log('Initialized empty trading data');
     }
 
     // Update trading data with time-based calculations
@@ -269,8 +276,12 @@ router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
       isActive: true
     });
 
+    console.log('Updated trading data:', JSON.stringify(updatedTradingData, null, 2));
+
     user.tradingData = updatedTradingData;
     await user.save();
+
+    console.log('Trading data saved successfully');
 
     res.json({ success: true, message: 'Trading data updated successfully', tradingData: user.tradingData });
   } catch (error) {

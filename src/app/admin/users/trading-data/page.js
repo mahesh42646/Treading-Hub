@@ -296,6 +296,9 @@ const AdminTradingDataPage = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+      console.log('Saving trading data:', tradingData);
+      console.log('API URL:', baseUrl(`/admin/users/${selectedUser.uid}/trading-data`));
+      
       const response = await fetch(baseUrl(`/admin/users/${selectedUser.uid}/trading-data`), {
         method: 'PUT',
         headers: {
@@ -305,12 +308,16 @@ const AdminTradingDataPage = () => {
         body: JSON.stringify(tradingData)
       });
 
-      if (response.ok) {
+      const result = await response.json();
+      console.log('Response:', result);
+
+      if (response.ok && result.success) {
         alert('Trading data updated successfully!');
         setShowModal(false);
         fetchUsers();
       } else {
-        alert('Failed to update trading data');
+        console.error('API Error:', result);
+        alert(`Failed to update trading data: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating trading data:', error);
@@ -488,10 +495,10 @@ const AdminTradingDataPage = () => {
                               border: '1px solid rgba(59, 130, 246, 0.5)',
                               color: '#3b82f6'
                             }}
-                            onClick={() => openModal(user)}
-                          >
-                            {user.hasTradingData ? 'Edit' : 'Add Data'}
-                          </button>
+                     onClick={() => openModal(user)}
+                   >
+                     {user.hasTradingData ? 'Edit Data' : 'Add Data'}
+                   </button>
                           {user.hasTradingData && (
                             <button
                               className="btn btn-sm"

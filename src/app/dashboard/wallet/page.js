@@ -292,12 +292,139 @@ export default function DashboardWallet() {
         const response = await fetch(buildApiUrl(`/trading-data/${user.uid}`));
         if (response.ok) {
           const result = await response.json();
-          if (result.success) {
-            setTradingData(result.tradingData || tradingData);
+          if (result.success && result.tradingData) {
+            // Ensure all nested objects exist with default values
+            const safeTradingData = {
+              accountInfo: {
+                accountType: 'demo',
+                brokerName: '',
+                accountNumber: '',
+                accountBalance: 0,
+                currency: 'USD',
+                leverage: '1:100',
+                platform: 'MetaTrader 5',
+                accountStatus: 'active',
+                lastUpdated: new Date(),
+                ...result.tradingData.accountInfo
+              },
+              allTimeStats: {
+                totalTrades: 0,
+                winningTrades: 0,
+                losingTrades: 0,
+                winRate: 0,
+                netProfit: 0,
+                grossProfit: 0,
+                grossLoss: 0,
+                profitFactor: 0,
+                averageWin: 0,
+                averageLoss: 0,
+                largestWin: 0,
+                largestLoss: 0,
+                maxDrawdown: 0,
+                maxDrawdownPercent: 0,
+                recoveryFactor: 0,
+                expectancy: 0,
+                sharpeRatio: 0,
+                sortinoRatio: 0,
+                calmarRatio: 0,
+                riskRewardRatio: 0,
+                ...result.tradingData.allTimeStats
+              },
+              last7Days: {
+                totalTrades: 0,
+                winningTrades: 0,
+                losingTrades: 0,
+                winRate: 0,
+                netProfit: 0,
+                grossProfit: 0,
+                grossLoss: 0,
+                profitFactor: 0,
+                averageWin: 0,
+                averageLoss: 0,
+                largestWin: 0,
+                largestLoss: 0,
+                maxDrawdown: 0,
+                maxDrawdownPercent: 0,
+                recoveryFactor: 0,
+                expectancy: 0,
+                sharpeRatio: 0,
+                sortinoRatio: 0,
+                calmarRatio: 0,
+                riskRewardRatio: 0,
+                ...result.tradingData.last7Days
+              },
+              last30Days: {
+                totalTrades: 0,
+                winningTrades: 0,
+                losingTrades: 0,
+                winRate: 0,
+                netProfit: 0,
+                grossProfit: 0,
+                grossLoss: 0,
+                profitFactor: 0,
+                averageWin: 0,
+                averageLoss: 0,
+                largestWin: 0,
+                largestLoss: 0,
+                maxDrawdown: 0,
+                maxDrawdownPercent: 0,
+                recoveryFactor: 0,
+                expectancy: 0,
+                sharpeRatio: 0,
+                sortinoRatio: 0,
+                calmarRatio: 0,
+                riskRewardRatio: 0,
+                ...result.tradingData.last30Days
+              },
+              recentTrades: result.tradingData.recentTrades || [],
+              performanceMetrics: {
+                sharpeRatio: 0,
+                sortinoRatio: 0,
+                calmarRatio: 0,
+                recoveryFactor: 0,
+                expectancy: 0,
+                riskRewardRatio: 0,
+                maxConsecutiveWins: 0,
+                maxConsecutiveLosses: 0,
+                averageTradeDuration: 0,
+                profitPerDay: 0,
+                profitPerWeek: 0,
+                profitPerMonth: 0,
+                ...result.tradingData.performanceMetrics
+              },
+              riskManagement: {
+                maxRiskPerTrade: 0,
+                maxDailyRisk: 0,
+                maxWeeklyRisk: 0,
+                maxMonthlyRisk: 0,
+                riskRewardRatio: 0,
+                positionSize: 0,
+                stopLossPercentage: 0,
+                takeProfitPercentage: 0,
+                ...result.tradingData.riskManagement
+              },
+              goals: {
+                dailyProfitTarget: 0,
+                weeklyProfitTarget: 0,
+                monthlyProfitTarget: 0,
+                yearlyProfitTarget: 0,
+                maxDrawdownLimit: 0,
+                winRateTarget: 0,
+                profitFactorTarget: 0,
+                ...result.tradingData.goals
+              },
+              adminNotes: result.tradingData.adminNotes || '',
+              lastUpdatedBy: result.tradingData.lastUpdatedBy || '',
+              isActive: result.tradingData.isActive || false,
+              createdAt: result.tradingData.createdAt || new Date(),
+              updatedAt: result.tradingData.updatedAt || new Date()
+            };
+            
+            setTradingData(safeTradingData);
             // Update wallet data with trading profit
             setWalletData(prev => ({
               ...prev,
-              totalPnl: result.tradingData?.allTimeStats?.netProfit || 0
+              totalPnl: safeTradingData.allTimeStats?.netProfit || 0
             }));
           }
         }
@@ -1214,19 +1341,19 @@ export default function DashboardWallet() {
                           <div className="row">
                             <div className="col-md-3 col-6 mb-3">
                               <div className="text-white-50 small">Account Type</div>
-                              <div className="text-white fw-medium">{tradingData.accountInfo.accountType.toUpperCase()}</div>
+                              <div className="text-white fw-medium">{(tradingData.accountInfo?.accountType || 'demo').toUpperCase()}</div>
                             </div>
                             <div className="col-md-3 col-6 mb-3">
                               <div className="text-white-50 small">Broker</div>
-                              <div className="text-white fw-medium">{tradingData.accountInfo.brokerName || 'N/A'}</div>
+                              <div className="text-white fw-medium">{tradingData.accountInfo?.brokerName || 'N/A'}</div>
                             </div>
                             <div className="col-md-3 col-6 mb-3">
                               <div className="text-white-50 small">Account Balance</div>
-                              <div className="text-white fw-medium">${tradingData.accountInfo.accountBalance.toFixed(2)}</div>
+                              <div className="text-white fw-medium">${tradingData.accountInfo?.accountBalance?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-3 col-6 mb-3">
                               <div className="text-white-50 small">Leverage</div>
-                              <div className="text-white fw-medium">{tradingData.accountInfo.leverage}</div>
+                              <div className="text-white fw-medium">{tradingData.accountInfo?.leverage || '1:100'}</div>
                             </div>
                           </div>
                         </div>
@@ -1441,21 +1568,21 @@ export default function DashboardWallet() {
                                       color: 'white',
                                       borderColor: 'rgba(124, 124, 124, 0.39)'
                                     }}>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.symbol}</td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
-                                        <span className={`badge ${trade.type === 'buy' ? 'bg-success' : 'bg-danger'}`}>
-                                          {trade.type.toUpperCase()}
-                                        </span>
-                                      </td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.volume}</td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${trade.openPrice.toFixed(5)}</td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${trade.closePrice.toFixed(5)}</td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
-                                        <span className={trade.netProfit >= 0 ? 'text-success' : 'text-danger'}>
-                                          ${trade.netProfit.toFixed(2)}
-                                        </span>
-                                      </td>
-                                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.duration}</td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.symbol || 'N/A'}</td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                                 <span className={`badge ${(trade.type || 'buy') === 'buy' ? 'bg-success' : 'bg-danger'}`}>
+                                   {(trade.type || 'buy').toUpperCase()}
+                                 </span>
+                               </td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.volume || '0'}</td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${(trade.openPrice || 0).toFixed(5)}</td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>${(trade.closePrice || 0).toFixed(5)}</td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                                 <span className={(trade.netProfit || 0) >= 0 ? 'text-success' : 'text-danger'}>
+                                   ${(trade.netProfit || 0).toFixed(2)}
+                                 </span>
+                               </td>
+                               <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{trade.duration || 'N/A'}</td>
                                     </tr>
                                   ))}
                                 </tbody>

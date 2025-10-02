@@ -134,7 +134,22 @@ const AdminTradingDataPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        setTradingData(result.tradingData || tradingData);
+        const existingData = result.tradingData || tradingData;
+        
+        // Pre-populate with trading account information if available
+        if (user.tradingAccount) {
+          existingData.accountInfo = {
+            ...existingData.accountInfo,
+            accountType: user.tradingAccount.provider?.toLowerCase() || 'demo',
+            brokerName: user.tradingAccount.brokerName || '',
+            accountNumber: user.tradingAccount.loginId || '',
+            platform: user.tradingAccount.platform || 'MetaTrader 5',
+            leverage: user.tradingAccount.leverage || '1:100',
+            currency: user.tradingAccount.currency || 'USD'
+          };
+        }
+        
+        setTradingData(existingData);
       }
     } catch (error) {
       console.error('Error fetching trading data:', error);
@@ -230,9 +245,9 @@ const AdminTradingDataPage = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-white">Trading Data Management</h2>
         <div className="d-flex gap-2">
-          <span className="badge bg-primary">{users.length} Total Users</span>
-          <span className="badge bg-success">{users.filter(u => u.hasTradingData).length} With Data</span>
-          <span className="badge bg-secondary">{users.filter(u => !u.hasTradingData).length} Without Data</span>
+          <span className="badge bg-primary">{users.length} Users with Trading Accounts</span>
+          <span className="badge bg-success">{users.filter(u => u.hasTradingData).length} With Analytics</span>
+          <span className="badge bg-secondary">{users.filter(u => !u.hasTradingData).length} Without Analytics</span>
         </div>
       </div>
 
@@ -245,13 +260,13 @@ const AdminTradingDataPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             style={{
               background: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(124, 124, 124, 0.39)',
+              border: '1px solid rgba(52, 57, 74, 0.76)',
               color: 'white'
             }}
           >
             <option value="all" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>All Users</option>
-            <option value="active" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>With Trading Data</option>
-            <option value="inactive" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Without Trading Data</option>
+            <option value="active" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>With Analytics</option>
+            <option value="inactive" style={{ background: 'rgba(0, 0, 0, 0.8)', color: 'white' }}>Without Analytics</option>
           </select>
         </div>
         <div className="col-md-8">
@@ -263,7 +278,7 @@ const AdminTradingDataPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               background: 'rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(124, 124, 124, 0.39)',
+              border: '1px solid rgba(52, 57, 74, 0.76)',
               color: 'white'
             }}
           />
@@ -273,7 +288,7 @@ const AdminTradingDataPage = () => {
       {/* Users List */}
       <div className="card" style={{
         background: 'rgba(60, 58, 58, 0.03)',
-        border: '1px solid rgba(124, 124, 124, 0.39)',
+        border: '1px solid rgba(52, 57, 74, 0.76)',
         backdropFilter: 'blur(20px)',
         boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
       }}>
@@ -289,50 +304,56 @@ const AdminTradingDataPage = () => {
                   color: 'white'
                 }}>
                   <tr>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Account Type</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Broker</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Net Profit</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Win Rate</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Total Trades</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Actions</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>User</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Challenge</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Trading Account</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Status</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Net Profit</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Win Rate</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Total Trades</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(41, 44, 56, 0.82)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user.uid} style={{
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      backgroundColor: 'rgba(52, 57, 74, 0.76)',
                       color: 'white',
-                      borderColor: 'rgba(124, 124, 124, 0.39)'
+                      backgroundColor: 'rgba(52, 57, 74, 0.76)'
                     }}>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         <div>
                           <div className="text-white">{user.email}</div>
                           <small className="text-white-50">{user.uid}</small>
                         </div>
                       </td>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td style={{ backgroundColor: 'rgba(41, 37, 62, 0.39)' }}>
+                        <div>
+                          <div className="text-white small">{user.challengeInfo?.challengeName || 'N/A'}</div>
+                          <small className="text-white-50">${user.challengeInfo?.accountSize || '0'}</small>
+                        </div>
+                      </td>
+                      <td style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
+                        <div>
+                          <div className="text-white small">{user.tradingAccount?.brokerName || 'N/A'}</div>
+                          <small className="text-white-50">{user.tradingAccount?.loginId || 'N/A'}</small>
+                        </div>
+                      </td>
+                      <td style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         <span className={`badge ${user.hasTradingData ? 'bg-success' : 'bg-secondary'}`}>
-                          {user.hasTradingData ? 'Active' : 'No Data'}
+                          {user.hasTradingData ? 'Analytics Active' : 'No Analytics'}
                         </span>
                       </td>
-                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
-                        {user.tradingData?.accountInfo?.accountType || 'N/A'}
-                      </td>
-                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
-                        {user.tradingData?.accountInfo?.brokerName || 'N/A'}
-                      </td>
-                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td className="text-white" style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         ${user.tradingData?.allTimeStats?.netProfit?.toFixed(2) || '0.00'}
                       </td>
-                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td className="text-white" style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         {user.tradingData?.allTimeStats?.winRate?.toFixed(1) || '0.0'}%
                       </td>
-                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td className="text-white" style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         {user.tradingData?.allTimeStats?.totalTrades || 0}
                       </td>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td style={{ backgroundColor: 'rgba(52, 57, 74, 0.76)' }}>
                         <div className="d-flex gap-1">
                           <button
                             className="btn btn-sm"
@@ -385,13 +406,13 @@ const AdminTradingDataPage = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content" style={{
               background: 'rgba(0, 0, 0, 0.95)',
-              border: '1px solid rgba(124, 124, 124, 0.39)',
+              border: '1px solid rgba(52, 57, 74, 0.76)',
               backdropFilter: 'blur(20px)',
               color: 'white'
             }}>
               <div className="modal-header" style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                borderBottom: '1px solid rgba(124, 124, 124, 0.39)'
+                borderBottom: '1px solid rgba(52, 57, 74, 0.76)'
               }}>
                 <h5 className="modal-title text-white">Trading Data - {selectedUser.email}</h5>
                 <button
@@ -406,6 +427,47 @@ const AdminTradingDataPage = () => {
                 maxHeight: '70vh',
                 overflowY: 'auto'
               }}>
+                {/* Challenge Information */}
+                {selectedUser?.challengeInfo && (
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <div className="card border-0" style={{
+                        background: 'rgba(60, 58, 58, 0.03)',
+                        border: '1px solid rgba(52, 57, 74, 0.76)',
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: 'inset 5px 4px 20px 1px rgba(105, 100, 100, 0.44)'
+                      }}>
+                        <div className="card-header" style={{
+                          background: 'transparent',
+                          borderBottom: '1px solid rgba(52, 57, 74, 0.76)'
+                        }}>
+                          <h6 className="text-white mb-0">Challenge Information</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row">
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Challenge Name</div>
+                              <div className="text-white fw-medium">{selectedUser.challengeInfo.challengeName}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Account Size</div>
+                              <div className="text-white fw-medium">${selectedUser.challengeInfo.accountSize}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Platform</div>
+                              <div className="text-white fw-medium">{selectedUser.challengeInfo.platform}</div>
+                            </div>
+                            <div className="col-md-3 col-6 mb-3">
+                              <div className="text-white-50 small">Status</div>
+                              <div className="text-white fw-medium">{selectedUser.challengeInfo.status}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="row">
                   {/* Account Information */}
                   <div className="col-md-6 mb-4">
@@ -415,11 +477,11 @@ const AdminTradingDataPage = () => {
                         <label className="form-label text-white-50">Account Type</label>
                         <select
                           className="form-select"
-                          value={tradingData.accountInfo.accountType}
+                          value={tradingData.accountInfo?.accountType || 'demo'}
                           onChange={(e) => handleInputChange('accountInfo', 'accountType', e.target.value)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         >
@@ -433,11 +495,11 @@ const AdminTradingDataPage = () => {
                         <input
                           type="text"
                           className="form-control"
-                          value={tradingData.accountInfo.brokerName}
+                          value={tradingData.accountInfo?.brokerName || ''}
                           onChange={(e) => handleInputChange('accountInfo', 'brokerName', e.target.value)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -447,11 +509,11 @@ const AdminTradingDataPage = () => {
                         <input
                           type="text"
                           className="form-control"
-                          value={tradingData.accountInfo.accountNumber}
+                          value={tradingData.accountInfo?.accountNumber || ''}
                           onChange={(e) => handleInputChange('accountInfo', 'accountNumber', e.target.value)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -461,11 +523,11 @@ const AdminTradingDataPage = () => {
                         <input
                           type="number"
                           className="form-control"
-                          value={tradingData.accountInfo.accountBalance}
+                          value={tradingData.accountInfo?.accountBalance || 0}
                           onChange={(e) => handleInputChange('accountInfo', 'accountBalance', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -475,11 +537,11 @@ const AdminTradingDataPage = () => {
                         <input
                           type="text"
                           className="form-control"
-                          value={tradingData.accountInfo.currency}
+                          value={tradingData.accountInfo?.currency || 'USD'}
                           onChange={(e) => handleInputChange('accountInfo', 'currency', e.target.value)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -489,11 +551,11 @@ const AdminTradingDataPage = () => {
                         <input
                           type="text"
                           className="form-control"
-                          value={tradingData.accountInfo.leverage}
+                          value={tradingData.accountInfo?.leverage || '1:100'}
                           onChange={(e) => handleInputChange('accountInfo', 'leverage', e.target.value)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -514,7 +576,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'totalTrades', parseInt(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -528,7 +590,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'winningTrades', parseInt(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -543,7 +605,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'totalProfit', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -558,7 +620,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'totalLoss', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -573,7 +635,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'netProfit', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -588,7 +650,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('allTimeStats', 'winRate', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -609,7 +671,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('last7Days', 'totalTrades', parseInt(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -624,7 +686,7 @@ const AdminTradingDataPage = () => {
                           onChange={(e) => handleInputChange('last7Days', 'netProfit', parseFloat(e.target.value) || 0)}
                           style={{
                             background: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid rgba(124, 124, 124, 0.39)',
+                            border: '1px solid rgba(52, 57, 74, 0.76)',
                             color: 'white'
                           }}
                         />
@@ -643,7 +705,7 @@ const AdminTradingDataPage = () => {
                       placeholder="Add admin notes about this user's trading performance..."
                       style={{
                         background: 'rgba(0, 0, 0, 0.6)',
-                        border: '1px solid rgba(124, 124, 124, 0.39)',
+                        border: '1px solid rgba(52, 57, 74, 0.76)',
                         color: 'white'
                       }}
                     ></textarea>
@@ -652,7 +714,7 @@ const AdminTradingDataPage = () => {
               </div>
               <div className="modal-footer" style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                borderTop: '1px solid rgba(124, 124, 124, 0.39)'
+                borderTop: '1px solid rgba(52, 57, 74, 0.76)'
               }}>
                 <div className="d-flex gap-2">
                   <button

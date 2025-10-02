@@ -333,10 +333,13 @@ router.post('/users/:uid/trading-data/trades', verifyAdminAuth, async (req, res)
   }
 });
 
-// Get all users for trading data management
+// Get users with trading accounts for trading data management
 router.get('/trading-data/users', verifyAdminAuth, async (req, res) => {
   try {
-    const users = await User.find({}).select('uid email tradingData');
+    // Find users who have trading accounts assigned through challenges
+    const users = await User.find({
+      'challenges.tradingAccountId': { $exists: true, $ne: null }
+    }).select('uid email challenges tradingData');
 
     // Update time-based data for users with trading data
     for (let user of users) {
@@ -349,12 +352,27 @@ router.get('/trading-data/users', verifyAdminAuth, async (req, res) => {
       }
     }
 
-    // Add trading data status to each user
-    const usersWithStatus = users.map(user => ({
-      ...user.toObject(),
-      hasTradingData: !!(user.tradingData && user.tradingData.isActive),
-      tradingDataStatus: user.tradingData?.isActive ? 'active' : 'inactive'
-    }));
+    // Add trading data status and trading account info to each user
+    const usersWithStatus = users.map(user => {
+      // Get the most recent trading account from challenges
+      const latestTradingAccount = user.challenges
+        .filter(challenge => challenge.tradingAccountId)
+        .sort((a, b) => new Date(b.tradingAssignedAt || 0) - new Date(a.tradingAssignedAt || 0))[0];
+
+      return {
+        ...user.toObject(),
+        hasTradingData: !!(user.tradingData && user.tradingData.isActive),
+        tradingDataStatus: user.tradingData?.isActive ? 'active' : 'inactive',
+        tradingAccount: latestTradingAccount?.tradingAccount || null,
+        challengeInfo: latestTradingAccount ? {
+          challengeName: latestTradingAccount.name,
+          accountSize: latestTradingAccount.accountSize,
+          platform: latestTradingAccount.platform,
+          status: latestTradingAccount.status,
+          assignedAt: latestTradingAccount.tradingAssignedAt
+        } : null
+      };
+    });
 
     res.json({ success: true, users: usersWithStatus });
   } catch (error) {

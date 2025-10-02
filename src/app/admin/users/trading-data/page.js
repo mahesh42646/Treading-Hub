@@ -134,12 +134,138 @@ const AdminTradingDataPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        const existingData = result.tradingData || tradingData;
+        
+        // Safely merge with default values to prevent undefined errors
+        const safeTradingData = {
+          accountInfo: {
+            accountType: 'demo',
+            brokerName: '',
+            accountNumber: '',
+            accountBalance: 0,
+            currency: 'USD',
+            leverage: '1:100',
+            platform: 'MetaTrader 5',
+            accountStatus: 'active',
+            lastUpdated: new Date(),
+            ...result.tradingData?.accountInfo
+          },
+          allTimeStats: {
+            totalTrades: 0,
+            winningTrades: 0,
+            losingTrades: 0,
+            winRate: 0,
+            netProfit: 0,
+            grossProfit: 0,
+            grossLoss: 0,
+            profitFactor: 0,
+            averageWin: 0,
+            averageLoss: 0,
+            largestWin: 0,
+            largestLoss: 0,
+            maxDrawdown: 0,
+            maxDrawdownPercent: 0,
+            recoveryFactor: 0,
+            expectancy: 0,
+            sharpeRatio: 0,
+            sortinoRatio: 0,
+            calmarRatio: 0,
+            riskRewardRatio: 0,
+            ...result.tradingData?.allTimeStats
+          },
+          last7Days: {
+            totalTrades: 0,
+            winningTrades: 0,
+            losingTrades: 0,
+            winRate: 0,
+            netProfit: 0,
+            grossProfit: 0,
+            grossLoss: 0,
+            profitFactor: 0,
+            averageWin: 0,
+            averageLoss: 0,
+            largestWin: 0,
+            largestLoss: 0,
+            maxDrawdown: 0,
+            maxDrawdownPercent: 0,
+            recoveryFactor: 0,
+            expectancy: 0,
+            sharpeRatio: 0,
+            sortinoRatio: 0,
+            calmarRatio: 0,
+            riskRewardRatio: 0,
+            ...result.tradingData?.last7Days
+          },
+          last30Days: {
+            totalTrades: 0,
+            winningTrades: 0,
+            losingTrades: 0,
+            winRate: 0,
+            netProfit: 0,
+            grossProfit: 0,
+            grossLoss: 0,
+            profitFactor: 0,
+            averageWin: 0,
+            averageLoss: 0,
+            largestWin: 0,
+            largestLoss: 0,
+            maxDrawdown: 0,
+            maxDrawdownPercent: 0,
+            recoveryFactor: 0,
+            expectancy: 0,
+            sharpeRatio: 0,
+            sortinoRatio: 0,
+            calmarRatio: 0,
+            riskRewardRatio: 0,
+            ...result.tradingData?.last30Days
+          },
+          recentTrades: result.tradingData?.recentTrades || [],
+          performanceMetrics: {
+            sharpeRatio: 0,
+            sortinoRatio: 0,
+            calmarRatio: 0,
+            recoveryFactor: 0,
+            expectancy: 0,
+            riskRewardRatio: 0,
+            maxConsecutiveWins: 0,
+            maxConsecutiveLosses: 0,
+            averageTradeDuration: 0,
+            profitPerDay: 0,
+            profitPerWeek: 0,
+            profitPerMonth: 0,
+            ...result.tradingData?.performanceMetrics
+          },
+          riskManagement: {
+            maxRiskPerTrade: 0,
+            maxDailyRisk: 0,
+            maxWeeklyRisk: 0,
+            maxMonthlyRisk: 0,
+            riskRewardRatio: 0,
+            positionSize: 0,
+            stopLossPercentage: 0,
+            takeProfitPercentage: 0,
+            ...result.tradingData?.riskManagement
+          },
+          goals: {
+            dailyProfitTarget: 0,
+            weeklyProfitTarget: 0,
+            monthlyProfitTarget: 0,
+            yearlyProfitTarget: 0,
+            maxDrawdownLimit: 0,
+            winRateTarget: 0,
+            profitFactorTarget: 0,
+            ...result.tradingData?.goals
+          },
+          adminNotes: result.tradingData?.adminNotes || '',
+          lastUpdatedBy: result.tradingData?.lastUpdatedBy || '',
+          isActive: result.tradingData?.isActive !== undefined ? result.tradingData.isActive : true,
+          createdAt: result.tradingData?.createdAt || new Date(),
+          updatedAt: result.tradingData?.updatedAt || new Date()
+        };
         
         // Pre-populate with trading account information if available
         if (user.tradingAccount) {
-          existingData.accountInfo = {
-            ...existingData.accountInfo,
+          safeTradingData.accountInfo = {
+            ...safeTradingData.accountInfo,
             accountType: user.tradingAccount.provider?.toLowerCase() || 'demo',
             brokerName: user.tradingAccount.brokerName || '',
             accountNumber: user.tradingAccount.loginId || '',
@@ -149,7 +275,7 @@ const AdminTradingDataPage = () => {
           };
         }
         
-        setTradingData(existingData);
+        setTradingData(safeTradingData);
       }
     } catch (error) {
       console.error('Error fetching trading data:', error);

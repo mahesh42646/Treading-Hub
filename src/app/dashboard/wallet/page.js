@@ -1253,21 +1253,21 @@ export default function DashboardWallet() {
                           <div className="row text-center">
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Total Trades</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.totalTrades}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats?.totalTrades || 0}</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Win Rate</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.winRate.toFixed(1)}%</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats?.winRate?.toFixed(1) || '0.0'}%</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Net Profit</div>
-                              <div className={`fw-bold fs-5 ${tradingData.allTimeStats.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
-                                ${tradingData.allTimeStats.netProfit.toFixed(2)}
+                              <div className={`fw-bold fs-5 ${(tradingData.allTimeStats?.netProfit || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.allTimeStats?.netProfit?.toFixed(2) || '0.00'}
                               </div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Profit Factor</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats.profitFactor.toFixed(2)}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.allTimeStats?.profitFactor?.toFixed(2) || '0.00'}</div>
                             </div>
                           </div>
                         </div>
@@ -1291,21 +1291,21 @@ export default function DashboardWallet() {
                           <div className="row text-center">
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Trades</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.totalTrades}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days?.totalTrades || 0}</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Win Rate</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.winRate.toFixed(1)}%</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days?.winRate?.toFixed(1) || '0.0'}%</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Net Profit</div>
-                              <div className={`fw-bold fs-5 ${tradingData.last7Days.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
-                                ${tradingData.last7Days.netProfit.toFixed(2)}
+                              <div className={`fw-bold fs-5 ${(tradingData.last7Days?.netProfit || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.last7Days?.netProfit?.toFixed(2) || '0.00'}
                               </div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Profit Factor</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last7Days.profitFactor.toFixed(2)}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last7Days?.profitFactor?.toFixed(2) || '0.00'}</div>
                             </div>
                           </div>
                         </div>
@@ -1329,21 +1329,21 @@ export default function DashboardWallet() {
                           <div className="row text-center">
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Trades</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.totalTrades}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days?.totalTrades || 0}</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Win Rate</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.winRate.toFixed(1)}%</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days?.winRate?.toFixed(1) || '0.0'}%</div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Net Profit</div>
-                              <div className={`fw-bold fs-5 ${tradingData.last30Days.netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
-                                ${tradingData.last30Days.netProfit.toFixed(2)}
+                              <div className={`fw-bold fs-5 ${(tradingData.last30Days?.netProfit || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                                ${tradingData.last30Days?.netProfit?.toFixed(2) || '0.00'}
                               </div>
                             </div>
                             <div className="col-6 mb-3">
                               <div className="text-white-50 small">Profit Factor</div>
-                              <div className="text-white fw-bold fs-5">{tradingData.last30Days.profitFactor.toFixed(2)}</div>
+                              <div className="text-white fw-bold fs-5">{tradingData.last30Days?.profitFactor?.toFixed(2) || '0.00'}</div>
                             </div>
                           </div>
                         </div>
@@ -1370,27 +1370,27 @@ export default function DashboardWallet() {
                           <div className="row">
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Sharpe Ratio</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.sharpeRatio.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.sharpeRatio?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Sortino Ratio</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.sortinoRatio.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.sortinoRatio?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Calmar Ratio</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.calmarRatio.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.calmarRatio?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Recovery Factor</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.recoveryFactor.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.recoveryFactor?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Expectancy</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.expectancy.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.expectancy?.toFixed(2) || '0.00'}</div>
                             </div>
                             <div className="col-md-2 col-4 mb-3 text-center">
                               <div className="text-white-50 small">Risk/Reward</div>
-                              <div className="text-white fw-bold">{tradingData.performanceMetrics.riskRewardRatio.toFixed(2)}</div>
+                              <div className="text-white fw-bold">{tradingData.performanceMetrics?.riskRewardRatio?.toFixed(2) || '0.00'}</div>
                             </div>
                           </div>
                         </div>

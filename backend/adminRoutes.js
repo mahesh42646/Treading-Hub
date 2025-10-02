@@ -161,7 +161,7 @@ const updateTimeBasedData = (tradingData) => {
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  // Update last7Days based on recent trades
+  // Only update time-based data if recentTrades exist and have data
   if (tradingData.recentTrades && tradingData.recentTrades.length > 0) {
     const recent7DayTrades = tradingData.recentTrades.filter(trade => 
       new Date(trade.closeTime) >= sevenDaysAgo
@@ -171,21 +171,25 @@ const updateTimeBasedData = (tradingData) => {
       new Date(trade.closeTime) >= thirtyDaysAgo
     );
 
-    // Calculate 7-day stats
-    const sevenDayStats = calculateTradingStats(recent7DayTrades);
-    tradingData.last7Days = {
-      ...tradingData.last7Days,
-      ...sevenDayStats,
-      totalTrades: recent7DayTrades.length
-    };
+    // Calculate 7-day stats only if there are trades
+    if (recent7DayTrades.length > 0) {
+      const sevenDayStats = calculateTradingStats(recent7DayTrades);
+      tradingData.last7Days = {
+        ...tradingData.last7Days,
+        ...sevenDayStats,
+        totalTrades: recent7DayTrades.length
+      };
+    }
 
-    // Calculate 30-day stats
-    const thirtyDayStats = calculateTradingStats(recent30DayTrades);
-    tradingData.last30Days = {
-      ...tradingData.last30Days,
-      ...thirtyDayStats,
-      totalTrades: recent30DayTrades.length
-    };
+    // Calculate 30-day stats only if there are trades
+    if (recent30DayTrades.length > 0) {
+      const thirtyDayStats = calculateTradingStats(recent30DayTrades);
+      tradingData.last30Days = {
+        ...tradingData.last30Days,
+        ...thirtyDayStats,
+        totalTrades: recent30DayTrades.length
+      };
+    }
   }
 
   return tradingData;
@@ -269,7 +273,6 @@ router.put('/users/:uid/trading-data', verifyAdminAuth, async (req, res) => {
 
     // Update trading data with time-based calculations
     const updatedTradingData = updateTimeBasedData({
-      ...user.tradingData,
       ...tradingData,
       updatedAt: new Date(),
       lastUpdatedBy: req.admin?.email || 'admin',

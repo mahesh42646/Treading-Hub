@@ -1247,7 +1247,7 @@ const AdminUsers = () => {
                             <div className="col-md-6">
                               <div className="small text-muted mb-1">PAN Card Image</div>
                               <img
-                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${selectedUser.profile.kyc.panCardImage}`}
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.panCardImage}`}
                                 alt="PAN"
                                 className="img-fluid rounded border"
                               />
@@ -1257,7 +1257,7 @@ const AdminUsers = () => {
                             <div className="col-md-6">
                               <div className="small text-muted mb-1">Profile Photo</div>
                               <img
-                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${selectedUser.profile.kyc.profilePhoto}`}
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.profilePhoto}`}
                                 alt="Profile"
                                 className="img-fluid rounded border"
                               />

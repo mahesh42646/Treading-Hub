@@ -1374,10 +1374,7 @@ const AdminUsers = () => {
                       <div><strong>City:</strong></div>
                       <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.city || 'N/A'}</div>
                     </div>
-                    <div className="col-md-3">
-                      <div><strong>State:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.state || 'N/A'}</div>
-                    </div>
+                   
                     <div className="col-md-3">
                       <div><strong>Country:</strong></div>
                       <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.country || 'N/A'}</div>
@@ -1405,22 +1402,7 @@ const AdminUsers = () => {
                       <div><strong>Applied At:</strong></div>
                       <div className="text-muted mt-1">{selectedUser.profile.kyc?.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
                     </div>
-                    <div className="col-md-3">
-                      <div><strong>Approved At:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.approvedAt ? new Date(selectedUser.profile.kyc.approvedAt).toLocaleString() : 'N/A'}</div>
-                    </div>
-                    <div className="col-md-3">
-                      <div><strong>Rejected At:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.rejectedAt ? new Date(selectedUser.profile.kyc.rejectedAt).toLocaleString() : 'N/A'}</div>
-                    </div>
-                    <div className="col-md-3">
-                      <div><strong>Last Updated:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.updatedAt ? new Date(selectedUser.profile.kyc.updatedAt).toLocaleString() : 'N/A'}</div>
-                    </div>
-                    <div className="col-md-3">
-                      <div><strong>Updated By:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.updatedBy || 'N/A'}</div>
-                    </div>
+              
 
                     {/* KYC Documents */}
                     {(selectedUser.profile.kyc?.panCardImage || selectedUser.profile.kyc?.profilePhoto) && (
@@ -1428,27 +1410,27 @@ const AdminUsers = () => {
                         <h6 className="text-primary mb-3">KYC Documents</h6>
                         <div className="row g-3">
                           {selectedUser.profile.kyc.panCardImage && (
-                            <div className="col-md-6">
+                            <div className="col-md-3">
                               <div className="small text-muted mb-1">PAN Card Image</div>
                               <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.panCardImage}`}
                                 alt="PAN"
                                 className="img-fluid rounded border"
-                                width={300}
-                                height={200}
+                                width={100}
+                                height={75}
                                 style={{ objectFit: 'contain', maxHeight: '200px', width: '100%', height: 'auto' }}
                               />
                             </div>
                           )}
                           {selectedUser.profile.kyc.profilePhoto && (
-                            <div className="col-md-6">
+                            <div className="col-md-3">
                               <div className="small text-muted mb-1">Profile Photo</div>
                               <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.profilePhoto}`}
                                 alt="Profile"
                                 className="img-fluid rounded border"
-                                width={300}
-                                height={200}
+                                width={100}
+                                height={75}
                                 style={{ objectFit: 'contain', maxHeight: '200px', width: '100%', height: 'auto' }}
                               />
                             </div>
@@ -2742,16 +2724,7 @@ const AdminUsers = () => {
                       placeholder="Enter country"
                     />
                   </div>
-                  <div className="col-12">
-                    <label className="form-label">Address</label>
-                    <textarea
-                      className="form-control"
-                      rows="3"
-                      value={profileEditData.address}
-                      onChange={(e) => setProfileEditData({...profileEditData, address: e.target.value})}
-                      placeholder="Enter full address"
-                    />
-                  </div>
+                
                 </div>
               </div>
               <div className="modal-footer">

@@ -950,27 +950,27 @@ const AdminUsers = () => {
                             </div>
                           </div>
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           {user.profile ? (
                             <span className="badge bg-success">Complete</span>
                           ) : (
                             <span className="badge bg-warning">Incomplete</span>
                           )}
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           {user.profile?.kyc?.status ? (
                             getKycStatusBadge(user.profile.kyc.status)
                           ) : (
                             <span className="badge bg-secondary">Not Started</span>
                           )}
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           <div>
                             <small className="text-white">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
                             <small className="text-white">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
                           </div>
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           <div>
                             <span className="badge bg-primary me-1">
                               Total: {user.profile?.referral?.totalReferrals || 0}
@@ -990,12 +990,12 @@ const AdminUsers = () => {
                             )}
                           </div>
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           <small className="text-white">
                             {new Date(user.createdAt).toLocaleDateString()}
                           </small>
                         </td>
-                        <td className=' bg-black text-white '>
+                        <td className=' bg-black-blue text-white '>
                           <div className="btn-group btn-group-sm">
                             <button 
                               className="btn btn-outline-primary"
@@ -1113,8 +1113,8 @@ const AdminUsers = () => {
       {activeTab === 'details' && selectedUser && (
         <div className="row">
           {/* User Info Card */}
-          <div className="col-lg-4 mb-4 bg-black text-white ">
-            <div className="card border-0 shadow-sm bg-black text-white  h-100">
+          <div className="col-lg-4 mb-4 bg-black-blue text-white ">
+            <div className="card border-0 shadow-sm bg-black-blue text-white  h-100">
               <div className="card-body">
                 <h5 className="card-title text-white ">User Information</h5>
                 <div className="mb-3">
@@ -1182,8 +1182,8 @@ const AdminUsers = () => {
           </div>
 
           {/* Wallet Management */}
-          <div className="col-lg-8 mb-4 bg-black text-white  h-100">
-            <div className="card border-0 shadow-sm bg-black text-white  h-100">
+          <div className="col-lg-8 mb-4 bg-black-blue text-white  h-100">
+            <div className="card border-0 shadow-sm bg-black-blue text-white  h-100">
               <div className="card-body h-100">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h5 className="card-title text-white  mb-0">
@@ -1270,9 +1270,9 @@ const AdminUsers = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="row bg-black text-white ">
-                    <div className="col-md-6 bg-black text-white ">
-                      <div className="card  bg-opacity-10 bg-black text-white ">
+                  <div className="row bg-black-blue text-white ">
+                    <div className="col-md-6 bg-black-blue text-white ">
+                      <div className="card  bg-opacity-10 bg-black-blue text-white ">
                         <div className="card-body text-center">
                           <h4 className="text-primary">₹{userAnalytics?.wallet?.walletBalance || 0}</h4>
                           <small className="text-white">Wallet Balance</small>
@@ -1294,10 +1294,10 @@ const AdminUsers = () => {
           </div>
 
           {/* KYC Details */}
-          <div className="col-12 mb-4 bg-black text-white ">
-            <div className="card border-0 shadow-sm bg-black text-white ">
-              <div className="card-body bg-black text-white ">
-                <div className="d-flex bg-black text-white  justify-content-between align-items-center mb-3">
+          <div className="col-12 mb-4 bg-black-blue text-white ">
+            <div className="card border-0 shadow-sm bg-black-blue text-white ">
+              <div className="card-body bg-black-blue text-white ">
+                <div className="d-flex bg-black-blue text-white  justify-content-between align-items-center mb-3">
                   <h5 className="card-title text-white  mb-0">KYC Details & Profile Management</h5>
                   <div className="btn-group btn-group-sm">
                     <button 
@@ -1339,7 +1339,7 @@ const AdminUsers = () => {
                 </div>
 
                 {selectedUser.profile ? (
-                  <div className="row g-3 bg-black text-white ">
+                  <div className="row g-3 bg-black-blue text-white ">
                     {/* Personal Information */}
                     <div className="col-12">
                       <h6 className="text-primary mb-3">Personal Information</h6>
@@ -1456,7 +1456,7 @@ const AdminUsers = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-4 bg-black text-white ">
+                  <div className="text-center py-4 bg-black-blue text-white ">
                     <div className="text-white mb-3">No profile data available</div>
                     <button 
                       className="btn btn-primary"
@@ -1473,7 +1473,7 @@ const AdminUsers = () => {
 
           {/* Challenges Management - Only show if user has challenges */}
           {userChallenges && userChallenges.length > 0 && (
-            <div className="col-12 mb-4 bg-black text-white ">
+            <div className="col-12 mb-4 bg-black-blue text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1512,16 +1512,16 @@ const AdminUsers = () => {
                       <tbody>
                         {(userChallenges || []).map((challenge, idx) => (
                           <tr key={idx}>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <strong>{challenge.name}</strong>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <span className="badge bg-info">{challenge.type}</span>
                             </td>
-                            <td className=' bg-black text-white '>${challenge.accountSize.toLocaleString()}</td>
-                            <td className=' bg-black text-white '>{challenge.platform}</td>
-                            <td className=' bg-black text-white '>₹{challenge.price}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>${challenge.accountSize.toLocaleString()}</td>
+                            <td className=' bg-black-blue text-white '>{challenge.platform}</td>
+                            <td className=' bg-black-blue text-white '>₹{challenge.price}</td>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${
                                 challenge.status === 'active' ? 'bg-success' :
                                 challenge.status === 'passed' ? 'bg-primary' :
@@ -1532,14 +1532,14 @@ const AdminUsers = () => {
                                 {challenge.status}
                               </span>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${
                                 challenge.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
                               }`}>
                                 {challenge.assignedBy}
                               </span>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <div className="btn-group btn-group-sm">
                                 <button 
                                   className="btn btn-outline-primary"
@@ -1597,7 +1597,7 @@ const AdminUsers = () => {
 
           {/* UPI Deposit Requests - Only show if user has UPI deposits */}
           {upiDeposits && upiDeposits.length > 0 && (
-            <div className="col-12 mb-4 bg-black text-white ">
+            <div className="col-12 mb-4 bg-black-blue text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1622,15 +1622,15 @@ const AdminUsers = () => {
                       <tbody>
                         {upiDeposits.map(d => (
                           <tr key={d._id}>
-                            <td className=' bg-black text-white '>{new Date(d.submittedAt).toLocaleString()}</td>
-                            <td className=' bg-black text-white '><code>{d.upiTransactionId}</code></td>
-                            <td className=' bg-black text-white '>₹{Number(d.amount).toFixed(2)}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>{new Date(d.submittedAt).toLocaleString()}</td>
+                            <td className=' bg-black-blue text-white '><code>{d.upiTransactionId}</code></td>
+                            <td className=' bg-black-blue text-white '>₹{Number(d.amount).toFixed(2)}</td>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${d.status === 'pending' ? 'bg-warning' : d.status === 'completed' ? 'bg-success' : 'bg-danger'}`}>{d.status}</span>
                             </td>
-                            <td className=' bg-black text-white '>{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</td>
+                            <td className=' bg-black-blue text-white '>{d.processedAt ? new Date(d.processedAt).toLocaleString() : '-'}</td>
                             <td className="text-truncate" style={{ maxWidth: '200px' }}>{d.adminNote || '-'}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <div className="btn-group btn-group-sm">
                                 <button
                                   className="btn btn-outline-success"
@@ -1662,7 +1662,7 @@ const AdminUsers = () => {
 
           {/* Referral Management - Only show if user has referrals */}
           {userAnalytics?.referrals?.referredUsers && userAnalytics.referrals.referredUsers.length > 0 && (
-            <div className="col-12 mb-4 bg-black text-white ">
+            <div className="col-12 mb-4 bg-black-blue text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <h5 className="card-title text-white  mb-3">
@@ -1720,10 +1720,10 @@ const AdminUsers = () => {
                       <tbody>
                         {userAnalytics.referrals.referredUsers.map((ref, idx) => (
                           <tr key={idx}>
-                            <td className=' bg-black text-white '>{ref.name || 'N/A'}</td>
-                            <td className=' bg-black text-white '>{ref.email}</td>
-                            <td className=' bg-black text-white '>{new Date(ref.joinedAt).toLocaleDateString()}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>{ref.name || 'N/A'}</td>
+                            <td className=' bg-black-blue text-white '>{ref.email}</td>
+                            <td className=' bg-black-blue text-white '>{new Date(ref.joinedAt).toLocaleDateString()}</td>
+                            <td className=' bg-black-blue text-white '>
                               <div className="d-flex align-items-center gap-2">
                                 <span className={`badge ${ref.hasDeposited ? 'bg-success' : 'bg-warning'}`}>
                                   {ref.hasDeposited ? 'Active' : 'Pending'}
@@ -1743,8 +1743,8 @@ const AdminUsers = () => {
                                 )}
                               </div>
                             </td>
-                            <td className=' bg-black text-white '>₹{ref.totalDeposits}</td>
-                            <td className=' bg-black text-white '>₹{ref.referralBonus}</td>
+                            <td className=' bg-black-blue text-white '>₹{ref.totalDeposits}</td>
+                            <td className=' bg-black-blue text-white '>₹{ref.referralBonus}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1757,7 +1757,7 @@ const AdminUsers = () => {
 
           {/* Transaction Management - Only show if user has transactions */}
           {userAnalytics?.transactions?.transactions && userAnalytics.transactions.transactions.length > 0 && (
-            <div className="col-12 bg-black text-white ">
+            <div className="col-12 bg-black-blue text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <h5 className="card-title text-white  mb-3">
@@ -1780,7 +1780,7 @@ const AdminUsers = () => {
                       <tbody>
                         {userAnalytics.transactions.transactions.map((tx, idx) => (
                           <tr key={idx}>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${
                                 tx.type === 'deposit' ? 'bg-success' :
                                 tx.type === 'withdrawal' ? 'bg-danger' :
@@ -1790,8 +1790,8 @@ const AdminUsers = () => {
                                 {tx.type.replace('_', ' ').toUpperCase()}
                               </span>
                             </td>
-                            <td className=' bg-black text-white '>₹{tx.amount}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>₹{tx.amount}</td>
+                            <td className=' bg-black-blue text-white '>
                               <div className="d-flex align-items-center gap-2">
                                 {getTransactionStatusBadge(tx.status)}
                                 {tx.status !== 'completed' && (
@@ -1809,8 +1809,8 @@ const AdminUsers = () => {
                                 )}
                               </div>
                             </td>
-                            <td className=' bg-black text-white '>{new Date(tx.createdAt).toLocaleDateString()}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>{new Date(tx.createdAt).toLocaleDateString()}</td>
+                            <td className=' bg-black-blue text-white '>
                               <div>
                                 <div>{tx.description}</div>
                                 {tx.metadata?.referredUserEmail && (
@@ -1818,7 +1818,7 @@ const AdminUsers = () => {
                                 )}
                               </div>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <button 
                                 className="btn btn-outline-primary btn-sm"
                                 onClick={() => setTransactionEditMode(!transactionEditMode)}
@@ -2056,7 +2056,7 @@ const AdminUsers = () => {
                     <tbody>
                       {userTransactions.map((transaction) => (
                         <tr key={transaction._id}>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>
                             <div className="d-flex align-items-center">
                               <span className="me-2">
                                 {transaction.type === 'deposit' && '💰'}
@@ -2074,7 +2074,7 @@ const AdminUsers = () => {
                               <span className="text-capitalize">{transaction.type.replace('_', ' ')}</span>
                             </div>
                           </td>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>
                             <span className={`fw-bold ${
                               ['deposit', 'referral_bonus', 'admin_credit', 'profit', 'withdrawal_rejected', 'refund'].includes(transaction.type) 
                                 ? 'text-success' 
@@ -2083,7 +2083,7 @@ const AdminUsers = () => {
                               {['deposit', 'referral_bonus', 'admin_credit', 'profit', 'withdrawal_rejected', 'refund'].includes(transaction.type) ? '+' : '-'}₹{Math.abs(transaction.amount).toFixed(2)}
                             </span>
                           </td>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>
                             <div>
                               <div>{transaction.description}</div>
                               {transaction.metadata?.referredUserEmail && (
@@ -2091,7 +2091,7 @@ const AdminUsers = () => {
                               )}
                             </div>
                           </td>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>
                             <span className={`badge ${
                               
                               transaction.source === 'razorpay' ? 'bg-primary' :
@@ -2106,7 +2106,7 @@ const AdminUsers = () => {
                               {transaction.source}
                             </span>
                           </td>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>
                             <span className={`badge ${
                               transaction.status === 'pending' ? 'bg-warning' :
                               transaction.status === 'completed' ? 'bg-success' :
@@ -2117,8 +2117,8 @@ const AdminUsers = () => {
                               {transaction.status}
                             </span>
                           </td>
-                          <td className=' bg-black text-white '>₹{transaction.balanceAfter?.toFixed(2) || 'N/A'}</td>
-                          <td className=' bg-black text-white '>
+                          <td className=' bg-black-blue text-white '>₹{transaction.balanceAfter?.toFixed(2) || 'N/A'}</td>
+                          <td className=' bg-black-blue text-white '>
                             <div>
                               <div>{new Date(transaction.createdAt).toLocaleDateString()}</div>
                               <small className="text-white">
@@ -2276,14 +2276,14 @@ const AdminUsers = () => {
                       <tbody>
                         {(userChallenges || []).map((challenge, idx) => (
                           <tr key={idx}>
-                            <td className=' bg-black text-white '><strong>{challenge.name}</strong></td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '><strong>{challenge.name}</strong></td>
+                            <td className=' bg-black-blue text-white '>
                               <span className="badge bg-info">{challenge.type}</span>
                             </td>
-                            <td className=' bg-black text-white '>${challenge.accountSize.toLocaleString()}</td>
-                            <td className=' bg-black text-white '>{challenge.platform}</td>
-                            <td className=' bg-black text-white '>₹{challenge.price}</td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>${challenge.accountSize.toLocaleString()}</td>
+                            <td className=' bg-black-blue text-white '>{challenge.platform}</td>
+                            <td className=' bg-black-blue text-white '>₹{challenge.price}</td>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${
                                 challenge.status === 'active' ? 'bg-success' :
                                 challenge.status === 'passed' ? 'bg-primary' :
@@ -2294,14 +2294,14 @@ const AdminUsers = () => {
                                 {challenge.status}
                               </span>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <span className={`badge ${
                                 challenge.assignedBy === 'admin' ? 'bg-primary' : 'bg-info'
                               }`}>
                                 {challenge.assignedBy}
                               </span>
                             </td>
-                            <td className=' bg-black text-white '>
+                            <td className=' bg-black-blue text-white '>
                               <div className="btn-group btn-group-sm">
                                 <button 
                                   className="btn btn-outline-primary"

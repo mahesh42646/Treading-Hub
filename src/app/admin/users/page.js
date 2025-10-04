@@ -424,18 +424,25 @@ const AdminUsers = () => {
   };
 
   const openProfileEditModal = () => {
-    if (selectedUser?.profile) {
-      setProfileEditData({
-        fullName: selectedUser.profile.fullName || '',
-        mobileNumber: selectedUser.profile.mobileNumber || '',
-        dateOfBirth: selectedUser.profile.dateOfBirth ? new Date(selectedUser.profile.dateOfBirth).toISOString().split('T')[0] : '',
-        gender: selectedUser.profile.gender || '',
-        city: selectedUser.profile.city || '',
-        state: selectedUser.profile.state || '',
-        country: selectedUser.profile.country || '',
-        address: selectedUser.profile.address || ''
-      });
+    console.log('Opening profile edit modal for user:', selectedUser);
+    console.log('User profile data:', selectedUser?.profile);
+    
+    if (selectedUser?.profile?.personalInfo) {
+      const personalInfo = selectedUser.profile.personalInfo;
+      const profileData = {
+        fullName: `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`.trim(),
+        mobileNumber: personalInfo.phone || '',
+        dateOfBirth: personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: personalInfo.gender || '',
+        city: personalInfo.city || '',
+        state: personalInfo.state || '',
+        country: personalInfo.country || '',
+        address: personalInfo.address || ''
+      };
+      console.log('Setting profile edit data:', profileData);
+      setProfileEditData(profileData);
     } else {
+      console.log('No profile data found, setting empty form');
       setProfileEditData({
         fullName: '',
         mobileNumber: '',
@@ -455,13 +462,34 @@ const AdminUsers = () => {
 
     try {
       setSavingProfile(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${selectedUser.uid}/profile`, {
+      
+      // Convert form data to the correct profile structure
+      const [firstName, ...lastNameParts] = profileEditData.fullName.split(' ');
+      const lastName = lastNameParts.join(' ');
+      
+      const profileUpdateData = {
+        personalInfo: {
+          firstName: firstName || '',
+          lastName: lastName || '',
+          phone: profileEditData.mobileNumber,
+          dateOfBirth: profileEditData.dateOfBirth ? new Date(profileEditData.dateOfBirth) : null,
+          gender: profileEditData.gender,
+          city: profileEditData.city,
+          state: profileEditData.state,
+          country: profileEditData.country,
+          address: profileEditData.address
+        }
+      };
+
+      console.log('Sending profile update data:', profileUpdateData);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${selectedUser.uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify(profileEditData)
+        body: JSON.stringify(profileUpdateData)
       });
 
       if (response.ok) {
@@ -1318,7 +1346,10 @@ const AdminUsers = () => {
                     </div>
                     <div className="col-md-3">
                       <div><strong>Full Name:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.fullName || 'N/A'}</div>
+                      <div className="text-muted mt-1">
+                        {selectedUser.profile?.personalInfo ? 
+                          `${selectedUser.profile.personalInfo.firstName || ''} ${selectedUser.profile.personalInfo.lastName || ''}`.trim() || 'N/A' : 'N/A'}
+                      </div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Email:</strong></div>
@@ -1326,27 +1357,30 @@ const AdminUsers = () => {
                     </div>
                     <div className="col-md-3">
                       <div><strong>Mobile Number:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.mobileNumber || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.phone || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Date of Birth:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.dateOfBirth ? new Date(selectedUser.profile.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+                      <div className="text-muted mt-1">
+                        {selectedUser.profile?.personalInfo?.dateOfBirth ? 
+                          new Date(selectedUser.profile.personalInfo.dateOfBirth).toLocaleDateString() : 'N/A'}
+                      </div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Gender:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.gender || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.gender || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>City:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.city || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.city || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>State:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.state || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.state || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Country:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.country || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.country || 'N/A'}</div>
                     </div>
 
                     {/* KYC Information */}

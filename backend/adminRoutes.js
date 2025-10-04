@@ -156,13 +156,13 @@ router.post('/login', (req, res) => {
 // ===== USER PROFILE MANAGEMENT (ADMIN) =====
 
 // Update user profile
-router.put('/users/:uid/profile', verifyAdminAuth, async (req, res) => {
+router.put('/users/:uid', verifyAdminAuth, async (req, res) => {
   try {
     const { uid } = req.params;
-    const profileData = req.body;
+    const updateData = req.body;
 
-    console.log('Updating profile for user:', uid);
-    console.log('Received profile data:', JSON.stringify(profileData, null, 2));
+    console.log('Updating user:', uid);
+    console.log('Received update data:', JSON.stringify(updateData, null, 2));
 
     const user = await User.findOne({ uid });
     if (!user) {
@@ -172,28 +172,39 @@ router.put('/users/:uid/profile', verifyAdminAuth, async (req, res) => {
 
     console.log('User found:', user.email);
 
-    // Initialize profile if it doesn't exist
-    if (!user.profile) {
-      user.profile = {};
-      console.log('Initialized empty profile');
+    // Update profile data if personalInfo is provided
+    if (updateData.personalInfo) {
+      if (!user.profile) {
+        user.profile = {};
+      }
+      if (!user.profile.personalInfo) {
+        user.profile.personalInfo = {};
+      }
+      
+      user.profile.personalInfo = {
+        ...user.profile.personalInfo,
+        ...updateData.personalInfo,
+        updatedAt: new Date(),
+        updatedBy: req.admin?.email || 'admin'
+      };
     }
 
-    // Update profile data
-    user.profile = {
-      ...user.profile,
-      ...profileData,
-      updatedAt: new Date(),
-      updatedBy: req.admin?.email || 'admin'
-    };
+    // Update other user fields if provided
+    const allowedFields = ['email', 'isActive', 'role'];
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        user[field] = updateData[field];
+      }
+    });
 
     await user.save();
 
-    console.log('Profile updated successfully');
+    console.log('User updated successfully');
 
-    res.json({ success: true, message: 'Profile updated successfully', profile: user.profile });
+    res.json({ success: true, message: 'User updated successfully', user: user });
   } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+    console.error('Update user error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update user', error: error.message });
   }
 });
 

@@ -966,8 +966,8 @@ const AdminUsers = () => {
                         </td>
                         <td className=' bg-black text-white '>
                           <div>
-                            <small className="text-muted">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
-                            <small className="text-muted">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
+                            <small className="text-white">Wallet: ₹{user.profile?.wallet?.walletBalance || 0}</small><br/>
+                            <small className="text-white">Referral: ₹{user.profile?.wallet?.referralBalance || 0}</small>
                           </div>
                         </td>
                         <td className=' bg-black text-white '>
@@ -991,7 +991,7 @@ const AdminUsers = () => {
                           </div>
                         </td>
                         <td className=' bg-black text-white '>
-                          <small className="text-muted">
+                          <small className="text-white">
                             {new Date(user.createdAt).toLocaleDateString()}
                           </small>
                         </td>
@@ -1116,19 +1116,19 @@ const AdminUsers = () => {
           <div className="col-lg-4 mb-4 bg-black text-white ">
             <div className="card border-0 shadow-sm bg-black text-white  h-100">
               <div className="card-body">
-                <h5 className="card-title">User Information</h5>
+                <h5 className="card-title text-white ">User Information</h5>
                 <div className="mb-3">
                   <strong>Email:</strong><br/>
-                  <span className="text-muted">{selectedUser.email}</span>
+                  <span className="text-white">{selectedUser.email}</span>
                 </div>
                 <div className="mb-3">
                   <strong>UID:</strong><br/>
-                  <span className="text-muted">{selectedUser.uid}</span>
+                  <span className="text-white">{selectedUser.uid}</span>
                 </div>
                <div className="d-flex justify-content-between align-items-center">
                <div className="mb-3">
                   <strong>Joined:</strong><br/>
-                  <span className="text-muted">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
+                  <span className="text-white">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="mb-3">
                   <strong>Profile Status:</strong><br/>
@@ -1186,7 +1186,7 @@ const AdminUsers = () => {
             <div className="card border-0 shadow-sm bg-black text-white  h-100">
               <div className="card-body h-100">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="card-title mb-0">
+                  <h5 className="card-title text-white  mb-0">
                     <FaWallet className="me-2" />
                     Wallet Management
                   </h5>
@@ -1275,7 +1275,7 @@ const AdminUsers = () => {
                       <div className="card  bg-opacity-10 bg-black text-white ">
                         <div className="card-body text-center">
                           <h4 className="text-primary">₹{userAnalytics?.wallet?.walletBalance || 0}</h4>
-                          <small className="text-muted">Wallet Balance</small>
+                          <small className="text-white">Wallet Balance</small>
                         </div>
                       </div>
                     </div>
@@ -1283,7 +1283,7 @@ const AdminUsers = () => {
                       <div className="card bg-warning bg-opacity-10">
                         <div className="card-body text-center">
                           <h4 className="text-warning">₹{userAnalytics?.wallet?.referralBalance || 0}</h4>
-                          <small className="text-muted">Referral Balance</small>
+                          <small className="text-white">Referral Balance</small>
                         </div>
                       </div>
                     </div>
@@ -1298,7 +1298,7 @@ const AdminUsers = () => {
             <div className="card border-0 shadow-sm bg-black text-white ">
               <div className="card-body bg-black text-white ">
                 <div className="d-flex bg-black text-white  justify-content-between align-items-center mb-3">
-                  <h5 className="card-title mb-0">KYC Details & Profile Management</h5>
+                  <h5 className="card-title text-white  mb-0">KYC Details & Profile Management</h5>
                   <div className="btn-group btn-group-sm">
                     <button 
                       className="btn btn-outline-primary"
@@ -1346,38 +1346,38 @@ const AdminUsers = () => {
                     </div>
                     <div className="col-md-3">
                       <div><strong>Full Name:</strong></div>
-                      <div className="text-muted mt-1">
+                      <div className="text-white mt-1">
                         {selectedUser.profile?.personalInfo ? 
                           `${selectedUser.profile.personalInfo.firstName || ''} ${selectedUser.profile.personalInfo.lastName || ''}`.trim() || 'N/A' : 'N/A'}
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Email:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.email}</div>
+                      <div className="text-white mt-1">{selectedUser.email}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Mobile Number:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.phone || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile?.personalInfo?.phone || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Date of Birth:</strong></div>
-                      <div className="text-muted mt-1">
+                      <div className="text-white mt-1">
                         {selectedUser.profile?.personalInfo?.dateOfBirth ? 
                           new Date(selectedUser.profile.personalInfo.dateOfBirth).toLocaleDateString() : 'N/A'}
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Gender:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.gender || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile?.personalInfo?.gender || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>City:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.city || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile?.personalInfo?.city || 'N/A'}</div>
                     </div>
                    
                     <div className="col-md-3">
                       <div><strong>Country:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile?.personalInfo?.country || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile?.personalInfo?.country || 'N/A'}</div>
                     </div>
 
                     {/* KYC Information */}
@@ -1392,15 +1392,15 @@ const AdminUsers = () => {
                     </div>
                     <div className="col-md-3">
                       <div><strong>PAN Number:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.panCardNumber || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile.kyc?.panCardNumber || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>PAN Holder:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.panHolderName || 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile.kyc?.panHolderName || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Applied At:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
+                      <div className="text-white mt-1">{selectedUser.profile.kyc?.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
                     </div>
               
 
@@ -1411,7 +1411,7 @@ const AdminUsers = () => {
                         <div className="row g-3">
                           {selectedUser.profile.kyc.panCardImage && (
                             <div className="col-md-3">
-                              <div className="small text-muted mb-1">PAN Card Image</div>
+                              <div className="small text-white mb-1">PAN Card Image</div>
                               <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.panCardImage}`}
                                 alt="PAN"
@@ -1424,7 +1424,7 @@ const AdminUsers = () => {
                           )}
                           {selectedUser.profile.kyc.profilePhoto && (
                             <div className="col-md-3">
-                              <div className="small text-muted mb-1">Profile Photo</div>
+                              <div className="small text-white mb-1">Profile Photo</div>
                               <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.profilePhoto}`}
                                 alt="Profile"
@@ -1457,7 +1457,7 @@ const AdminUsers = () => {
                   </div>
                 ) : (
                   <div className="text-center py-4 bg-black text-white ">
-                    <div className="text-muted mb-3">No profile data available</div>
+                    <div className="text-white mb-3">No profile data available</div>
                     <button 
                       className="btn btn-primary"
                       onClick={() => setShowProfileEditModal(true)}
@@ -1477,7 +1477,7 @@ const AdminUsers = () => {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="card-title mb-0">
+                    <h5 className="card-title text-white  mb-0">
                       <FaTrophy className="me-2" />
                       Challenges Management
                     </h5>
@@ -1601,7 +1601,7 @@ const AdminUsers = () => {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="card-title mb-0">
+                    <h5 className="card-title text-white  mb-0">
                       <i className="bi bi-qr-code me-2"></i>
                       UPI Deposit Requests
                     </h5>
@@ -1665,7 +1665,7 @@ const AdminUsers = () => {
             <div className="col-12 mb-4 bg-black text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  <h5 className="card-title mb-3">
+                  <h5 className="card-title text-white  mb-3">
                     <FaUserFriends className="me-2" />
                     Referral Management
                   </h5>
@@ -1675,7 +1675,7 @@ const AdminUsers = () => {
                       <div className="card bg-info bg-opacity-10">
                         <div className="card-body text-center">
                           <h5 className="text-info">{userAnalytics?.referrals?.totalReferred || 0}</h5>
-                          <small className="text-muted">Total Referred</small>
+                          <small className="text-white">Total Referred</small>
                         </div>
                       </div>
                     </div>
@@ -1683,7 +1683,7 @@ const AdminUsers = () => {
                       <div className="card bg-success bg-opacity-10">
                         <div className="card-body text-center">
                           <h5 className="text-success">{userAnalytics?.referrals?.activeReferred || 0}</h5>
-                          <small className="text-muted">Active Referrals</small>
+                          <small className="text-white">Active Referrals</small>
                         </div>
                       </div>
                     </div>
@@ -1691,7 +1691,7 @@ const AdminUsers = () => {
                       <div className="card bg-warning bg-opacity-10">
                         <div className="card-body text-center">
                           <h5 className="text-warning">{(userAnalytics?.referrals?.totalReferred || 0) - (userAnalytics?.referrals?.activeReferred || 0)}</h5>
-                          <small className="text-muted">Pending Referrals</small>
+                          <small className="text-white">Pending Referrals</small>
                         </div>
                       </div>
                     </div>
@@ -1699,7 +1699,7 @@ const AdminUsers = () => {
                       <div className="card  bg-opacity-10">
                         <div className="card-body text-center">
                           <h5 className="text-primary">₹{userAnalytics?.referrals?.totalReferralEarnings || 0}</h5>
-                          <small className="text-muted">Total Earnings</small>
+                          <small className="text-white">Total Earnings</small>
                         </div>
                       </div>
                     </div>
@@ -1760,7 +1760,7 @@ const AdminUsers = () => {
             <div className="col-12 bg-black text-white ">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  <h5 className="card-title mb-3">
+                  <h5 className="card-title text-white  mb-3">
                     <FaHistory className="me-2" />
                     Transaction Management
                   </h5>
@@ -1814,7 +1814,7 @@ const AdminUsers = () => {
                               <div>
                                 <div>{tx.description}</div>
                                 {tx.metadata?.referredUserEmail && (
-                                  <small className="text-muted">From: {tx.metadata.referredUserEmail}</small>
+                                  <small className="text-white">From: {tx.metadata.referredUserEmail}</small>
                                 )}
                               </div>
                             </td>
@@ -2000,7 +2000,7 @@ const AdminUsers = () => {
                           <i className="bi bi-arrow-down-circle fs-1"></i>
                         </div>
                         <h4 className="text-success">₹{transactionSummary.totalDeposits.toFixed(2)}</h4>
-                        <small className="text-muted">Total Deposits</small>
+                        <small className="text-white">Total Deposits</small>
                       </div>
                     </div>
                   </div>
@@ -2011,7 +2011,7 @@ const AdminUsers = () => {
                           <i className="bi bi-arrow-up-circle fs-1"></i>
                         </div>
                         <h4 className="text-danger">₹{transactionSummary.totalWithdrawals.toFixed(2)}</h4>
-                        <small className="text-muted">Total Withdrawals</small>
+                        <small className="text-white">Total Withdrawals</small>
                       </div>
                     </div>
                   </div>
@@ -2022,7 +2022,7 @@ const AdminUsers = () => {
                           <i className="bi bi-gift fs-1"></i>
                         </div>
                         <h4 className="text-warning">₹{transactionSummary.totalBonuses.toFixed(2)}</h4>
-                        <small className="text-muted">Total Bonuses</small>
+                        <small className="text-white">Total Bonuses</small>
                       </div>
                     </div>
                   </div>
@@ -2033,7 +2033,7 @@ const AdminUsers = () => {
                           <i className="bi bi-bag fs-1"></i>
                         </div>
                         <h4 className="text-info">₹{transactionSummary.totalPurchases.toFixed(2)}</h4>
-                        <small className="text-muted">Total Purchases</small>
+                        <small className="text-white">Total Purchases</small>
                       </div>
                     </div>
                   </div>
@@ -2087,7 +2087,7 @@ const AdminUsers = () => {
                             <div>
                               <div>{transaction.description}</div>
                               {transaction.metadata?.referredUserEmail && (
-                                <small className="text-muted">From: {transaction.metadata.referredUserEmail}</small>
+                                <small className="text-white">From: {transaction.metadata.referredUserEmail}</small>
                               )}
                             </div>
                           </td>
@@ -2121,7 +2121,7 @@ const AdminUsers = () => {
                           <td className=' bg-black text-white '>
                             <div>
                               <div>{new Date(transaction.createdAt).toLocaleDateString()}</div>
-                              <small className="text-muted">
+                              <small className="text-white">
                                 {new Date(transaction.createdAt).toLocaleTimeString()}
                               </small>
                             </div>
@@ -2134,9 +2134,9 @@ const AdminUsers = () => {
 
                 {userTransactions.length === 0 && (
                   <div className="text-center py-5">
-                    <i className="bi bi-receipt fs-1 text-muted mb-3"></i>
-                    <h5 className="text-muted">No transactions found</h5>
-                    <p className="text-muted">This user has no transaction history</p>
+                    <i className="bi bi-receipt fs-1 text-white mb-3"></i>
+                    <h5 className="text-white">No transactions found</h5>
+                    <p className="text-white">This user has no transaction history</p>
                   </div>
                 )}
               </div>
@@ -2256,7 +2256,7 @@ const AdminUsers = () => {
                     <div className="spinner-border text-warning" role="status">
                       <span className="visually-hidden">Loading challenges...</span>
                     </div>
-                    <p className="mt-2 text-muted">Loading challenges...</p>
+                    <p className="mt-2 text-white">Loading challenges...</p>
                   </div>
                 ) : userChallenges && userChallenges.length > 0 ? (
                   <div className="table-responsive">
@@ -2354,7 +2354,7 @@ const AdminUsers = () => {
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-muted">No challenges assigned to this user</p>
+                    <p className="text-white">No challenges assigned to this user</p>
                     <button 
                       className="btn btn-warning"
                       onClick={() => {
@@ -2497,7 +2497,7 @@ const AdminUsers = () => {
                         <label className="form-check-label" htmlFor="deductFromWallet">
                           <strong>Deduct ₹{challengeAssignData.accountSize ? challenges.find(c => c._id === challengeAssignData.challengeId)?.pricesByAccountSize?.[challengeAssignData.accountSize] || '0' : '0'} from user&apos;s wallet</strong>
                           <br />
-                          <small className="text-muted">
+                          <small className="text-white">
                             {challengeAssignData.deductFromWallet 
                               ? 'Amount will be deducted from user\'s wallet and transaction will be recorded'
                               : 'Challenge will be assigned for free (no wallet deduction)'

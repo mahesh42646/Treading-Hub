@@ -1471,30 +1471,30 @@ const AdminUsers = () => {
             </div>
           </div>
 
-          {/* Challenges Management */}
-          <div className="col-12 mb-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="card-title mb-0">
-                    <FaTrophy className="me-2" />
-                    Challenges Management
-                  </h5>
-                  <div className="d-flex gap-2">
-                    <button 
-                      className="btn btn-outline-warning"
-                      onClick={() => {
-                        setShowChallengeManagementModal(true);
-                        fetchUserChallenges(selectedUser.uid);
-                      }}
-                    >
-                      <FaEdit className="me-1" />
-                      Manage All Challenges
-                    </button>
+          {/* Challenges Management - Only show if user has challenges */}
+          {userChallenges && userChallenges.length > 0 && (
+            <div className="col-12 mb-4">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="card-title mb-0">
+                      <FaTrophy className="me-2" />
+                      Challenges Management
+                    </h5>
+                    <div className="d-flex gap-2">
+                      <button 
+                        className="btn btn-outline-warning"
+                        onClick={() => {
+                          setShowChallengeManagementModal(true);
+                          fetchUserChallenges(selectedUser.uid);
+                        }}
+                      >
+                        <FaEdit className="me-1" />
+                        Manage All Challenges
+                      </button>
+                    </div>
                   </div>
-                </div>
-                
-                {userChallenges && userChallenges.length > 0 ? (
+                  
                   <div className="table-responsive">
                     <table className="table table-sm">
                       <thead>
@@ -1590,36 +1590,22 @@ const AdminUsers = () => {
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted">No challenges assigned to this user</p>
-                    <button 
-                      className="btn btn-warning"
-                      onClick={() => {
-                        setShowChallengeManagementModal(true);
-                        fetchUserChallenges(selectedUser.uid);
-                      }}
-                    >
-                      <FaPlus className="me-2" />
-                      Assign First Challenge
-                    </button>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* UPI Deposit Requests */}
-          <div className="col-12 mb-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="card-title mb-0">
-                    <i className="bi bi-qr-code me-2"></i>
-                    UPI Deposit Requests
-                  </h5>
-                </div>
-                {upiDeposits && upiDeposits.length > 0 ? (
+          {/* UPI Deposit Requests - Only show if user has UPI deposits */}
+          {upiDeposits && upiDeposits.length > 0 && (
+            <div className="col-12 mb-4">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="card-title mb-0">
+                      <i className="bi bi-qr-code me-2"></i>
+                      UPI Deposit Requests
+                    </h5>
+                  </div>
                   <div className="table-responsive">
                     <table className="table table-sm">
                       <thead>
@@ -1669,58 +1655,56 @@ const AdminUsers = () => {
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  <div className="text-center py-4 text-muted">No UPI deposit requests</div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Referral Management */}
-          <div className="col-12 mb-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title mb-3">
-                  <FaUserFriends className="me-2" />
-                  Referral Management
-                </h5>
-                
-                <div className="row mb-4">
-                  <div className="col-md-3">
-                    <div className="card bg-info bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-info">{userAnalytics?.referrals?.totalReferred || 0}</h5>
-                        <small className="text-muted">Total Referred</small>
+          {/* Referral Management - Only show if user has referrals */}
+          {userAnalytics?.referrals?.referredUsers && userAnalytics.referrals.referredUsers.length > 0 && (
+            <div className="col-12 mb-4">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title mb-3">
+                    <FaUserFriends className="me-2" />
+                    Referral Management
+                  </h5>
+                  
+                  <div className="row mb-4">
+                    <div className="col-md-3">
+                      <div className="card bg-info bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h5 className="text-info">{userAnalytics?.referrals?.totalReferred || 0}</h5>
+                          <small className="text-muted">Total Referred</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="card bg-success bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h5 className="text-success">{userAnalytics?.referrals?.activeReferred || 0}</h5>
+                          <small className="text-muted">Active Referrals</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="card bg-warning bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h5 className="text-warning">{(userAnalytics?.referrals?.totalReferred || 0) - (userAnalytics?.referrals?.activeReferred || 0)}</h5>
+                          <small className="text-muted">Pending Referrals</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="card  bg-opacity-10">
+                        <div className="card-body text-center">
+                          <h5 className="text-primary">₹{userAnalytics?.referrals?.totalReferralEarnings || 0}</h5>
+                          <small className="text-muted">Total Earnings</small>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="col-md-3">
-                    <div className="card bg-success bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-success">{userAnalytics?.referrals?.activeReferred || 0}</h5>
-                        <small className="text-muted">Active Referrals</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="card bg-warning bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-warning">{(userAnalytics?.referrals?.totalReferred || 0) - (userAnalytics?.referrals?.activeReferred || 0)}</h5>
-                        <small className="text-muted">Pending Referrals</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="card  bg-opacity-10">
-                      <div className="card-body text-center">
-                        <h5 className="text-primary">₹{userAnalytics?.referrals?.totalReferralEarnings || 0}</h5>
-                        <small className="text-muted">Total Earnings</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                {userAnalytics?.referrals?.referredUsers && userAnalytics.referrals.referredUsers.length > 0 && (
                   <div className="table-responsive">
                     <table className="table table-sm">
                       <thead>
@@ -1766,21 +1750,21 @@ const AdminUsers = () => {
                       </tbody>
                     </table>
                   </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Transaction Management */}
-          <div className="col-12">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title mb-3">
-                  <FaHistory className="me-2" />
-                  Transaction Management
-                </h5>
-                
-                {userAnalytics?.transactions?.transactions && userAnalytics.transactions.transactions.length > 0 ? (
+          {/* Transaction Management - Only show if user has transactions */}
+          {userAnalytics?.transactions?.transactions && userAnalytics.transactions.transactions.length > 0 && (
+            <div className="col-12">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title mb-3">
+                    <FaHistory className="me-2" />
+                    Transaction Management
+                  </h5>
+                  
                   <div className="table-responsive">
                     <table className="table table-sm">
                       <thead>
@@ -1847,14 +1831,10 @@ const AdminUsers = () => {
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted">No transactions found</p>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -2704,16 +2684,7 @@ const AdminUsers = () => {
                       placeholder="Enter city"
                     />
                   </div>
-                  <div className="col-md-4">
-                    <label className="form-label">State</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={profileEditData.state}
-                      onChange={(e) => setProfileEditData({...profileEditData, state: e.target.value})}
-                      placeholder="Enter state"
-                    />
-                  </div>
+               
                   <div className="col-md-4">
                     <label className="form-label">Country</label>
                     <input

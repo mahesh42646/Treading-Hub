@@ -226,13 +226,13 @@ const AdminTicketsPage = () => {
                   color: 'white'
                 }}>
                   <tr className='text-white bg-dark'>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Category</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Created</th>
-                    <th className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>Actions</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Ticket ID</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>User</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Subject</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Category</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Status</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Created</th>
+                    <th className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,23 +240,23 @@ const AdminTicketsPage = () => {
                     <tr key={ticket._id} style={{
                       backgroundColor: 'rgba(3, 5, 68, 0.9)',
                       color: 'white',
-                      borderColor: 'rgba(124, 124, 124, 0.39)'
+                      backgroundColor: 'rgba(124, 124, 124, 0.39)'
                     }}>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <span className="badge" style={{
                           background: 'rgba(59, 130, 246, 0.2)',
                           color: '#3b82f6'
                         }}>#{ticket.ticketId}</span>
                       </td>
-                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.userEmail}</td>
-                      <td className="text-white" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.subject}</td>
-                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.userEmail}</td>
+                      <td className="text-white" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>{ticket.subject}</td>
+                      <td className="text-white-50" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <i className={`bi ${getCategoryIcon(ticket.category)} me-1`} style={{ color: '#3b82f6' }}></i>
                         {ticket.category}
                       </td>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{getStatusBadge(ticket.status)}</td>
-                      <td className="text-white-50" style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                      <td style={{ borderColor: 'rgba(124, 124, 124, 0.39)' }}>
+                      <td style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>{getStatusBadge(ticket.status)}</td>
+                      <td className="text-white-50" style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                      <td style={{ backgroundColor: 'rgba(124, 124, 124, 0.39)' }}>
                         <div className="d-flex gap-1">
                           <button
                             className="btn btn-sm"

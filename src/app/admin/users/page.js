@@ -665,7 +665,7 @@ const AdminUsers = () => {
       'rejected': { class: 'bg-danger', text: 'Rejected' }
     };
     
-    const config = statusConfig[status] || { class: 'bg-secondary', text: 'Unknown' };
+    const config = statusConfig[status] || { class: 'bg-secondary', text: 'Not Applied' };
     return <span className={`badge ${config.class}`}>{config.text}</span>;
   };
 

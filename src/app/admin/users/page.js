@@ -1114,7 +1114,7 @@ const AdminUsers = () => {
         <div className="row">
           {/* User Info Card */}
           <div className="col-lg-4 mb-4 bg-black">
-            <div className="card border-0 shadow-sm h-100">
+            <div className="card border-0 shadow-sm bg-black h-100">
               <div className="card-body">
                 <h5 className="card-title">User Information</h5>
                 <div className="mb-3">
@@ -1183,7 +1183,7 @@ const AdminUsers = () => {
 
           {/* Wallet Management */}
           <div className="col-lg-8 mb-4 bg-black h-100">
-            <div className="card border-0 shadow-sm h-100">
+            <div className="card border-0 shadow-sm bg-black h-100">
               <div className="card-body h-100">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h5 className="card-title mb-0">
@@ -1270,9 +1270,9 @@ const AdminUsers = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="card  bg-opacity-10">
+                  <div className="row bg-black">
+                    <div className="col-md-6 bg-black">
+                      <div className="card  bg-opacity-10 bg-black">
                         <div className="card-body text-center">
                           <h4 className="text-primary">₹{userAnalytics?.wallet?.walletBalance || 0}</h4>
                           <small className="text-muted">Wallet Balance</small>

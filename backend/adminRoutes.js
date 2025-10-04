@@ -153,6 +153,50 @@ router.post('/login', (req, res) => {
   }
 });
 
+// ===== USER PROFILE MANAGEMENT (ADMIN) =====
+
+// Update user profile
+router.put('/users/:uid/profile', verifyAdminAuth, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const profileData = req.body;
+
+    console.log('Updating profile for user:', uid);
+    console.log('Received profile data:', JSON.stringify(profileData, null, 2));
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      console.log('User not found:', uid);
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    console.log('User found:', user.email);
+
+    // Initialize profile if it doesn't exist
+    if (!user.profile) {
+      user.profile = {};
+      console.log('Initialized empty profile');
+    }
+
+    // Update profile data
+    user.profile = {
+      ...user.profile,
+      ...profileData,
+      updatedAt: new Date(),
+      updatedBy: req.admin?.email || 'admin'
+    };
+
+    await user.save();
+
+    console.log('Profile updated successfully');
+
+    res.json({ success: true, message: 'Profile updated successfully', profile: user.profile });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+  }
+});
+
 // ===== TRADING DATA MANAGEMENT (ADMIN) =====
 
 // Helper function to update time-based data

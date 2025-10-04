@@ -1,28 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  FaSearch, 
-  FaEye, 
-  FaCheck, 
-  FaTimes, 
-  FaUserCheck,
-  FaUserTimes,
-  FaSpinner,
-  FaEdit,
-  FaWallet,
-  FaGift,
-  FaHistory,
-  FaUserFriends,
-  FaCreditCard,
-  FaArrowLeft,
-  FaPlus,
-  FaSync,
-  FaReceipt,
-  FaBell,
-  FaTrophy
-} from 'react-icons/fa';
-
+import { FaSearch, FaEye, FaCheck, FaTimes, FaUserCheck,
+  FaUserTimes, FaSpinner, FaEdit, FaWallet, FaGift, FaHistory, FaUserFriends, FaCreditCard, FaArrowLeft, FaPlus, FaSync, FaReceipt, FaBell, FaTrophy} from 'react-icons/fa';
+import Image from 'next/image';
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +69,18 @@ const AdminUsers = () => {
     message: '',
     priority: 'medium'
   });
+  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
+  const [profileEditData, setProfileEditData] = useState({
+    fullName: '',
+    mobileNumber: '',
+    dateOfBirth: '',
+    gender: '',
+    city: '',
+    state: '',
+    country: '',
+    address: ''
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const refreshReferralCounts = useCallback(async () => {
     try {
@@ -427,6 +420,63 @@ const AdminUsers = () => {
     } catch (error) {
       console.error('Error creating custom notification:', error);
       alert('Failed to send notification');
+    }
+  };
+
+  const openProfileEditModal = () => {
+    if (selectedUser?.profile) {
+      setProfileEditData({
+        fullName: selectedUser.profile.fullName || '',
+        mobileNumber: selectedUser.profile.mobileNumber || '',
+        dateOfBirth: selectedUser.profile.dateOfBirth ? new Date(selectedUser.profile.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: selectedUser.profile.gender || '',
+        city: selectedUser.profile.city || '',
+        state: selectedUser.profile.state || '',
+        country: selectedUser.profile.country || '',
+        address: selectedUser.profile.address || ''
+      });
+    } else {
+      setProfileEditData({
+        fullName: '',
+        mobileNumber: '',
+        dateOfBirth: '',
+        gender: '',
+        city: '',
+        state: '',
+        country: '',
+        address: ''
+      });
+    }
+    setShowProfileEditModal(true);
+  };
+
+  const handleProfileUpdate = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setSavingProfile(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${selectedUser.uid}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileEditData)
+      });
+
+      if (response.ok) {
+        alert('Profile updated successfully!');
+        setShowProfileEditModal(false);
+        fetchUserDetails(selectedUser.uid);
+      } else {
+        const error = await response.json();
+        alert(`Failed to update profile: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile');
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -1219,61 +1269,187 @@ const AdminUsers = () => {
           <div className="col-12 mb-4">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <h5 className="card-title mb-3">KYC Details</h5>
-                {selectedUser.profile?.kyc ? (
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="card-title mb-0">KYC Details & Profile Management</h5>
+                  <div className="btn-group btn-group-sm">
+                    <button 
+                      className="btn btn-outline-primary"
+                      onClick={openProfileEditModal}
+                    >
+                      <FaEdit className="me-1" />
+                      Edit Profile
+                    </button>
+                    {selectedUser.profile?.kyc?.status === 'applied' && (
+                      <>
+                        <button 
+                          className="btn btn-outline-success"
+                          onClick={() => handleKycAction(selectedUser.uid, 'approve')}
+                          disabled={kycActionLoading === selectedUser.uid}
+                        >
+                          {kycActionLoading === selectedUser.uid ? (
+                            <FaSpinner className="fa-spin me-1" />
+                          ) : (
+                            <FaCheck className="me-1" />
+                          )}
+                          Approve KYC
+                        </button>
+                        <button 
+                          className="btn btn-outline-danger"
+                          onClick={() => handleKycAction(selectedUser.uid, 'reject')}
+                          disabled={kycActionLoading === selectedUser.uid}
+                        >
+                          {kycActionLoading === selectedUser.uid ? (
+                            <FaSpinner className="fa-spin me-1" />
+                          ) : (
+                            <FaTimes className="me-1" />
+                          )}
+                          Reject KYC
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {selectedUser.profile ? (
                   <div className="row g-3">
+                    {/* Personal Information */}
+                    <div className="col-12">
+                      <h6 className="text-primary mb-3">Personal Information</h6>
+                    </div>
                     <div className="col-md-3">
-                      <div><strong>Status:</strong></div>
+                      <div><strong>Full Name:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.fullName || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Email:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.email}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Mobile Number:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.mobileNumber || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Date of Birth:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.dateOfBirth ? new Date(selectedUser.profile.dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Gender:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.gender || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>City:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.city || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>State:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.state || 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Country:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.country || 'N/A'}</div>
+                    </div>
+
+                    {/* KYC Information */}
+                    <div className="col-12 mt-4">
+                      <h6 className="text-primary mb-3">KYC Information</h6>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>KYC Status:</strong></div>
                       <div className="mt-1">
-                        {getKycStatusBadge(selectedUser.profile.kyc.status || 'not_applied')}
+                        {selectedUser.profile.kyc ? getKycStatusBadge(selectedUser.profile.kyc.status || 'not_applied') : <span className="badge bg-secondary">Not Applied</span>}
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>PAN Number:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc.panCardNumber || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.panCardNumber || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>PAN Holder:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc.panHolderName || 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.panHolderName || 'N/A'}</div>
                     </div>
                     <div className="col-md-3">
                       <div><strong>Applied At:</strong></div>
-                      <div className="text-muted mt-1">{selectedUser.profile.kyc.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.appliedAt ? new Date(selectedUser.profile.kyc.appliedAt).toLocaleString() : 'N/A'}</div>
                     </div>
-                    {(selectedUser.profile.kyc.panCardImage || selectedUser.profile.kyc.profilePhoto) && (
-                      <div className="col-12">
+                    <div className="col-md-3">
+                      <div><strong>Approved At:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.approvedAt ? new Date(selectedUser.profile.kyc.approvedAt).toLocaleString() : 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Rejected At:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.rejectedAt ? new Date(selectedUser.profile.kyc.rejectedAt).toLocaleString() : 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Last Updated:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.updatedAt ? new Date(selectedUser.profile.kyc.updatedAt).toLocaleString() : 'N/A'}</div>
+                    </div>
+                    <div className="col-md-3">
+                      <div><strong>Updated By:</strong></div>
+                      <div className="text-muted mt-1">{selectedUser.profile.kyc?.updatedBy || 'N/A'}</div>
+                    </div>
+
+                    {/* KYC Documents */}
+                    {(selectedUser.profile.kyc?.panCardImage || selectedUser.profile.kyc?.profilePhoto) && (
+                      <div className="col-12 mt-4">
+                        <h6 className="text-primary mb-3">KYC Documents</h6>
                         <div className="row g-3">
                           {selectedUser.profile.kyc.panCardImage && (
                             <div className="col-md-6">
                               <div className="small text-muted mb-1">PAN Card Image</div>
-                              <img
+                              <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.panCardImage}`}
                                 alt="PAN"
                                 className="img-fluid rounded border"
+                                width={300}
+                                height={200}
+                                style={{ objectFit: 'contain', maxHeight: '200px', width: '100%', height: 'auto' }}
                               />
                             </div>
                           )}
                           {selectedUser.profile.kyc.profilePhoto && (
                             <div className="col-md-6">
                               <div className="small text-muted mb-1">Profile Photo</div>
-                              <img
+                              <Image
                                 src={`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${selectedUser.profile.kyc.profilePhoto}`}
                                 alt="Profile"
                                 className="img-fluid rounded border"
+                                width={300}
+                                height={200}
+                                style={{ objectFit: 'contain', maxHeight: '200px', width: '100%', height: 'auto' }}
                               />
                             </div>
                           )}
                         </div>
                       </div>
                     )}
-                    {selectedUser.profile.kyc.rejectionNote && (
-                      <div className="col-12">
-                        <div className="alert alert-warning mb-0"><strong>Rejection Note:</strong> {selectedUser.profile.kyc.rejectionNote}</div>
+
+                    {/* KYC Notes */}
+                    {selectedUser.profile.kyc?.rejectionNote && (
+                      <div className="col-12 mt-3">
+                        <div className="alert alert-warning mb-0">
+                          <strong>Rejection Note:</strong> {selectedUser.profile.kyc.rejectionNote}
+                        </div>
+                      </div>
+                    )}
+                    {selectedUser.profile.kyc?.adminNote && (
+                      <div className="col-12 mt-3">
+                        <div className="alert alert-info mb-0">
+                          <strong>Admin Note:</strong> {selectedUser.profile.kyc.adminNote}
+                        </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-muted">No KYC data available</div>
+                  <div className="text-center py-4">
+                    <div className="text-muted mb-3">No profile data available</div>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setShowProfileEditModal(true)}
+                    >
+                      <FaEdit className="me-2" />
+                      Create Profile
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -2438,6 +2614,127 @@ const AdminUsers = () => {
                   onClick={saveChallengeEdit}
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Edit Modal */}
+      {showProfileEditModal && selectedUser && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Profile - {selectedUser.email}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowProfileEditModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Full Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={profileEditData.fullName}
+                      onChange={(e) => setProfileEditData({...profileEditData, fullName: e.target.value})}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Mobile Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={profileEditData.mobileNumber}
+                      onChange={(e) => setProfileEditData({...profileEditData, mobileNumber: e.target.value})}
+                      placeholder="Enter mobile number"
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Date of Birth</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={profileEditData.dateOfBirth}
+                      onChange={(e) => setProfileEditData({...profileEditData, dateOfBirth: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Gender</label>
+                    <select
+                      className="form-select"
+                      value={profileEditData.gender}
+                      onChange={(e) => setProfileEditData({...profileEditData, gender: e.target.value})}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">City</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={profileEditData.city}
+                      onChange={(e) => setProfileEditData({...profileEditData, city: e.target.value})}
+                      placeholder="Enter city"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">State</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={profileEditData.state}
+                      onChange={(e) => setProfileEditData({...profileEditData, state: e.target.value})}
+                      placeholder="Enter state"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Country</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={profileEditData.country}
+                      onChange={(e) => setProfileEditData({...profileEditData, country: e.target.value})}
+                      placeholder="Enter country"
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label">Address</label>
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      value={profileEditData.address}
+                      onChange={(e) => setProfileEditData({...profileEditData, address: e.target.value})}
+                      placeholder="Enter full address"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowProfileEditModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={handleProfileUpdate}
+                  disabled={savingProfile}
+                >
+                  {savingProfile ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>

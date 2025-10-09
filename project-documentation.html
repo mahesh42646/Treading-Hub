@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xFunding Flow - Project Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 2.0;
+            color: #333;
+            background: linear-gradient(90deg, #0019f6a0 0%, #0e036288 90%);
+            min-height: 100vh;
+        }
+        .text-secondry{
+                color: rgb(155, 155, 155);
+                padding: 10px;
+
+        }
+
+        .container {
+            /* max-width: 1200px; */
+            margin: 0 auto;
+            padding: 10px 120px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: rgba(98, 98, 98, 0.181);
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            color: #4a5568;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #2d3748;
+            font-size: 1.5rem;
+            margin: 25px 0 15px 0;
+        }
+
+        .flow-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .flow-box {
+            background: linear-gradient(135deg, #31aafb 0%, #edf2f7 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .flow-box:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .flow-box h4 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .flow-box .icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .flow-box p {
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            background: #f7fafc;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .code-block {
+            background: #151618;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .admin-option-box {
+            background: linear-gradient(135deg, #ffd7d7f8 0%, #ee5a246a 100%);
+            color: white;
+        }
+
+        .user-option-box {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .payment-option-box {
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+            color: #2d3748;
+        }
+
+        .deployment-option-box {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2d3748;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .warning {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+
+        .toc {
+            background: #ffffff35;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #000000;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: #0432ff;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .toc a:hover {
+            background: #70707085;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 20px;
+                background-color: #001b87;
+            }
+
+            .flow-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 xFunding Flow Platform</h1>
+            <p>Complete User & Admin Flow Documentation + VPS Deployment Guide</p>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">Project Overview</a></li>
+                <li><a href="#user-flow">User Flow & Journey</a></li>
+                <li><a href="#admin-flow">Admin Panel Management</a></li>
+                <li><a href="#payment-system">Payment & Wallet System</a></li>
+                <li><a href="#deployment">VPS Deployment Guide</a></li>
+                <li><a href="#technical-specs">Technical Specifications</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>🎯 Project Overview</h2>
+            <p><strong>xFunding Flow</strong> is a comprehensive trading platform that allows users to participate in
+                trading challenges, manage their portfolios, and earn through referrals. The platform includes both
+                user-facing features and a powerful admin panel for complete management.</p>
+
+            <div class="highlight">
+                <strong>Key Features:</strong>
+                <ul class="feature-list">
+                    <li>User Registration & Authentication (Email + Google OAuth)</li>
+                    <li>Profile Setup & KYC Verification</li>
+                    <li>Wallet System with Razorpay Integration</li>
+                    <li>Trading Challenges & Plans</li>
+                    <li>Referral System with Rewards</li>
+                    <li>Admin Panel for Complete Management</li>
+                    <li>Content Management System</li>
+                    <li>Real-time Notifications</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="user-flow">
+            <h2>👤 User Flow & Journey</h2>
+
+            <h3>Step 1: Registration & Authentication</h3>
+            <div class="flow-container">
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">1</span>📧 Email Registration</h4>
+                    <p>• User enters email and password</p>
+                    <p>• Firebase creates account</p>
+                    <p>• Email verification sent automatically</p>
+                    <p>• User must verify email to continue</p>
+                </div>
+
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">2</span>🔐 Google OAuth</h4>
+                    <p>• One-click Google sign-in</p>
+                    <p>• Automatic account creation</p>
+                    <p>• No email verification needed</p>
+                    <p>• Seamless user experience</p>
+                </div>
+
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">3</span>🔗 Referral Code</h4>
+                    <p>• Optional referral code input</p>
+                    <p>• Automatic referrer tracking</p>
+                    <p>• Referral rewards system</p>
+                    <p>• Unique referral code generation</p>
+                </div>
+            </div>
+
+            <h3>Step 2: Profile Setup (75% Complete)</h3>
+            <div class="flow-container">
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">4</span>👤 Personal Information</h4>
+                    <p>• First Name & Last Name</p>
+                    <p>• Gender & Date of Birth</p>
+                    <p>• Country & City</p>
+                    <p>• Phone Number (unique validation)</p>
+                </div>
+
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">5</span>📊 Profile Completion</h4>
+                    <p>• 75% profile completion achieved</p>
+                    <p>• Basic wallet initialization</p>
+                    <p>• Trading stats setup</p>
+                    <p>• Referral code generation</p>
+                </div>
+            </div>
+
+            <h3>Step 3: KYC Verification (100% Complete)</h3>
+            <div class="flow-container">
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">6</span>📄 Document Upload</h4>
+                    <p>• PAN Card image upload</p>
+                    <p>• Profile photo upload</p>
+                    <p>• PAN number validation</p>
+                    <p>• Document format validation</p>
+                </div>
+
+                <div class="flow-box user-option-box">
+                    <h4><span class="step-number">7</span>✅ Admin Approval</h4>
+                    <p>• Admin reviews documents</p>
+                    <p>• Approve/Reject KYC</p>
+                    <p>• 100% profile completion</p>
+                    <p>• Full platform access granted</p>
+                </div>
+            </div>
+
+            <h3>Step 4: Trading & Wallet Management</h3>
+            <div class="flow-container">
+                <div class="flow-box payment-option-box">
+                    <h4><span class="step-number">8</span>💳 Wallet Funding</h4>
+                    <p>• Razorpay payment integration</p>
+                    <p>• Minimum ₹500 deposit</p>
+                    <p>• Real-time balance updates</p>
+                    <p>• Transaction history tracking</p>
+                </div>
+
+                <div class="flow-box payment-option-box">
+                    <h4><span class="step-number">9</span>🏆 Challenge Participation</h4>
+                    <p>• Browse available challenges</p>
+
+                    <p>• Challenge progress tracking</p>
+                </div>
+
+                <div class="flow-box payment-option-box">
+                    <h4><span class="step-number">10</span>💰 Referral Earnings</h4>
+                    <p>• Share unique referral code</p>
+                    <p>• Earn from successful referrals</p>
+                    <p>• Separate referral wallet</p>
+                    <p>• Withdrawal to bank account</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="admin-flow">
+            <h2>👨‍💼 Admin Panel Management</h2>
+
+            <h3>Admin Authentication</h3>
+            <div class="flow-container">
+                <div class="flow-box admin-option-box">
+                    <h4>🔐 Admin Login</h4>
+                    <p>• Secure admin authentication</p>
+                    <p>• Session management</p>
+                    <p>• Role-based access control</p>
+                    <p>• Auto-logout on inactivity</p>
+                </div>
+            </div>
+
+            <h3>User Management</h3>
+            <div class="flow-container">
+                <div class="flow-box admin-option-box">
+                    <h4>👥 User Overview</h4>
+                    <p>• View all registered users</p>
+                    <p>• Search and filter users</p>
+                    <p>• User analytics dashboard</p>
+                    <p>• Export user data</p>
+                </div>
+
+                <div class="flow-box admin-option-box">
+                    <h4>📋 KYC Management</h4>
+                    <p>• Review KYC documents</p>
+                    <p>• Approve/Reject applications</p>
+                    <p>• Bulk KYC processing</p>
+                    <p>• Document verification status</p>
+                </div>
+
+                <div class="flow-box admin-option-box">
+                    <h4>💳 Wallet Management</h4>
+                    <p>• Add/deduct wallet balance</p>
+                    <p>• Manage referral balances</p>
+                    <p>• Transaction history</p>
+                    <p>• Wallet analytics</p>
+                </div>
+
+                <div class="flow-box admin-option-box">
+                    <h4>🏆 Challenge Management</h4>
+                    <p>• Create/edit challenges</p>
+                    <p>• Set pricing and rules</p>
+
+                    <p>• Track challenge performance</p>
+                </div>
+            </div>
+
+            <h3>Content & System Management</h3>
+            <div class="flow-container">
+                <div class="flow-box admin-option-box">
+                    <h4>📝 Content Management</h4>
+                    <p>• Homepage content editing</p>
+                    <p>• Blog article management</p>
+                    <p>• News updates</p>
+                    <p>• FAQ management</p>
+                </div>
+
+                <div class="flow-box admin-option-box">
+                    <h4>📊 Analytics & Reports</h4>
+                    <p>• User registration trends</p>
+                    <p>• Revenue analytics</p>
+                    <p>• Challenge performance</p>
+                    <p>• Referral statistics</p>
+                </div>
+
+                <div class="flow-box admin-option-box">
+                    <h4>🔧 System Settings</h4>
+                    <p>• Payment gateway settings</p>
+                    <p>• Email configuration</p>
+                    <p>• Notification settings</p>
+                    <p>• Security settings</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="payment-system">
+            <h2>💳 Payment & Wallet System</h2>
+
+            <h3>Payment Integration</h3>
+            <div class="flow-container">
+                <div class="flow-box payment-option-box">
+                    <h4>💳 Razorpay Integration</h4>
+                    <p>• Secure payment processing</p>
+                    <p>• Multiple payment methods</p>
+                    <p>• Real-time payment verification</p>
+                    <p>• Automatic wallet crediting</p>
+                </div>
+
+                <div class="flow-box payment-option-box">
+                    <h4>💰 Wallet System</h4>
+                    <p>• Main wallet balance</p>
+                    <p>• Referral wallet balance</p>
+                    <p>• Transaction history</p>
+                    <p>• Balance transfer options</p>
+                </div>
+
+                <div class="flow-box payment-option-box">
+                    <h4>🏦 Withdrawal System</h4>
+                    <p>• Bank account verification</p>
+                    <p>• Withdrawal requests</p>
+                    <p>• Admin approval process</p>
+                    <p>• Transaction tracking</p>
+                </div>
+            </div>
+
+            <h3>Referral System</h3>
+            <div class="flow-container">
+                <div class="flow-box payment-option-box">
+                    <h4>🔗 Referral Tracking</h4>
+                    <p>• Unique referral codes</p>
+                    <p>• Referral link generation</p>
+                    <p>• Referral statistics</p>
+                    <p>• Reward calculations</p>
+                </div>
+
+                <div class="flow-box payment-option-box">
+                    <h4>🎁 Reward System</h4>
+                    <p>• Automatic reward crediting</p>
+                    <p>• Tiered reward structure</p>
+                    <p>• Referral bonus tracking</p>
+                    <p>• Reward withdrawal options</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="deployment">
+            <h2>🚀 VPS Deployment Guide</h2>
+
+            <div class="warning">
+                <strong>⚠️ Prerequisites:</strong> Ubuntu 18.x+ VPS with root access, Domain name, GitHub account
+            </div>
+
+            <h3>Step 1: Server Setup</h3>
+            <div class="code-block">
+                <small class="text-secondry" >  # Connect to VPS via SSH</small>
+                </br>
+                ssh root@your-server-ip
+
+                </br>
+                <small class="text-secondry" > # Update system packages</small>
+                </br>
+                apt update && apt upgrade -y
+
+                </br>
+                <small class="text-secondry" > # Install Node.js 24.x</small>
+                </br>
+                curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+                </br>
+                apt-get install -y nodejs
+
+                </br>
+                <small class="text-secondry" > # Install Nginx</small>
+                </br>
+                apt install nginx -y
+
+                </br>
+                <small class="text-secondry" > # Install PM2 globally</small>
+                </br>
+                npm install -g pm2
+                </br>
+
+                </br>
+                <small class="text-secondry" > # Install Git</small>
+                </br>
+                apt install git -y
+            </div>
+
+            <h3>Step 2: Project Deployment</h3>
+            <div class="code-block">
+                </br>
+                <small class="text-secondry" > # Clone repository</small>
+                </br>
+                git clone https://github.com/yourusername/trading-hub.git
+                </br>
+                cd trading-hub
+
+                </br>
+                <small class="text-secondry" > # Install backend dependencies</small>
+                </br>
+                cd backend
+                </br>
+                npm install
+
+                </br>
+                <small class="text-secondry" > # Install frontend dependencies</small>
+                </br>
+                cd ..
+                </br>
+                npm install
+
+                </br>
+                <small class="text-secondry" > # Build frontend</small>
+                </br>
+                npm run build
+            </div>
+
+            <h3>Step 3: Environment Configuration</h3>
+            <div class="code-block"><small class="text-secondry" >
+                </small> # Backend environment setup
+                </br>
+                cd backend
+                </br>
+                cp .env.example .env
+                </br>
+                nano .env
+
+                </br>
+                <small class="text-secondry" > # Configure these variables:</small>
+                </br>
+                <small class="text-secondry" > # MONGODB_URI=mongodb://localhost:27017/trading-hub</small>
+                </br>
+                <small class="text-secondry" > # JWT_SECRET=your-jwt-secret</small>
+                </br>
+                <small class="text-secondry" > # RAZORPAY_KEY_ID=your-razorpay-key</small>
+                </br>
+                <small class="text-secondry" > # RAZORPAY_KEY_SECRET=your-razorpay-secret</small>
+                </br>
+                <small class="text-secondry" > # NEXTAUTH_URL=https://yourdomain.com</small>
+                </br>
+                <small class="text-secondry" > # NEXTAUTH_SECRET=your-nextauth-secret</small>
+            </div>
+
+            <h3>Step 4: PM2 Process Management</h3>
+            <div class="code-block">
+                </br>
+                <small class="text-secondry" > # Start backend with PM2</small>
+                </br>
+                cd backend
+                </br>
+                pm2 start server.js --name "trading-hub-backend"
+
+                </br>
+                <small class="text-secondry" > # Start frontend with PM2</small>
+                </br>
+                cd ../src
+                </br>
+                pm2 start "npm run start" --name "trading-hub-frontend"
+
+                </br>
+                <small class="text-secondry" > # Save PM2 configuration</small>
+                </br>
+                pm2 save
+                </br>
+                pm2 startup
+                </br>
+            </div>
+
+            <h3>Step 5: Nginx Configuration</h3>
+            <div class="code-block"><small class="text-secondry" >
+                </small> # Create Nginx configuration
+                </br>
+                nano /etc/nginx/sites-available/trading-hub
+                </br>
+                <small class="text-secondry" >
+                </small> # Add this configuration:
+                </br>
+                server {
+                </br>
+                listen 80;
+                </br>
+                server_name yourdomain.com www.yourdomain.com;
+
+                </br>
+                <small class="text-secondry" > # Frontend (Next.js)</small>
+                </br>
+                location / {
+                </br>
+                proxy_pass http://localhost:3000;
+                </br>
+                proxy_http_version 1.1;
+                </br>
+                proxy_set_header Upgrade $http_upgrade;
+                </br>
+                proxy_set_header Connection 'upgrade';
+                </br>
+                proxy_set_header Host $host;
+                </br>
+                proxy_set_header X-Real-IP $remote_addr;
+                </br>
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                </br>
+                proxy_set_header X-Forwarded-Proto $scheme;
+                </br>
+                proxy_cache_bypass $http_upgrade;
+                </br>
+                }
+                </br>
+                </br>
+
+                </br>
+                <small class="text-secondry" > # Backend API</small>
+                </br>
+                location /api {
+                </br>
+                proxy_pass http://localhost:5000;
+                </br>
+                proxy_http_version 1.1;
+                </br>
+                proxy_set_header Upgrade $http_upgrade;
+                </br>
+                proxy_set_header Connection 'upgrade';
+                </br>
+                proxy_set_header Host $host;
+                </br>
+                proxy_set_header X-Real-IP $remote_addr;
+                </br>
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                </br>
+                proxy_set_header X-Forwarded-Proto $scheme;
+                </br>
+                proxy_cache_bypass $http_upgrade;
+                }
+                }
+
+                </br>
+                </br>
+                <small class="text-secondry" > # Enable site</small>
+                </br>
+                ln -s /etc/nginx/sites-available/trading-hub /etc/nginx/sites-enabled/
+                </br>
+                nginx -t
+                </br>
+                systemctl reload nginx
+            </div>
+
+            <h3>Step 6: SSL Certificate</h3>
+            <div class="code-block">
+                </br>
+                <small class="text-secondry" > # Install Certbot</small>
+                </br>
+                apt install certbot python3-certbot-nginx -y
+
+                </br>
+                <small class="text-secondry" > # Get SSL certificate</small>
+                </br>
+                certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+                </br>
+                <small class="text-secondry" > # Auto-renewal setup</small>
+                </br>
+                crontab -e
+                </br>
+                <small class="text-secondry" > # Add this line:</small>
+                </br>
+                0 12 * * * /usr/bin/certbot renew --quiet
+            </div>
+
+            <h3>Step 7: Final Steps</h3>
+            <div class="code-block">
+                </br>
+                <small class="text-secondry" > # Restart all services</small>
+                </br>
+                systemctl restart nginx
+                </br>
+                pm2 restart all
+
+                </br>
+                <small class="text-secondry" > # Check status</small>
+                </br>
+                pm2 status
+                </br>
+                systemctl status nginx
+                </br>
+                <small class="text-secondry" >
+                </small> # Your site is now live at:<small class="text-secondry" >
+                </small> # https://yourdomain.com (Frontend)<small class="text-secondry" >
+                </small> # https://yourdomain.com/api (Backend API)
+            </div>
+
+            <div class="success">
+                <strong>✅ Deployment Complete!</strong><br>
+                Your xFunding Flow platform is now live and accessible at your domain. The frontend runs on port 3000,
+                backend on port 5000, and Nginx handles the routing and SSL.
+            </div>
+        </div>
+
+        <div class="section" id="technical-specs">
+            <h2>⚙️ Technical Specifications</h2>
+
+            <h3>Frontend Technology Stack</h3>
+            <div class="flow-container">
+                <div class="flow-box">
+                    <h4>⚛️ React & Next.js</h4>
+                    <p>• Next.js 14+ with App Router</p>
+                    <p>• React 18+ with hooks</p>
+                    <p>• Server-side rendering</p>
+                    <p>• Static site generation</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>🎨 UI & Styling</h4>
+                    <p>• Tailwind CSS</p>
+                    <p>• Custom CSS modules</p>
+                    <p>• Responsive design</p>
+                    <p>• Modern UI components</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>🔐 Authentication</h4>
+                    <p>• Firebase Authentication</p>
+                    <p>• Google OAuth integration</p>
+                    <p>• JWT token management</p>
+                    <p>• Route protection</p>
+                </div>
+            </div>
+
+            <h3>Backend Technology Stack</h3>
+            <div class="flow-container">
+                <div class="flow-box">
+                    <h4>🟢 Node.js & Express</h4>
+                    <p>• Node.js 24.x</p>
+                    <p>• Express.js framework</p>
+                    <p>• RESTful API design</p>
+                    <p>• Middleware integration</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>🍃 MongoDB Database</h4>
+                    <p>• MongoDB with Mongoose ODM</p>
+                    <p>• User profiles & authentication</p>
+                    <p>• Transaction records</p>
+                    <p>• Content management</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>💳 Payment Integration</h4>
+                    <p>• Razorpay payment gateway</p>
+                    <p>• Secure payment processing</p>
+                    <p>• Webhook handling</p>
+                    <p>• Transaction verification</p>
+                </div>
+            </div>
+
+            <h3>Deployment & Infrastructure</h3>
+            <div class="flow-container">
+                <div class="flow-box">
+                    <h4>🐧 Server Requirements</h4>
+                    <p>• Ubuntu 18.x+ VPS</p>
+                    <p>• 2GB+ RAM recommended</p>
+                    <p>• 20GB+ storage</p>
+                    <p>• Root access required</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>🌐 Web Server</h4>
+                    <p>• Nginx reverse proxy</p>
+                    <p>• SSL certificate (Let's Encrypt)</p>
+                    <p>• Domain configuration</p>
+                    <p>• Load balancing ready</p>
+                </div>
+
+                <div class="flow-box">
+                    <h4>⚡ Process Management</h4>
+                    <p>• PM2 process manager</p>
+                    <p>• Auto-restart on crashes</p>
+                    <p>• Log management</p>
+                    <p>• Performance monitoring</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📞 Support & Maintenance</h2>
+            <div class="highlight">
+                <strong>For technical support or questions about this platform:</strong>
+                <ul class="feature-list">
+                    <li>Check the admin panel for system status</li>
+                    <li>Monitor PM2 processes: <code>pm2 status</code></li>
+                    <li>Check Nginx logs: <code>tail -f /var/log/nginx/error.log</code></li>
+                    <li>Monitor application logs: <code>pm2 logs</code></li>
+                    <li>Database backup: <code>mongodump --db trading-hub</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add animation to flow boxes on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.flow-box').forEach(box => {
+            box.style.opacity = '0';
+            box.style.transform = 'translateY(20px)';
+            box.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(box);
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

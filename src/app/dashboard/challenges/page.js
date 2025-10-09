@@ -263,7 +263,7 @@ export default function ChallengesPage() {
                         ))}
                       </select>
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-6 d-none">
                       <label className="form-label text-white">Coupon Code</label>
                       <input 
                         className="form-control rounded-4" 

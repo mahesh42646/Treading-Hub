@@ -138,7 +138,7 @@ export default function DashboardWallet() {
     }
   });
 
-  const MIN_DEPOSIT_AMOUNT = 500;
+  const MIN_DEPOSIT_AMOUNT = 1;
   const MIN_WITHDRAWAL_AMOUNT = 500;
 
   // Validation functions for withdrawal

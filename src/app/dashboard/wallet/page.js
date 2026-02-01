@@ -137,7 +137,7 @@ export default function DashboardWallet() {
       profitTarget: 0
     }
   });
-
+// 1 rs for testing only 
   const MIN_DEPOSIT_AMOUNT = 1;
   const MIN_WITHDRAWAL_AMOUNT = 500;
 

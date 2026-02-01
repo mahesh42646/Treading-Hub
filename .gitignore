@@ -21,11 +21,11 @@
 # production
 /build
 .env
-.env.production
-.env.development
+.env.*
+**/.env
+**/.env.*
 backend/.env
-backend/.env.production
-backend/.env.development
+backend/.env.*
 
 # misc
 .DS_Store

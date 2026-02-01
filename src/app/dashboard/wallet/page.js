@@ -137,8 +137,7 @@ export default function DashboardWallet() {
       profitTarget: 0
     }
   });
-// 1 inr rs for testing only 
-  const MIN_DEPOSIT_AMOUNT = 1;
+  const MIN_DEPOSIT_AMOUNT = parseInt(process.env.NEXT_PUBLIC_MIN_DEPOSIT_AMOUNT, 10) || 1;
   const MIN_WITHDRAWAL_AMOUNT = 500;
 
   // Validation functions for withdrawal

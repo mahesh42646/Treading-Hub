@@ -33,13 +33,12 @@ router.post('/razorpay-order', async (req, res) => {
     }
 
     const { amount, currency = 'INR' } = req.body;
-    
-    // Validate minimum deposit amount (amount is in paise)
-    const MIN_DEPOSIT_AMOUNT_PAISE = 50000; // ₹500 in paise
+    const minDepositRupees = parseInt(process.env.MIN_DEPOSIT_AMOUNT, 10) || 1;
+    const MIN_DEPOSIT_AMOUNT_PAISE = minDepositRupees * 100;
     if (amount < MIN_DEPOSIT_AMOUNT_PAISE) {
       return res.status(400).json({
         success: false,
-        message: 'Minimum deposit amount is ₹500'
+        message: `Minimum deposit amount is ₹${minDepositRupees}`
       });
     }
 
@@ -584,6 +583,13 @@ router.post('/upi-deposit', async (req, res) => {
     const { uid, upiTransactionId, amount } = req.body;
     if (!uid || !upiTransactionId || !amount || amount <= 0) {
       return res.status(400).json({ success: false, message: 'Missing or invalid fields' });
+    }
+    const minDepositRupees = parseInt(process.env.MIN_DEPOSIT_AMOUNT, 10) || 1;
+    if (amount < minDepositRupees) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum deposit amount is ₹${minDepositRupees}`
+      });
     }
 
     const user = await User.findOne({ uid });

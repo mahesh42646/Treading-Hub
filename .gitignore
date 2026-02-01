@@ -20,10 +20,17 @@
 
 # production
 /build
+.env
+.env.production
+.env.development
+backend/.env
+backend/.env.production
+backend/.env.development
 
 # misc
 .DS_Store
 *.pem
+
 
 # debug
 npm-debug.log*

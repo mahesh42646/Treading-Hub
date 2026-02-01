@@ -913,7 +913,7 @@ export default function DashboardWallet() {
                     <h5 className="mb-3 fs-6 fs-md-5 text-white">Quick Actions</h5>
                     <div className="d-grid gap-2 gap-md-3">
                       <button
-                        className="btn btn-sm d-none rounded-4"
+                        className="btn btn-sm  rounded-4"
                         style={{
                           background: 'rgba(59, 130, 246, 0.2)',
                           border: '1px solid rgba(59, 130, 246, 0.5)',
